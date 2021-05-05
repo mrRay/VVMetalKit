@@ -1,0 +1,674 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1A0FBE92260E1C2E00FF39BB /* VVMetalKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEB0260E1F5000FF39BB /* MTLImgBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE99260E1F4F00FF39BB /* MTLImgBuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEB1260E1F5000FF39BB /* PreviewView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9A260E1F4F00FF39BB /* PreviewView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */; };
+		1A0FBEB3260E1F5000FF39BB /* MTLPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9C260E1F4F00FF39BB /* MTLPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEB5260E1F5000FF39BB /* CopierMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEB6260E1F5000FF39BB /* PreviewView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBE9F260E1F4F00FF39BB /* PreviewView.m */; };
+		1A0FBEB7260E1F5000FF39BB /* MTLComputeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA0260E1F4F00FF39BB /* MTLComputeScene.m */; };
+		1A0FBEB8260E1F5000FF39BB /* PreviewViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA1260E1F4F00FF39BB /* PreviewViewShaderTypes.h */; };
+		1A0FBEB9260E1F5000FF39BB /* CustomMetalView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEBA260E1F5000FF39BB /* MTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA3260E1F4F00FF39BB /* MTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEBB260E1F5000FF39BB /* MTLPool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA4260E1F5000FF39BB /* MTLPool.m */; };
+		1A0FBEBC260E1F5000FF39BB /* MTLComputeScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA5260E1F5000FF39BB /* MTLComputeScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */; };
+		1A0FBEC0260E1F5000FF39BB /* MTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA9260E1F5000FF39BB /* MTLScene.m */; };
+		1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */; };
+		1A0FBEC2260E1F5000FF39BB /* MTLImgBufferShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAB260E1F5000FF39BB /* MTLImgBufferShaderTypes.h */; };
+		1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */; };
+		1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */; };
+		1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */; };
+		1A0FBEC6260E1F5000FF39BB /* PreviewShaders.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAF260E1F5000FF39BB /* PreviewShaders.metal */; };
+		1A0FBED7260E243500FF39BB /* SwizzleMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBED8260E243500FF39BB /* SwizzleMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBED6260E243500FF39BB /* SwizzleMTLScene.m */; };
+		1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */; };
+		1A0FBEDF260E257600FF39BB /* RenderProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEDD260E257600FF39BB /* RenderProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
+		1A0FBEFB260E2C0800FF39BB /* BasicPlaybackAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEFA260E2C0800FF39BB /* BasicPlaybackAppDelegate.m */; };
+		1A0FBEFD260E2C0900FF39BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0FBEFC260E2C0900FF39BB /* Assets.xcassets */; };
+		1A0FBF00260E2C0900FF39BB /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1A0FBEFE260E2C0900FF39BB /* MainMenu.xib */; };
+		1A0FBF03260E2C0900FF39BB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBF02260E2C0900FF39BB /* main.m */; };
+		1A19F329260E788800214C6B /* VVSizingTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A19F327260E788800214C6B /* VVSizingTool.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F328260E788800214C6B /* VVSizingTool.m */; };
+		1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
+		1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A8C040A261631FC00038DC9 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
+		1A8C040B261631FC00038DC9 /* VVMetalKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1A8C04112616333B00038DC9 /* DisplayLinkWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */; };
+		1AC7849A26372A6200594F31 /* MTLImgBufferAdditions_Private.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC7849826372A6200594F31 /* MTLImgBufferAdditions_Private.m */; };
+		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
+		1AE5D6FF261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov in Resources */ = {isa = PBXBuildFile; fileRef = 1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */; };
+		1AE5D7012616392F0064DC1C /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */; };
+		1AE5D70726163F970064DC1C /* RedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D70626163F970064DC1C /* RedView.m */; };
+		1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1A8C0407261631F200038DC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0FBE84260E1C2E00FF39BB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A0FBE8C260E1C2E00FF39BB;
+			remoteInfo = VVMetalKit;
+		};
+		1A8C040C261631FC00038DC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0FBE84260E1C2E00FF39BB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A0FBE8C260E1C2E00FF39BB;
+			remoteInfo = VVMetalKit;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		1A8C040E261631FC00038DC9 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				1A8C040B261631FC00038DC9 /* VVMetalKit.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMetalKit.h; sourceTree = "<group>"; };
+		1A0FBE91260E1C2E00FF39BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1A0FBE99260E1F4F00FF39BB /* MTLImgBuffer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBuffer.h; sourceTree = "<group>"; };
+		1A0FBE9A260E1F4F00FF39BB /* PreviewView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewView.h; sourceTree = "<group>"; };
+		1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = SizingTool_metal.metal; sourceTree = "<group>"; };
+		1A0FBE9C260E1F4F00FF39BB /* MTLPool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLPool.h; sourceTree = "<group>"; };
+		1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CopierMTLScene.h; sourceTree = "<group>"; };
+		1A0FBE9F260E1F4F00FF39BB /* PreviewView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PreviewView.m; sourceTree = "<group>"; };
+		1A0FBEA0260E1F4F00FF39BB /* MTLComputeScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTLComputeScene.m; sourceTree = "<group>"; };
+		1A0FBEA1260E1F4F00FF39BB /* PreviewViewShaderTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PreviewViewShaderTypes.h; sourceTree = "<group>"; };
+		1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CustomMetalView.h; sourceTree = "<group>"; };
+		1A0FBEA3260E1F4F00FF39BB /* MTLScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLScene.h; sourceTree = "<group>"; };
+		1A0FBEA4260E1F5000FF39BB /* MTLPool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTLPool.m; sourceTree = "<group>"; };
+		1A0FBEA5260E1F5000FF39BB /* MTLComputeScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLComputeScene.h; sourceTree = "<group>"; };
+		1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SizingToolTypes.h; sourceTree = "<group>"; };
+		1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTLImgBuffer.m; sourceTree = "<group>"; };
+		1A0FBEA9260E1F5000FF39BB /* MTLScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTLScene.m; sourceTree = "<group>"; };
+		1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SizingTool_metal.h; sourceTree = "<group>"; };
+		1A0FBEAB260E1F5000FF39BB /* MTLImgBufferShaderTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferShaderTypes.h; sourceTree = "<group>"; };
+		1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CopierMTLScene.m; sourceTree = "<group>"; };
+		1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CustomMetalView.m; sourceTree = "<group>"; };
+		1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = CopierMTLScene.metal; sourceTree = "<group>"; };
+		1A0FBEAF260E1F5000FF39BB /* PreviewShaders.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = PreviewShaders.metal; sourceTree = "<group>"; };
+		1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLScene.h; sourceTree = "<group>"; };
+		1A0FBED6260E243500FF39BB /* SwizzleMTLScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SwizzleMTLScene.m; sourceTree = "<group>"; };
+		1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SwizzleMTLScene.metal; sourceTree = "<group>"; };
+		1A0FBEDD260E257600FF39BB /* RenderProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProperties.h; sourceTree = "<group>"; };
+		1A0FBEDE260E257600FF39BB /* RenderProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenderProperties.m; sourceTree = "<group>"; };
+		1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MoviePlayer.m; sourceTree = "<group>"; };
+		1A0FBEF1260E2BE100FF39BB /* MoviePlayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MoviePlayer.h; sourceTree = "<group>"; };
+		1A0FBEF7260E2C0800FF39BB /* BasicPlaybackTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BasicPlaybackTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		1A0FBEF9260E2C0800FF39BB /* BasicPlaybackAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BasicPlaybackAppDelegate.h; sourceTree = "<group>"; };
+		1A0FBEFA260E2C0800FF39BB /* BasicPlaybackAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BasicPlaybackAppDelegate.m; sourceTree = "<group>"; };
+		1A0FBEFC260E2C0900FF39BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		1A0FBEFF260E2C0900FF39BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
+		1A0FBF01260E2C0900FF39BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		1A0FBF02260E2C0900FF39BB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		1A19F327260E788800214C6B /* VVSizingTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVSizingTool.h; sourceTree = "<group>"; };
+		1A19F328260E788800214C6B /* VVSizingTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VVSizingTool.m; sourceTree = "<group>"; };
+		1A19F335260E7DAE00214C6B /* DisplayLinkWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayLinkWindow.h; sourceTree = "<group>"; };
+		1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DisplayLinkWindow.m; sourceTree = "<group>"; };
+		1A2149D3263851A0007AD273 /* SizingTool_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SizingTool_objc.m; sourceTree = "<group>"; };
+		1A2149D7263851BA007AD273 /* SizingTool_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_objc.h; sourceTree = "<group>"; };
+		1AC7849826372A6200594F31 /* MTLImgBufferAdditions_Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTLImgBufferAdditions_Private.m; sourceTree = "<group>"; };
+		1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferAdditions_Private.h; sourceTree = "<group>"; };
+		1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = "Blade Runner 2049-Scene-0968_analyzed.mov"; sourceTree = "<group>"; };
+		1AE5D70526163F970064DC1C /* RedView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RedView.h; sourceTree = "<group>"; };
+		1AE5D70626163F970064DC1C /* RedView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RedView.m; sourceTree = "<group>"; };
+		1AE5D72326165A470064DC1C /* SizingTool_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_c.h; sourceTree = "<group>"; };
+		1AE5D72426165A470064DC1C /* SizingTool_c.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SizingTool_c.c; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		1A0FBE8A260E1C2E00FF39BB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0FBEF4260E2C0800FF39BB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A8C040A261631FC00038DC9 /* VVMetalKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		1A0FBE83260E1C2E00FF39BB = {
+			isa = PBXGroup;
+			children = (
+				1A0FBEF2260E2BE600FF39BB /* shared */,
+				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
+				1A0FBEF8260E2C0800FF39BB /* BasicPlaybackTest */,
+				1A0FBE8E260E1C2E00FF39BB /* Products */,
+				1A8C0409261631FC00038DC9 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		1A0FBE8E260E1C2E00FF39BB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */,
+				1A0FBEF7260E2C0800FF39BB /* BasicPlaybackTest.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */ = {
+			isa = PBXGroup;
+			children = (
+				1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */,
+				1A0FBEDD260E257600FF39BB /* RenderProperties.h */,
+				1A0FBEDE260E257600FF39BB /* RenderProperties.m */,
+				1A0FBE99260E1F4F00FF39BB /* MTLImgBuffer.h */,
+				1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */,
+				1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */,
+				1AC7849826372A6200594F31 /* MTLImgBufferAdditions_Private.m */,
+				1A0FBE9C260E1F4F00FF39BB /* MTLPool.h */,
+				1A0FBEA4260E1F5000FF39BB /* MTLPool.m */,
+				1A0FBEA3260E1F4F00FF39BB /* MTLScene.h */,
+				1A0FBEA9260E1F5000FF39BB /* MTLScene.m */,
+				1A0FBEA5260E1F5000FF39BB /* MTLComputeScene.h */,
+				1A0FBEA0260E1F4F00FF39BB /* MTLComputeScene.m */,
+				1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */,
+				1A0FBED6260E243500FF39BB /* SwizzleMTLScene.m */,
+				1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */,
+				1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */,
+				1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */,
+				1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */,
+				1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */,
+				1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */,
+				1A0FBE9A260E1F4F00FF39BB /* PreviewView.h */,
+				1A0FBE9F260E1F4F00FF39BB /* PreviewView.m */,
+				1A0FBEA1260E1F4F00FF39BB /* PreviewViewShaderTypes.h */,
+				1A0FBEAF260E1F5000FF39BB /* PreviewShaders.metal */,
+				1A0FBEAB260E1F5000FF39BB /* MTLImgBufferShaderTypes.h */,
+				1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */,
+				1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */,
+				1AE5D72326165A470064DC1C /* SizingTool_c.h */,
+				1AE5D72426165A470064DC1C /* SizingTool_c.c */,
+				1A2149D7263851BA007AD273 /* SizingTool_objc.h */,
+				1A2149D3263851A0007AD273 /* SizingTool_objc.m */,
+				1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */,
+				1A19F327260E788800214C6B /* VVSizingTool.h */,
+				1A19F328260E788800214C6B /* VVSizingTool.m */,
+				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
+			);
+			path = VVMetalKit;
+			sourceTree = "<group>";
+		};
+		1A0FBEF2260E2BE600FF39BB /* shared */ = {
+			isa = PBXGroup;
+			children = (
+				1A0FBEF1260E2BE100FF39BB /* MoviePlayer.h */,
+				1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */,
+				1A19F335260E7DAE00214C6B /* DisplayLinkWindow.h */,
+				1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */,
+				1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */,
+				1AE5D70526163F970064DC1C /* RedView.h */,
+				1AE5D70626163F970064DC1C /* RedView.m */,
+			);
+			path = shared;
+			sourceTree = "<group>";
+		};
+		1A0FBEF8260E2C0800FF39BB /* BasicPlaybackTest */ = {
+			isa = PBXGroup;
+			children = (
+				1A0FBEF9260E2C0800FF39BB /* BasicPlaybackAppDelegate.h */,
+				1A0FBEFA260E2C0800FF39BB /* BasicPlaybackAppDelegate.m */,
+				1A0FBEFC260E2C0900FF39BB /* Assets.xcassets */,
+				1A0FBEFE260E2C0900FF39BB /* MainMenu.xib */,
+				1A0FBF01260E2C0900FF39BB /* Info.plist */,
+				1A0FBF02260E2C0900FF39BB /* main.m */,
+			);
+			path = BasicPlaybackTest;
+			sourceTree = "<group>";
+		};
+		1A8C0409261631FC00038DC9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		1A0FBE88260E1C2E00FF39BB /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A0FBEB9260E1F5000FF39BB /* CustomMetalView.h in Headers */,
+				1A0FBED7260E243500FF39BB /* SwizzleMTLScene.h in Headers */,
+				1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */,
+				1A19F329260E788800214C6B /* VVSizingTool.h in Headers */,
+				1A0FBEB0260E1F5000FF39BB /* MTLImgBuffer.h in Headers */,
+				1A0FBEB1260E1F5000FF39BB /* PreviewView.h in Headers */,
+				1A0FBEBA260E1F5000FF39BB /* MTLScene.h in Headers */,
+				1A0FBEB3260E1F5000FF39BB /* MTLPool.h in Headers */,
+				1A0FBEDF260E257600FF39BB /* RenderProperties.h in Headers */,
+				1A0FBEB5260E1F5000FF39BB /* CopierMTLScene.h in Headers */,
+				1A0FBE92260E1C2E00FF39BB /* VVMetalKit.h in Headers */,
+				1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */,
+				1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */,
+				1A0FBEBC260E1F5000FF39BB /* MTLComputeScene.h in Headers */,
+				1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */,
+				1A0FBEC2260E1F5000FF39BB /* MTLImgBufferShaderTypes.h in Headers */,
+				1A0FBEB8260E1F5000FF39BB /* PreviewViewShaderTypes.h in Headers */,
+				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A0FBE95260E1C2E00FF39BB /* Build configuration list for PBXNativeTarget "VVMetalKit" */;
+			buildPhases = (
+				1A0FBE88260E1C2E00FF39BB /* Headers */,
+				1A0FBE89260E1C2E00FF39BB /* Sources */,
+				1A0FBE8A260E1C2E00FF39BB /* Frameworks */,
+				1A0FBE8B260E1C2E00FF39BB /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VVMetalKit;
+			productName = VVMetalKit;
+			productReference = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		1A0FBEF6260E2C0800FF39BB /* BasicPlaybackTest */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1A0FBF05260E2C0900FF39BB /* Build configuration list for PBXNativeTarget "BasicPlaybackTest" */;
+			buildPhases = (
+				1A0FBEF3260E2C0800FF39BB /* Sources */,
+				1A0FBEF4260E2C0800FF39BB /* Frameworks */,
+				1A0FBEF5260E2C0800FF39BB /* Resources */,
+				1A8C040E261631FC00038DC9 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1A8C0408261631F200038DC9 /* PBXTargetDependency */,
+				1A8C040D261631FC00038DC9 /* PBXTargetDependency */,
+			);
+			name = BasicPlaybackTest;
+			productName = BasicPlaybackTest;
+			productReference = 1A0FBEF7260E2C0800FF39BB /* BasicPlaybackTest.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		1A0FBE84260E1C2E00FF39BB /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1240;
+				TargetAttributes = {
+					1A0FBE8C260E1C2E00FF39BB = {
+						CreatedOnToolsVersion = 12.4;
+					};
+					1A0FBEF6260E2C0800FF39BB = {
+						CreatedOnToolsVersion = 12.4;
+					};
+				};
+			};
+			buildConfigurationList = 1A0FBE87260E1C2E00FF39BB /* Build configuration list for PBXProject "VVMetalKit" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 1A0FBE83260E1C2E00FF39BB;
+			productRefGroup = 1A0FBE8E260E1C2E00FF39BB /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */,
+				1A0FBEF6260E2C0800FF39BB /* BasicPlaybackTest */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A0FBE8B260E1C2E00FF39BB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0FBEF5260E2C0800FF39BB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AE5D6FF261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov in Resources */,
+				1A0FBEFD260E2C0900FF39BB /* Assets.xcassets in Resources */,
+				1A0FBF00260E2C0900FF39BB /* MainMenu.xib in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		1A0FBE89260E1C2E00FF39BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A0FBEC6260E1F5000FF39BB /* PreviewShaders.metal in Sources */,
+				1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */,
+				1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */,
+				1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */,
+				1A0FBEC0260E1F5000FF39BB /* MTLScene.m in Sources */,
+				1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */,
+				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
+				1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */,
+				1AC7849A26372A6200594F31 /* MTLImgBufferAdditions_Private.m in Sources */,
+				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.m in Sources */,
+				1A0FBEB7260E1F5000FF39BB /* MTLComputeScene.m in Sources */,
+				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
+				1A0FBEB6260E1F5000FF39BB /* PreviewView.m in Sources */,
+				1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */,
+				1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */,
+				1A0FBEBB260E1F5000FF39BB /* MTLPool.m in Sources */,
+				1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1A0FBEF3260E2C0800FF39BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A0FBF03260E2C0900FF39BB /* main.m in Sources */,
+				1AE5D7012616392F0064DC1C /* MoviePlayer.m in Sources */,
+				1A8C04112616333B00038DC9 /* DisplayLinkWindow.m in Sources */,
+				1AE5D70726163F970064DC1C /* RedView.m in Sources */,
+				1A0FBEFB260E2C0800FF39BB /* BasicPlaybackAppDelegate.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1A8C0408261631F200038DC9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */;
+			targetProxy = 1A8C0407261631F200038DC9 /* PBXContainerItemProxy */;
+		};
+		1A8C040D261631FC00038DC9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */;
+			targetProxy = 1A8C040C261631FC00038DC9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		1A0FBEFE260E2C0900FF39BB /* MainMenu.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				1A0FBEFF260E2C0900FF39BB /* Base */,
+			);
+			name = MainMenu.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		1A0FBE93260E1C2E00FF39BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Debug;
+		};
+		1A0FBE94260E1C2E00FF39BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = NO;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "";
+				CODE_SIGN_STYLE = Manual;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				VERSIONING_SYSTEM = "apple-generic";
+				VERSION_INFO_PREFIX = "";
+			};
+			name = Release;
+		};
+		1A0FBE96260E1C2E00FF39BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = VVMetalKit/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		1A0FBE97260E1C2E00FF39BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = VVMetalKit/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
+		1A0FBF06260E2C0900FF39BB /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = BasicPlaybackTest/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.BasicPlaybackTest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		1A0FBF07260E2C0900FF39BB /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				COMBINE_HIDPI_IMAGES = YES;
+				INFOPLIST_FILE = BasicPlaybackTest/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.BasicPlaybackTest;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1A0FBE87260E1C2E00FF39BB /* Build configuration list for PBXProject "VVMetalKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0FBE93260E1C2E00FF39BB /* Debug */,
+				1A0FBE94260E1C2E00FF39BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A0FBE95260E1C2E00FF39BB /* Build configuration list for PBXNativeTarget "VVMetalKit" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0FBE96260E1C2E00FF39BB /* Debug */,
+				1A0FBE97260E1C2E00FF39BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1A0FBF05260E2C0900FF39BB /* Build configuration list for PBXNativeTarget "BasicPlaybackTest" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1A0FBF06260E2C0900FF39BB /* Debug */,
+				1A0FBF07260E2C0900FF39BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 1A0FBE84260E1C2E00FF39BB /* Project object */;
+}
