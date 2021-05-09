@@ -207,7 +207,7 @@
 		self.flipped = n.flipped;
 		self.preferDeletion = NO;	//	if it was 'YES', we would be returning nil here
 		self.checkCount = 0;
-		self.time = 0;	//	do NOT copy the time!
+		self.time = kCMTimeZero;	//	do NOT copy the time!
 		
 		self.srcRect = n.srcRect;
 		self.parentPool = n.parentPool;

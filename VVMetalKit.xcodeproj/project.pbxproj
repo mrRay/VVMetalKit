@@ -45,7 +45,6 @@
 		1A8C040A261631FC00038DC9 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
 		1A8C040B261631FC00038DC9 /* VVMetalKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1A8C04112616333B00038DC9 /* DisplayLinkWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */; };
-		1AC7849A26372A6200594F31 /* MTLImgBufferAdditions_Private.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC7849826372A6200594F31 /* MTLImgBufferAdditions_Private.m */; };
 		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
 		1AE5D6FF261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov in Resources */ = {isa = PBXBuildFile; fileRef = 1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */; };
 		1AE5D7012616392F0064DC1C /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */; };
@@ -130,7 +129,6 @@
 		1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DisplayLinkWindow.m; sourceTree = "<group>"; };
 		1A2149D3263851A0007AD273 /* SizingTool_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SizingTool_objc.m; sourceTree = "<group>"; };
 		1A2149D7263851BA007AD273 /* SizingTool_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_objc.h; sourceTree = "<group>"; };
-		1AC7849826372A6200594F31 /* MTLImgBufferAdditions_Private.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MTLImgBufferAdditions_Private.m; sourceTree = "<group>"; };
 		1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferAdditions_Private.h; sourceTree = "<group>"; };
 		1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = "Blade Runner 2049-Scene-0968_analyzed.mov"; sourceTree = "<group>"; };
 		1AE5D70526163F970064DC1C /* RedView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RedView.h; sourceTree = "<group>"; };
@@ -187,7 +185,6 @@
 				1A0FBE99260E1F4F00FF39BB /* MTLImgBuffer.h */,
 				1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */,
 				1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */,
-				1AC7849826372A6200594F31 /* MTLImgBufferAdditions_Private.m */,
 				1A0FBE9C260E1F4F00FF39BB /* MTLPool.h */,
 				1A0FBEA4260E1F5000FF39BB /* MTLPool.m */,
 				1A0FBEA3260E1F4F00FF39BB /* MTLScene.h */,
@@ -392,7 +389,6 @@
 				1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */,
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */,
-				1AC7849A26372A6200594F31 /* MTLImgBufferAdditions_Private.m in Sources */,
 				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.m in Sources */,
 				1A0FBEB7260E1F5000FF39BB /* MTLComputeScene.m in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
