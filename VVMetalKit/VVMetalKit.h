@@ -13,6 +13,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import "MTLPool.h"
 #import "MTLScene.h"
 #import "MTLComputeScene.h"
+#import "MTLRenderScene.h"
 #import "SwizzleMTLScene.h"
 #import "CopierMTLScene.h"
 #import "CustomMetalView.h"
