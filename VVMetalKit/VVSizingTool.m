@@ -55,6 +55,13 @@
 			returnMe.origin.x = (double)(int)((b.size.width-returnMe.size.width)/2.0+b.origin.x);
 			returnMe.origin.y = (double)(int)((b.size.height-returnMe.size.height)/2.0+b.origin.y);
 			break;
+		case VVSizingModeFitWidth:
+			//	make a rect with the target width, calculate its height
+			returnMe.size.width = b.size.width;
+			returnMe.origin.x = b.origin.x;
+			returnMe.size.height = returnMe.size.width/aAspect;
+			returnMe.origin.y = b.origin.y + ( (b.size.height - returnMe.size.height)/2.0 );
+			break;
 	}
 	
 	return returnMe;
