@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
-#import "CustomMetalView.h"
-#import "MTLPool.h"
+#import <VVMetalKit/CustomMetalView.h>
+#import <VVMetalKit/MTLPool.h>
 
 //NS_ASSUME_NONNULL_BEGIN
 

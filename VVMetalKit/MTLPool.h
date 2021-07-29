@@ -1,6 +1,6 @@
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
-#import "MTLImgBuffer.h"
+#import <VVMetalKit/MTLImgBuffer.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

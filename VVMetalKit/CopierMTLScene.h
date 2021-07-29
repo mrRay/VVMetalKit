@@ -1,6 +1,6 @@
 #import <Foundation/Foundation.h>
 
-#import "MTLComputeScene.h"
+#import <VVMetalKit/MTLComputeScene.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

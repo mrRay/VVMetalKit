@@ -1,7 +1,7 @@
 #ifndef MTLImgBufferShaderTypes_h
 #define MTLImgBufferShaderTypes_h
 
-#include "SizingToolTypes.h"
+#include <VVMetalKit/SizingToolTypes.h>
 
 
 

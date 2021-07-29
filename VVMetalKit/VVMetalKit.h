@@ -8,19 +8,20 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
 #import <Metal/Metal.h>
 
-#import "RenderProperties.h"
-#import "MTLImgBuffer.h"
-#import "MTLPool.h"
-#import "MTLScene.h"
-#import "MTLComputeScene.h"
-#import "MTLRenderScene.h"
-#import "SwizzleMTLScene.h"
-#import "CopierMTLScene.h"
-#import "CustomMetalView.h"
-#import "PreviewView.h"
-#import "VVSizingTool.h"
-#import "SizingTool_c.h"
-#import "SizingTool_objc.h"
-
-
-
+#import <VVMetalKit/RenderProperties.h>
+#import <VVMetalKit/MTLImgBufferShaderTypes.h>
+#import <VVMetalKit/MTLImgBuffer.h>
+#import <VVMetalKit/MTLPool.h>
+#import <VVMetalKit/MTLScene.h>
+#import <VVMetalKit/MTLComputeScene.h>
+#import <VVMetalKit/MTLRenderScene.h>
+#import <VVMetalKit/SwizzleMTLScene.h>
+#import <VVMetalKit/CopierMTLScene.h>
+#import <VVMetalKit/CustomMetalView.h>
+#import <VVMetalKit/PreviewView.h>
+#import <VVMetalKit/PreviewViewShaderTypes.h>
+#import <VVMetalKit/VVSizingTool.h>
+#import <VVMetalKit/SizingTool_c.h>
+#import <VVMetalKit/SizingTool_objc.h>
+//	NO, do not include this!
+//#import <VVMetalKit/SizingTool_Metal.h>

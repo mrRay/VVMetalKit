@@ -1,7 +1,7 @@
 #ifndef SizingTool_h
 #define SizingTool_h
 
-#include "SizingToolTypes.h"
+#include <VVMetalKit/SizingToolTypes.h>
 
 
 

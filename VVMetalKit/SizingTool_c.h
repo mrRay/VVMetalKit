@@ -3,7 +3,7 @@
 
 #include <stdio.h>
 #include <stdbool.h>
-#include "SizingToolTypes.h"
+#include <VVMetalKit/SizingToolTypes.h>
 
 
 

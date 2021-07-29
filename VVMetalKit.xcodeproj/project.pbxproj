@@ -23,7 +23,7 @@
 		1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */; };
 		1A0FBEC0260E1F5000FF39BB /* MTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA9260E1F5000FF39BB /* MTLScene.m */; };
-		1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */; };
 		1A0FBEC2260E1F5000FF39BB /* MTLImgBufferShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAB260E1F5000FF39BB /* MTLImgBufferShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */; };
 		1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */; };
@@ -47,7 +47,7 @@
 		1A8C04112616333B00038DC9 /* DisplayLinkWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */; };
 		1AB2702D26486F2300C2E931 /* MTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2702B26486F2300C2E931 /* MTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
-		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
 		1AE5D6FF261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov in Resources */ = {isa = PBXBuildFile; fileRef = 1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */; };
 		1AE5D7012616392F0064DC1C /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */; };
 		1AE5D70726163F970064DC1C /* RedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D70626163F970064DC1C /* RedView.m */; };
@@ -280,10 +280,10 @@
 				1A0FBEC2260E1F5000FF39BB /* MTLImgBufferShaderTypes.h in Headers */,
 				1A0FBEB8260E1F5000FF39BB /* PreviewViewShaderTypes.h in Headers */,
 				1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */,
-				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
-				1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */,
 				1A0FBEBC260E1F5000FF39BB /* MTLComputeScene.h in Headers */,
 				1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */,
+				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
+				1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
