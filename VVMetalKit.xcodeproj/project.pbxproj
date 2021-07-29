@@ -34,57 +34,16 @@
 		1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */; };
 		1A0FBEDF260E257600FF39BB /* RenderProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEDD260E257600FF39BB /* RenderProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
-		1A0FBEFB260E2C0800FF39BB /* BasicPlaybackAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEFA260E2C0800FF39BB /* BasicPlaybackAppDelegate.m */; };
-		1A0FBEFD260E2C0900FF39BB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1A0FBEFC260E2C0900FF39BB /* Assets.xcassets */; };
-		1A0FBF00260E2C0900FF39BB /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 1A0FBEFE260E2C0900FF39BB /* MainMenu.xib */; };
-		1A0FBF03260E2C0900FF39BB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBF02260E2C0900FF39BB /* main.m */; };
 		1A19F329260E788800214C6B /* VVSizingTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A19F327260E788800214C6B /* VVSizingTool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F328260E788800214C6B /* VVSizingTool.m */; };
 		1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
 		1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A8C040A261631FC00038DC9 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
-		1A8C040B261631FC00038DC9 /* VVMetalKit.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
-		1A8C04112616333B00038DC9 /* DisplayLinkWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */; };
 		1AB2702D26486F2300C2E931 /* MTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2702B26486F2300C2E931 /* MTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
 		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
-		1AE5D6FF261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov in Resources */ = {isa = PBXBuildFile; fileRef = 1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */; };
-		1AE5D7012616392F0064DC1C /* MoviePlayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */; };
-		1AE5D70726163F970064DC1C /* RedView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D70626163F970064DC1C /* RedView.m */; };
 		1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
 /* End PBXBuildFile section */
-
-/* Begin PBXContainerItemProxy section */
-		1A8C0407261631F200038DC9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0FBE84260E1C2E00FF39BB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1A0FBE8C260E1C2E00FF39BB;
-			remoteInfo = VVMetalKit;
-		};
-		1A8C040C261631FC00038DC9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 1A0FBE84260E1C2E00FF39BB /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 1A0FBE8C260E1C2E00FF39BB;
-			remoteInfo = VVMetalKit;
-		};
-/* End PBXContainerItemProxy section */
-
-/* Begin PBXCopyFilesBuildPhase section */
-		1A8C040E261631FC00038DC9 /* Embed Frameworks */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 10;
-			files = (
-				1A8C040B261631FC00038DC9 /* VVMetalKit.framework in Embed Frameworks */,
-			);
-			name = "Embed Frameworks";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -116,27 +75,13 @@
 		1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SwizzleMTLScene.metal; sourceTree = "<group>"; };
 		1A0FBEDD260E257600FF39BB /* RenderProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProperties.h; sourceTree = "<group>"; };
 		1A0FBEDE260E257600FF39BB /* RenderProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenderProperties.m; sourceTree = "<group>"; };
-		1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MoviePlayer.m; sourceTree = "<group>"; };
-		1A0FBEF1260E2BE100FF39BB /* MoviePlayer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MoviePlayer.h; sourceTree = "<group>"; };
-		1A0FBEF7260E2C0800FF39BB /* BasicPlaybackTest.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BasicPlaybackTest.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		1A0FBEF9260E2C0800FF39BB /* BasicPlaybackAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BasicPlaybackAppDelegate.h; sourceTree = "<group>"; };
-		1A0FBEFA260E2C0800FF39BB /* BasicPlaybackAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = BasicPlaybackAppDelegate.m; sourceTree = "<group>"; };
-		1A0FBEFC260E2C0900FF39BB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		1A0FBEFF260E2C0900FF39BB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
-		1A0FBF01260E2C0900FF39BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		1A0FBF02260E2C0900FF39BB /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		1A19F327260E788800214C6B /* VVSizingTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVSizingTool.h; sourceTree = "<group>"; };
 		1A19F328260E788800214C6B /* VVSizingTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VVSizingTool.m; sourceTree = "<group>"; };
-		1A19F335260E7DAE00214C6B /* DisplayLinkWindow.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = DisplayLinkWindow.h; sourceTree = "<group>"; };
-		1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = DisplayLinkWindow.m; sourceTree = "<group>"; };
 		1A2149D3263851A0007AD273 /* SizingTool_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SizingTool_objc.m; sourceTree = "<group>"; };
 		1A2149D7263851BA007AD273 /* SizingTool_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_objc.h; sourceTree = "<group>"; };
 		1AB2702B26486F2300C2E931 /* MTLRenderScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTLRenderScene.h; sourceTree = "<group>"; };
 		1AB2702C26486F2300C2E931 /* MTLRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTLRenderScene.m; sourceTree = "<group>"; };
 		1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferAdditions_Private.h; sourceTree = "<group>"; };
-		1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */ = {isa = PBXFileReference; lastKnownFileType = video.quicktime; path = "Blade Runner 2049-Scene-0968_analyzed.mov"; sourceTree = "<group>"; };
-		1AE5D70526163F970064DC1C /* RedView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RedView.h; sourceTree = "<group>"; };
-		1AE5D70626163F970064DC1C /* RedView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RedView.m; sourceTree = "<group>"; };
 		1AE5D72326165A470064DC1C /* SizingTool_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_c.h; sourceTree = "<group>"; };
 		1AE5D72426165A470064DC1C /* SizingTool_c.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SizingTool_c.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -149,23 +94,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A0FBEF4260E2C0800FF39BB /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				1A8C040A261631FC00038DC9 /* VVMetalKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		1A0FBE83260E1C2E00FF39BB = {
 			isa = PBXGroup;
 			children = (
-				1A0FBEF2260E2BE600FF39BB /* shared */,
 				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
-				1A0FBEF8260E2C0800FF39BB /* BasicPlaybackTest */,
 				1A0FBE8E260E1C2E00FF39BB /* Products */,
 				1A8C0409261631FC00038DC9 /* Frameworks */,
 			);
@@ -175,7 +110,6 @@
 			isa = PBXGroup;
 			children = (
 				1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */,
-				1A0FBEF7260E2C0800FF39BB /* BasicPlaybackTest.app */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -222,33 +156,6 @@
 				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
 			);
 			path = VVMetalKit;
-			sourceTree = "<group>";
-		};
-		1A0FBEF2260E2BE600FF39BB /* shared */ = {
-			isa = PBXGroup;
-			children = (
-				1A0FBEF1260E2BE100FF39BB /* MoviePlayer.h */,
-				1A0FBEF0260E2BE100FF39BB /* MoviePlayer.m */,
-				1A19F335260E7DAE00214C6B /* DisplayLinkWindow.h */,
-				1A19F336260E7DAE00214C6B /* DisplayLinkWindow.m */,
-				1AE5D6FE261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov */,
-				1AE5D70526163F970064DC1C /* RedView.h */,
-				1AE5D70626163F970064DC1C /* RedView.m */,
-			);
-			path = shared;
-			sourceTree = "<group>";
-		};
-		1A0FBEF8260E2C0800FF39BB /* BasicPlaybackTest */ = {
-			isa = PBXGroup;
-			children = (
-				1A0FBEF9260E2C0800FF39BB /* BasicPlaybackAppDelegate.h */,
-				1A0FBEFA260E2C0800FF39BB /* BasicPlaybackAppDelegate.m */,
-				1A0FBEFC260E2C0900FF39BB /* Assets.xcassets */,
-				1A0FBEFE260E2C0900FF39BB /* MainMenu.xib */,
-				1A0FBF01260E2C0900FF39BB /* Info.plist */,
-				1A0FBF02260E2C0900FF39BB /* main.m */,
-			);
-			path = BasicPlaybackTest;
 			sourceTree = "<group>";
 		};
 		1A8C0409261631FC00038DC9 /* Frameworks */ = {
@@ -308,26 +215,6 @@
 			productReference = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */;
 			productType = "com.apple.product-type.framework";
 		};
-		1A0FBEF6260E2C0800FF39BB /* BasicPlaybackTest */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 1A0FBF05260E2C0900FF39BB /* Build configuration list for PBXNativeTarget "BasicPlaybackTest" */;
-			buildPhases = (
-				1A0FBEF3260E2C0800FF39BB /* Sources */,
-				1A0FBEF4260E2C0800FF39BB /* Frameworks */,
-				1A0FBEF5260E2C0800FF39BB /* Resources */,
-				1A8C040E261631FC00038DC9 /* Embed Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				1A8C0408261631F200038DC9 /* PBXTargetDependency */,
-				1A8C040D261631FC00038DC9 /* PBXTargetDependency */,
-			);
-			name = BasicPlaybackTest;
-			productName = BasicPlaybackTest;
-			productReference = 1A0FBEF7260E2C0800FF39BB /* BasicPlaybackTest.app */;
-			productType = "com.apple.product-type.application";
-		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -337,9 +224,6 @@
 				LastUpgradeCheck = 1240;
 				TargetAttributes = {
 					1A0FBE8C260E1C2E00FF39BB = {
-						CreatedOnToolsVersion = 12.4;
-					};
-					1A0FBEF6260E2C0800FF39BB = {
 						CreatedOnToolsVersion = 12.4;
 					};
 				};
@@ -358,7 +242,6 @@
 			projectRoot = "";
 			targets = (
 				1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */,
-				1A0FBEF6260E2C0800FF39BB /* BasicPlaybackTest */,
 			);
 		};
 /* End PBXProject section */
@@ -368,16 +251,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		1A0FBEF5260E2C0800FF39BB /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				1AE5D6FF261638AD0064DC1C /* Blade Runner 2049-Scene-0968_analyzed.mov in Resources */,
-				1A0FBEFD260E2C0900FF39BB /* Assets.xcassets in Resources */,
-				1A0FBF00260E2C0900FF39BB /* MainMenu.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -408,43 +281,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		1A0FBEF3260E2C0800FF39BB /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				1A0FBF03260E2C0900FF39BB /* main.m in Sources */,
-				1AE5D7012616392F0064DC1C /* MoviePlayer.m in Sources */,
-				1A8C04112616333B00038DC9 /* DisplayLinkWindow.m in Sources */,
-				1AE5D70726163F970064DC1C /* RedView.m in Sources */,
-				1A0FBEFB260E2C0800FF39BB /* BasicPlaybackAppDelegate.m in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		1A8C0408261631F200038DC9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */;
-			targetProxy = 1A8C0407261631F200038DC9 /* PBXContainerItemProxy */;
-		};
-		1A8C040D261631FC00038DC9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */;
-			targetProxy = 1A8C040C261631FC00038DC9 /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
-
-/* Begin PBXVariantGroup section */
-		1A0FBEFE260E2C0900FF39BB /* MainMenu.xib */ = {
-			isa = PBXVariantGroup;
-			children = (
-				1A0FBEFF260E2C0900FF39BB /* Base */,
-			);
-			name = MainMenu.xib;
-			sourceTree = "<group>";
-		};
-/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		1A0FBE93260E1C2E00FF39BB /* Debug */ = {
@@ -610,38 +447,6 @@
 			};
 			name = Release;
 		};
-		1A0FBF06260E2C0900FF39BB /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = BasicPlaybackTest/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.BasicPlaybackTest;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		1A0FBF07260E2C0900FF39BB /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				COMBINE_HIDPI_IMAGES = YES;
-				INFOPLIST_FILE = BasicPlaybackTest/Info.plist;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/../Frameworks",
-				);
-				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.BasicPlaybackTest;
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -659,15 +464,6 @@
 			buildConfigurations = (
 				1A0FBE96260E1C2E00FF39BB /* Debug */,
 				1A0FBE97260E1C2E00FF39BB /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		1A0FBF05260E2C0900FF39BB /* Build configuration list for PBXNativeTarget "BasicPlaybackTest" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				1A0FBF06260E2C0900FF39BB /* Debug */,
-				1A0FBF07260E2C0900FF39BB /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
