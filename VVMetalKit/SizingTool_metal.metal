@@ -151,3 +151,19 @@ GPoint NormCoordsOfPointInRect(thread GPoint & inPoint, thread GRect & inRect)	{
 }
 
 
+GPoint NormCoordsOfPixelInRect(thread GPoint & inPoint, thread GRect & inRect)	{
+	GPoint		localCoords = MakePoint(inPoint.x - inRect.origin.x, inPoint.y - inRect.origin.y);
+	return MakePoint( localCoords.x/(inRect.size.width-1.), localCoords.y/(inRect.size.height-1.) );
+}
+GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect)	{
+	GPoint		localCoords = MakePoint(inPoint.x - inRect.origin.x, inPoint.y - inRect.origin.y);
+	return MakePoint( localCoords.x/(inRect.size.width-1.), localCoords.y/(inRect.size.height-1.) );
+}
+GPoint PixelForNormCoordsInRect(thread GPoint & inPoint, thread GRect & inRect)	{
+	return MakePoint( (inPoint.x*(inRect.size.width-1.))+inRect.origin.x, (inPoint.y*(inRect.size.height-1.))+inRect.origin.y );
+}
+GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect)	{
+	return MakePoint( (inPoint.x*(inRect.size.width-1.))+inRect.origin.x, (inPoint.y*(inRect.size.height-1.))+inRect.origin.y );
+}
+
+

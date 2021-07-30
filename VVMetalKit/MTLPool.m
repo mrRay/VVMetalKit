@@ -676,6 +676,129 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe = nil;
 	return returnMe;
 }
+- (MTLImgBuffer *) uyvyBufferBackedTexSized:(CGSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
+	//NSLog(@"%s ... %@",__func__,NSStringFromSize(n));
+	if (s.width < 1 || s.height < 1)	{
+		NSLog(@"ERR: invalid dimensions (%0.3f, %0.3f) in %s",s.width,s.height,__func__);
+		return nil;
+	}
+	if (b==nil || bpr<1)	{
+		NSLog(@"ERR: prereqs not met, %s",__func__);
+		return nil;
+	}
+/*
+		WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+		id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+		[blitEncoder synchronizeResource:myFrame.buffer];
+		[blitEncoder endEncoding];
+		[cmdBuffer commit];
+		[cmdBuffer waitUntilCompleted];
+		float		*contents = (float *)[newFrame.buffer contents];
+*/
+	
+	
+	MTLImgBuffer		*returnMe = nil;
+	
+	MTLPixelFormat		mpf = MTLPixelFormatBGRG422;
+	
+	//	we're going to skip this "let's try to find a matching texture" bit because the premise of this method is "hey, upload this crap to the GPU"
+	/*
+	//	run through the array of textures in our pool, try to find one that matches the description
+	LOCK(&lock);
+	NSUInteger			idx = 0;
+	for (MTLImgBuffer * holder in _textures)	{
+		if (holder.texture.width==s.width && holder.texture.height==s.height && holder.texture.pixelFormat==mpf && holder.buffer!=nil)	{
+			returnMe = holder;
+			returnMe.preferDeletion = NO;
+			returnMe.srcRect = NSMakeRect(0,0,round(s.width),round(s.height));
+			returnMe.flipped = NO;
+			//	retain the texture in the object we'll be returning, remove it from the pool
+			//returnMe.texture = holder.texture;
+			//returnMe.iosfc = holder.iosfc;
+			//returnMe.cvpb = holder.cvpb;
+			//returnMe.destroyBlock = holder.destroyBlock;
+			[_textures removeObjectAtIndex:idx];
+			//NSLog(@"\tfound pre-existing texture...");
+			break;
+		}
+		++idx;
+	}
+	UNLOCK(&lock);
+	
+	//	if we found a texture, we can return now
+	if (returnMe != nil)	{
+		//NSLog(@"\treturning existing texture");
+		return returnMe;
+	}
+	*/
+	
+	returnMe = [[MTLImgBuffer alloc] init];
+	returnMe.width = round(s.width);
+	returnMe.height = round(s.height);
+	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
+	returnMe.flipped = NO;
+	returnMe.preferDeletion = NO;
+	returnMe.parentPool = self;
+	
+	//	make an appropriately-sized MTLBuffer
+	//size_t				bufferBytesPerRow = returnMe.width * 8 * 4 / 8;
+	//size_t				acceptableBytesPerRow = [self.device minimumLinearTextureAlignmentForPixelFormat:mpf];
+	//NSLog(@"\t\torig bytesPerRow is %ld, acceptable bytesPerRow is %ld",bufferBytesPerRow,acceptableBytesPerRow);
+	//if (bufferBytesPerRow % acceptableBytesPerRow != 0)	{
+	//	bufferBytesPerRow += (acceptableBytesPerRow - (bufferBytesPerRow % acceptableBytesPerRow));
+	//}
+	//NSLog(@"\t\tactual bytesPerRow is %ld",bufferBytesPerRow);
+	//size_t				bufferSizeInBytes = bufferBytesPerRow * returnMe.height;
+	//id<MTLBuffer>		tmpBuffer = [self.device newBufferWithLength:bufferSizeInBytes options:MTLResourceStorageModeManaged];
+	
+	
+	
+	size_t				bufferSizeInBytes = bpr * s.height;
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	if (tmpBuffer == nil)	{
+		NSLog(@"ERR: unable to create buffer in %s",__func__);
+		returnMe.preferDeletion = YES;
+		returnMe = nil;
+		return nil;
+	}
+	
+	//	make a texture from that buffer!
+	MTLTextureDescriptor	*desc = [[MTLTextureDescriptor alloc] init];
+	desc.textureType = MTLTextureType2D;
+	desc.pixelFormat = mpf;
+	desc.width = returnMe.width;
+	desc.height = returnMe.height;
+	desc.depth = 1;
+	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
+	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
+	desc.storageMode = MTLStorageModeManaged;
+	//desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite | MTLTextureUsagePixelFormatView;
+	id<MTLTexture>		tmpTex = [tmpBuffer
+		newTextureWithDescriptor:desc
+		offset:0
+		bytesPerRow:bpr];
+	if (tmpTex == nil)	{
+		NSLog(@"ERR: unable to create tex in %s",__func__);
+		tmpBuffer = nil;
+		tmpTex = nil;
+		returnMe.preferDeletion = YES;
+		returnMe = nil;
+		return nil;
+	}
+	
+	[self _labelTexture:tmpTex];
+	tmpTex.label = [tmpTex.label stringByAppendingString:@"- rgb10a2B_Ext"];
+	
+	returnMe.buffer = tmpBuffer;
+	returnMe.bufferBytesPerRow = bpr;
+	returnMe.texture = tmpTex;
+	//NSLog(@"allocated texture %@",returnMe);
+	
+	return returnMe;
+}
 - (MTLImgBuffer *) rgbaFloatTexSized:(CGSize)n	{
 	//NSLog(@"%s ... %@",__func__,NSStringFromSize(n));
 	if (n.width < 1 || n.height < 1)	{
@@ -1653,6 +1776,118 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		returnMe.iosfc = iosfc;
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(inCVPB);
+		};
+		//NSLog(@"allocated texture %@",returnMe);
+		return returnMe;
+	}
+	
+	//	...if we're here, something went wrong and we have to return nil.  first destroy what we've created so far.
+	
+	returnMe.preferDeletion = YES;
+	returnMe = nil;
+	return returnMe;
+}
+- (MTLImgBuffer *) uyvyIOSurfaceBackedTexSized:(CGSize)n	{
+	//NSLog(@"%s ... %@",__func__,NSStringFromSize(n));
+	if (n.width < 1 || n.height < 1)	{
+		NSLog(@"ERR: invalid dimensions (%0.3f, %0.3f) in %s",n.width,n.height,__func__);
+		return nil;
+	}
+	MTLImgBuffer		*returnMe = nil;
+	
+	MTLPixelFormat		mpf = MTLPixelFormatBGRG422;
+	
+	//	run through the array of textures in our pool, try to find one that matches the description
+	LOCK(&lock);
+	NSUInteger			idx = 0;
+	for (MTLImgBuffer * holder in _textures)	{
+		if (holder.texture.width==n.width && holder.texture.height==n.height && holder.texture.iosurface!=NULL && holder.texture.pixelFormat==mpf && holder.buffer==nil)	{
+			returnMe = holder;
+			returnMe.preferDeletion = NO;
+			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
+			returnMe.flipped = NO;
+			//	retain the texture in the object we'll be returning, remove it from the pool
+			//returnMe.texture = holder.texture;
+			//returnMe.iosfc = holder.iosfc;
+			//returnMe.cvpb = holder.cvpb;
+			//returnMe.destroyBlock = holder.destroyBlock;
+			[_textures removeObjectAtIndex:idx];
+			break;
+		}
+		++idx;
+	}
+	UNLOCK(&lock);
+	
+	//	if we found a texture, we can return now
+	if (returnMe != nil)	{
+		return returnMe;
+	}
+	
+	returnMe = [[MTLImgBuffer alloc] init];
+	returnMe.width = n.width;
+	returnMe.height = n.height;
+	//returnMe.displaySize = CGSizeMake(n.width, n.height);
+	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
+	returnMe.flipped = NO;
+	returnMe.preferDeletion = YES;
+	returnMe.parentPool = self;
+	
+	//	...if we're here then we couldn't find a pooled texture- we have to create one.
+	
+	//	make an IOSurface-backed CVPixelBuffer
+	CVPixelBufferRef	cvpb = NULL;
+	CVReturn			cvErr = CVPixelBufferCreate(
+		kCFAllocatorDefault,
+		n.width,
+		n.height,
+		kCVPixelFormatType_422YpCbCr8,
+		(__bridge CFDictionaryRef)@{
+			(NSString*)kCVPixelBufferIOSurfacePropertiesKey: @{ }
+			},
+		&cvpb);
+	if (cvErr != kCVReturnSuccess || cvpb == NULL)	{
+		NSLog(@"ERR: unable to make CVPB in %s",__func__);
+		returnMe.preferDeletion = YES;
+		returnMe = nil;
+		return nil;
+	}
+	IOSurfaceRef		iosfc = CVPixelBufferGetIOSurface(cvpb);
+	if (iosfc == NULL)	{
+		NSLog(@"ERR: CVPB not backed by an IOSurface, %s",__func__);
+		CFRelease(cvpb);
+		returnMe.preferDeletion = YES;
+		returnMe = nil;
+		return nil;
+	}
+	
+	//	make a MTLTexture from the IOSurface
+	MTLTextureDescriptor	*desc = [[MTLTextureDescriptor alloc] init];
+	desc.textureType = MTLTextureType2D;
+	desc.pixelFormat = mpf;
+	desc.width = n.width;
+	desc.height = n.height;
+	desc.depth = 1;
+	//desc.cpuCacheMode = MTLCPUCacheModeDefaultCache;
+	//desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeShared;
+	//desc.hazardTrackingMode = MTLHazardTrackingModeDefault;
+	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite;
+	
+	//	make a new texture matching the descriptor
+	id<MTLTexture>		newTex = [self.device
+		newTextureWithDescriptor:desc
+		iosurface:iosfc
+		plane:0];
+	[self _labelTexture:newTex];
+	newTex.label = [newTex.label stringByAppendingString:@"- 2vuyIosfc"];
+	
+	//	if we managed to create a new texture, finish populating the object we'll be returning and return it
+	if (newTex != nil)	{
+		returnMe.texture = newTex;
+		returnMe.cvpb = cvpb;
+		returnMe.iosfc = CVPixelBufferGetIOSurface(cvpb);
+		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
+			CFRelease(cvpb);
 		};
 		//NSLog(@"allocated texture %@",returnMe);
 		return returnMe;

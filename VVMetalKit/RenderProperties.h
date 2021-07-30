@@ -18,6 +18,7 @@ extern NSString * const kRenderPropertiesChangedNotificationName;
 @property (readonly) id<MTLDevice> device;
 @property (readonly) id<MTLCommandQueue> renderQueue;
 @property (readonly) id<MTLCommandQueue> bgCmdQueue;
+@property (readonly) id<MTLLibrary> defaultLibrary;
 
 - (void) configureWithDevice:(id<MTLDevice>)n;
 

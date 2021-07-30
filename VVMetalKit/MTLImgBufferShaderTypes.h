@@ -9,6 +9,7 @@
 typedef struct MTLImgBufferStruct	{
 	GRect			srcRect;	//	the region of the passed texture that contains the image we want to work with
 	GRect			dstRect;	//	the rect at which 'srcRect' should be drawn, in whatever context it is being drawn
+	bool			flipped;	//	whether or not the texture in 'srcRect' is flipped vertically compared to the orientation of 'dstRect'
 } MTLImgBufferStruct;
 
 

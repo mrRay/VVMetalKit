@@ -43,7 +43,8 @@ fragment float4 PreviewViewFragShader(
 	
 	//	this is the texel we're currently evaluating...
 	GPoint			thisTexel = MakePoint(inRasterData.position.x, inRasterData.position.y);
-	GPoint			thisTexelNorm = NormCoordsOfPointInRect(thisTexel, dstRect);
+	//GPoint			thisTexelNorm = NormCoordsOfPointInRect(thisTexel, dstRect);
+	GPoint			thisTexelNorm = NormCoordsOfPixelInRect(thisTexel, dstRect);
 	
 	//	if this texel doesn't lie within the area the image is to be displayed in, return transparent black
 	if (!PointInRect(thisTexel, dstRect))	{
@@ -53,15 +54,25 @@ fragment float4 PreviewViewFragShader(
 	//	get the src rect we're supposed to be drawing
 	GRect			srcRect = displayInfo->srcRect;
 	
-	float2			samplerCoord = float2(
-		(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
-		(thisTexelNorm.y * (srcRect.size.height-1)) + srcRect.origin.y
-	);
+	float2			samplerCoord;
+	if (displayInfo->flipped)	{
+		samplerCoord = float2(
+			(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
+			((1.0-thisTexelNorm.y) * (srcRect.size.height-1)) + srcRect.origin.y
+		);
+	}
+	else	{
+		samplerCoord = float2(
+			(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
+			(thisTexelNorm.y * (srcRect.size.height-1)) + srcRect.origin.y
+		);
+	}
 	
 	
 	
 	//	calculate the coords of the image we want to fetch
-	//float2			normPosInImageBounds = NormCoordsOfPointInRect(thisTexel, dstRect);
+	////float2			normPosInImageBounds = NormCoordsOfPointInRect(thisTexel, dstRect);
+	//float2			normPosInImageBounds = NormCoordsOfPixelInRect(thisTexel, dstRect);
 	//float2			contentCoordsInImageBounds;
 	//
 	//contentCoordsInImageBounds.x = (normPosInImageBounds.x * srcRect.size.width) + srcRect.origin.x;

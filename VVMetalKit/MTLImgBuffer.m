@@ -134,6 +134,7 @@
 	n->srcRect.origin.y = round(self.srcRect.origin.y);
 	n->srcRect.size.width = round(self.srcRect.size.width);
 	n->srcRect.size.height = round(self.srcRect.size.height);
+	n->flipped = self.flipped;
 }
 
 

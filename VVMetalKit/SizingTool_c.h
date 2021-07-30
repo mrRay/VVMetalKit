@@ -29,6 +29,9 @@ float MinY(GRect inRect);
 
 GPoint NormCoordsOfPointInRect(GPoint inPoint, GRect inRect);
 
+GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect);
+GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect);
+
 
 
 

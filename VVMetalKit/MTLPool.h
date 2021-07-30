@@ -39,6 +39,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (MTLImgBuffer *) rgb10a2NormTexSized:(CGSize)n;
 
+- (MTLImgBuffer *) uyvyBufferBackedTexSized:(CGSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
+
 - (MTLImgBuffer *) rgba16TexSized:(CGSize)n;
 
 - (MTLImgBuffer *) rgbaFloatTexSized:(CGSize)n;
@@ -60,6 +62,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (MTLImgBuffer *) rgbaFloat32IOSurfaceBackedTexSized:(CGSize)n;
 
 - (MTLImgBuffer *) rgbaHalfFloatIOSurfaceBackedTexFromCVPB:(CVPixelBufferRef)inCVPB;
+
+- (MTLImgBuffer *) uyvyIOSurfaceBackedTexSized:(CGSize)n;
 
 //	retains the passed texture ref and releases it when the returned object is released
 - (MTLImgBuffer *) bufferForCVMTLTex:(CVMetalTextureRef)inRef sized:(CGSize)inSize;
