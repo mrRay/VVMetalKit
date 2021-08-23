@@ -18,8 +18,8 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/SwizzleMTLScene.h>
 #import <VVMetalKit/CopierMTLScene.h>
 #import <VVMetalKit/CustomMetalView.h>
-#import <VVMetalKit/PreviewView.h>
-#import <VVMetalKit/PreviewViewShaderTypes.h>
+#import <VVMetalKit/MTLImgBufferView.h>
+#import <VVMetalKit/MTLImgBufferViewShaderTypes.h>
 #import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingTool_c.h>
 #import <VVMetalKit/SizingTool_objc.h>

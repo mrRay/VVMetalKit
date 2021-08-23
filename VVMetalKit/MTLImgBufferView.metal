@@ -1,7 +1,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-#include "PreviewViewShaderTypes.h"
+#include "MTLImgBufferViewShaderTypes.h"
 #include "SizingTool_metal.h"
 
 
@@ -16,8 +16,8 @@ typedef struct	{
 
 vertex PreviewViewRasterizerData PreviewViewVertShader(
 	uint vertexID [[ vertex_id ]],
-	constant PreviewViewVertex * inVerts [[ buffer(PV_VS_Index_Verts) ]],
-	constant float4x4 * inMVP [[ buffer(PV_VS_Index_MVPMatrix) ]])
+	constant MTLImgBufferViewVertex * inVerts [[ buffer(MTLImgBufferView_VS_Index_Verts) ]],
+	constant float4x4 * inMVP [[ buffer(MTLImgBufferView_VS_Index_MVPMatrix) ]])
 {
 	PreviewViewRasterizerData		returnMe;
 	
@@ -33,11 +33,11 @@ vertex PreviewViewRasterizerData PreviewViewVertShader(
 
 fragment float4 PreviewViewFragShader(
 	PreviewViewRasterizerData inRasterData [[ stage_in ]],
-	texture2d<float, access::sample> tex [[ texture(PV_FS_Index_Color) ]],
-	constant MTLImgBufferStruct * displayInfo [[ buffer(PV_FS_Index_Geo) ]])
+	texture2d<float, access::sample> tex [[ texture(MTLImgBufferView_FS_Index_Color) ]],
+	constant MTLImgBufferStruct * displayInfo [[ buffer(MTLImgBufferView_FS_Index_Geo) ]])
 {
 	
-	//	the bounds we need to size the texture to fit within- calculated by PreviewView using RectThatFitsRectInRect(), 
+	//	the bounds we need to size the texture to fit within- calculated by MTLImgBufferView using RectThatFitsRectInRect(), 
 	//	so the AR is guaranteed to match the AR of the image we want to display in it!
 	GRect			dstRect = displayInfo->dstRect;
 	

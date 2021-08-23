@@ -1,24 +1,18 @@
-#import "PreviewView.h"
-#import "PreviewViewShaderTypes.h"
+#import "MTLImgBufferView.h"
+#import "MTLImgBufferViewShaderTypes.h"
 #import "VVSizingTool.h"
 #import "SizingTool_c.h"
 
 
 
 
-@interface PreviewView ()
-//	buffer of the vertices that are drawn
-@property (strong) id<MTLBuffer> vertBuffer;
-//	buffer containing the model/view/projection matrices that control display
-@property (strong) id<MTLBuffer> mvpBuffer;
-//	buffer containing the src rect and anamorphic ratio of the images we're asked to display
-@property (strong) id<MTLBuffer> geoBuffer;
+@interface MTLImgBufferView ()
 @end
 
 
 
 
-@implementation PreviewView
+@implementation MTLImgBufferView
 
 
 #pragma mark - init/dealloc
@@ -33,7 +27,7 @@
 	self.geoBuffer = nil;
 	self.imgBuffer = nil;
 	
-	//	commented out- this was an attempt to make PreviewView "transparent" (0 alpha would display view behind it)
+	//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 	self.layer.opaque = NO;
 	self.layer.backgroundColor = [[NSColor clearColor] CGColor];
 	passDescriptor = [MTLRenderPassDescriptor new];
@@ -43,7 +37,6 @@
 }
 - (void) awakeFromNib	{
 }
-//	commented out- this was an attempt to make PreviewView "transparent" (0 alpha would display view behind it)
 - (BOOL) opaque	{
 	return NO;
 }
@@ -94,7 +87,7 @@
 			//NSLog(@"\t\timgBuffer is %@",self.imgBuffer);
 			//	make sure the vert buffer exists, create it if it doesn't
 			if (self.vertBuffer == nil)	{
-				const PreviewViewVertex		quadVerts[] = {
+				const MTLImgBufferViewVertex		quadVerts[] = {
 					{ { CGRectGetMinX(viewRect), CGRectGetMinY(viewRect) } },
 					{ { CGRectGetMinX(viewRect), CGRectGetMaxY(viewRect) } },
 					{ { CGRectGetMaxX(viewRect), CGRectGetMinY(viewRect) } },
@@ -153,7 +146,7 @@
 		if (self.label != nil)
 			renderEncoder.label = self.label;
 		else
-			renderEncoder.label = @"PreviewView encoder";
+			renderEncoder.label = @"MTLImgBufferView encoder";
 		[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, viewportSize.x, viewportSize.y, -1.f, 1.f }];
 		[renderEncoder setRenderPipelineState:_pso];
 		
@@ -163,20 +156,20 @@
 			[renderEncoder
 				setVertexBuffer:self.vertBuffer
 				offset:0
-				atIndex:PV_VS_Index_Verts];
+				atIndex:MTLImgBufferView_VS_Index_Verts];
 			[renderEncoder
 				setVertexBuffer:self.mvpBuffer
 				offset:0
-				atIndex:PV_VS_Index_MVPMatrix];
+				atIndex:MTLImgBufferView_VS_Index_MVPMatrix];
 			
 			[renderEncoder
 				setFragmentTexture:self.imgBuffer.texture
-				atIndex:PV_FS_Index_Color];
+				atIndex:MTLImgBufferView_FS_Index_Color];
 			
 			[renderEncoder
 				setFragmentBuffer:self.geoBuffer
 				offset:0
-				atIndex:PV_FS_Index_Geo];
+				atIndex:MTLImgBufferView_FS_Index_Geo];
 			
 			[renderEncoder
 				drawPrimitives:MTLPrimitiveTypeTriangleStrip
@@ -219,7 +212,7 @@
 		psDesc.fragmentFunction = fragFunc;
 		psDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
 		
-		//	commented out- this was an attempt to make PreviewView "transparent" (0 alpha would display view behind it)
+		//	commented out- this was an attempt to make MTLImgBufferView "transparent" (0 alpha would display view behind it)
 		psDesc.alphaToCoverageEnabled = YES;
 		psDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
 		psDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
@@ -250,7 +243,7 @@
 	}
 }
 - (NSString *) description	{
-	return [NSString stringWithFormat:@"<PreviewView %@>",self.label];
+	return [NSString stringWithFormat:@"<MTLImgBufferView %@>",self.label];
 }
 
 
