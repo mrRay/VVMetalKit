@@ -140,7 +140,7 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 
 
 - (void) _returnToPool:(MTLImgBuffer *)n	{
-	NSLog(@"%s ... %@",__func__,n);
+	//NSLog(@"%s ... %@",__func__,n);
 	if (n == nil)
 		return;
 	
@@ -753,8 +753,9 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//id<MTLBuffer>		tmpBuffer = [self.device newBufferWithLength:bufferSizeInBytes options:MTLResourceStorageModeManaged];
 	
 	
-	
 	size_t				bufferSizeInBytes = bpr * s.height;
+	if (bufferSizeInBytes % 4096 != 0)
+		bufferSizeInBytes = ((bufferSizeInBytes/4096)+1)*4096;
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
@@ -775,7 +776,7 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
 	desc.storageMode = MTLStorageModeManaged;
 	//desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
-	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite | MTLTextureUsagePixelFormatView;
+	desc.usage = MTLTextureUsageShaderRead /*| MTLTextureUsageShaderWrite | MTLTextureUsagePixelFormatView*/;
 	id<MTLTexture>		tmpTex = [tmpBuffer
 		newTextureWithDescriptor:desc
 		offset:0
@@ -1185,6 +1186,7 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	size_t				bufferSizeInBytes = bpr * s.height;
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	//id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytes:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
 		returnMe.preferDeletion = YES;

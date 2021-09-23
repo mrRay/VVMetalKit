@@ -1,6 +1,7 @@
 #import "CopierMTLScene.h"
 #import "MTLPool.h"
 #import "MTLImgBufferShaderTypes.h"
+#import "RenderProperties.h"
 #import "SizingTool_objc.h"
 
 
@@ -26,7 +27,7 @@
 		
 		NSError				*nsErr = nil;
 		NSBundle			*myBundle = [NSBundle bundleForClass:[self class]];
-		id<MTLLibrary>		defaultLibrary = [n newDefaultLibraryWithBundle:myBundle error:&nsErr];
+		id<MTLLibrary>		defaultLibrary = [self.device newDefaultLibraryWithBundle:myBundle error:&nsErr];
 		id<MTLFunction>		func = [defaultLibrary newFunctionWithName:@"CopierMTLSceneFunc"];
 		
 		self.computePipelineStateObject = [self.device

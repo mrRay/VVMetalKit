@@ -1,5 +1,6 @@
 #import "MTLImgBufferView.h"
 #import "MTLImgBufferViewShaderTypes.h"
+#import "RenderProperties.h"
 #import "VVSizingTool.h"
 #import "SizingTool_c.h"
 
@@ -64,8 +65,10 @@
 	//NSLog(@"%s ... %@",__func__,self.label);
 	//NSLog(@"\tmy bounds are %@",NSStringFromRect(self.bounds));
 	@synchronized (self)	{
-		if (metalLayer.device==nil || metalLayer==nil)
+		if (metalLayer.device==nil || metalLayer==nil)	{
+			NSLog(@"ERR: bailing, %s",__func__);
 			return;
+		}
 		
 		//	configure the current drawable & render pass descriptor
 		currentDrawable = metalLayer.nextDrawable;
@@ -81,6 +84,7 @@
 		
 		//	if there's an image buffer...
 		if (self.imgBuffer != nil)	{
+			//NSLog(@"\t\tthere's an image buffer to draw...");
 			
 			CGRect			viewRect = CGRectMake(0,0,viewportSize.x,viewportSize.y);
 			
@@ -186,6 +190,7 @@
 		//	finish up the encoder
 		[renderEncoder endEncoding];
 		
+		//NSLog(@"\t\tcmd buffer should have cmds for %@ in it...",self);
 		//	the buffer needs to draw the drawable!
 		[cmdBuffer presentDrawable:currentDrawable];
 		
