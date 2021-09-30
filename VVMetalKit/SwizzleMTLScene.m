@@ -26,8 +26,9 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 //@property (readwrite) SwizzlePF inputPF;
 //@property (readwrite) SwizzlePF outputPF;
 @property (strong) id<MTLBuffer> srcBuffer;
+@property (strong) MTLImgBuffer * srcRGBTexture;
 @property (strong) id<MTLBuffer> dstBuffer;
-@property (strong) MTLImgBuffer * rgbTexture;
+@property (strong) MTLImgBuffer * dstRGBTexture;
 @property (readwrite) SwizzleShaderInfo info;
 @end
 
@@ -78,87 +79,96 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		return;
 	}
 	
-	/*
-	//	either src or dst has to be RGB.
-	BOOL		srcIsRGB = NO;
-	BOOL		dstIsRGB = NO;
-	switch (inInfo.srcImg.pf)	{
-	case SwizzlePF_RGBA_PK_UI_8:
-	case SwizzlePF_RGBA_PK_FP_32:
-		srcIsRGB = YES;
-		break;
-	default:
-		break;
-	}
-	switch (inInfo.dstImg.pf)	{
-	case SwizzlePF_RGBA_PK_UI_8:
-	case SwizzlePF_RGBA_PK_FP_32:
-		dstIsRGB = YES;
-		break;
-	default:
-		break;
-	}
-	if (!srcIsRGB && !dstIsRGB)	{
-		NSLog(@"ERR: neither src nor dst are RGB, %s",__func__);
-		return;
-	}
-	*/
-	
 	//	if there's an RGB texture, its dimensions need to match the dims of the destination buffer
 	if (inDstRGB != nil && (inInfo.dstImg.res[0] != inDstRGB.width || inInfo.dstImg.res[1] != inDstRGB.height))	{
 		NSLog(@"ERR: prereq B not met, %s",__func__);
 		return;
 	}
 	
-	self.srcBuffer = inSrc;
-	self.dstBuffer = inDst;
-	self.rgbTexture = inDstRGB;
-	self.info = inInfo;
+	//	lock to prevent multiple threads from calling this method simultaneously, which wouldn't execute properly (we read the properties in the render callback)
+	@synchronized (self)	{
+		self.srcBuffer = inSrc;
+		self.srcRGBTexture = nil;
+		self.dstBuffer = inDst;
+		self.dstRGBTexture = inDstRGB;
+		self.info = inInfo;
 	
-	//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
-	switch (inInfo.dstImg.pf)	{
-	case SwizzlePF_RGBA_PK_UI_8:
-	case SwizzlePF_RGBA_PK_FP_32:
-		self.shaderEvalSize = MTLSizeMake(1,1,1);
-		break;
-	case SwizzlePF_UYVY_PK_422_UI_8:
-		self.shaderEvalSize = MTLSizeMake(2,1,1);
-		break;
-	case SwizzlePF_UYVY_PK_422_UI_10:
-		self.shaderEvalSize = MTLSizeMake(6,1,1);
-		break;
-	case SwizzlePF_UYVY_PL_422_UI_16:
-		self.shaderEvalSize = MTLSizeMake(1,1,1);
-		break;
+		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
+		switch (inInfo.dstImg.pf)	{
+		case SwizzlePF_Unknown:
+		case SwizzlePF_RGBA_PK_UI_8:
+		case SwizzlePF_RGBX_PK_UI_8:
+		case SwizzlePF_BGRA_PK_UI_8:
+		case SwizzlePF_BGRX_PK_UI_8:
+		case SwizzlePF_ARGB_PK_UI_8:
+		case SwizzlePF_RGBA_PK_FP_32:
+			self.shaderEvalSize = MTLSizeMake(1,1,1);
+			break;
+		case SwizzlePF_UYVY_PK_422_UI_8:
+		case SwizzlePF_UYVA_PKPL_422_UI_8:
+		case SwizzlePF_UYVA_PKPL_422_UI_16:
+			self.shaderEvalSize = MTLSizeMake(2,1,1);
+			break;
+		case SwizzlePF_UYVY_PK_422_UI_10:
+			self.shaderEvalSize = MTLSizeMake(6,1,1);
+			break;
+		case SwizzlePF_UYVY_PKPL_422_UI_16:
+			self.shaderEvalSize = MTLSizeMake(1,1,1);
+			break;
+		}
+	
+		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
+		//[self renderToBuffer:nil inCommandBuffer:inCB];
+		{
+			renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
+		
+			self.renderTarget = nil;
+			self.commandBuffer = inCB;
+		
+			[self _renderCallback];
+		
+			self.commandBuffer = nil;
+			self.renderTarget = nil;
+		}
+	
+		self.srcBuffer = nil;
+		self.srcRGBTexture = nil;
+		self.dstBuffer = nil;
+		self.dstRGBTexture = nil;
 	}
+}
+- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	
-	//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
-	//[self renderToBuffer:nil inCommandBuffer:inCB];
-	{
-		renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
-		
-		self.renderTarget = nil;
-		self.commandBuffer = inCB;
-		
-		[self _renderCallback];
-		
-		self.commandBuffer = nil;
-		self.renderTarget = nil;
+	
+	
+	//	lock to prevent multiple threads from calling this method simultaneously, which wouldn't execute properly (we read the properties in the render callback)
+	@synchronized (self)	{
 	}
-	
-	self.srcBuffer = nil;
-	self.dstBuffer = nil;
-	self.rgbTexture = nil;
 }
 
 - (void) renderCallback	{
 	id<MTLBuffer>		srcBuffer = self.srcBuffer;
+	MTLImgBuffer		*srcRGBTex = self.srcRGBTexture;
 	id<MTLBuffer>		dstBuffer = self.dstBuffer;
-	MTLImgBuffer		*rgbTex = self.rgbTexture;
+	MTLImgBuffer		*dstRGBTex = self.dstRGBTexture;
 	
-	[self.computeEncoder setBuffer:srcBuffer offset:0 atIndex:SwizzleShaderArg_SrcBuffer];
-	[self.computeEncoder setBuffer:dstBuffer offset:0 atIndex:SwizzleShaderArg_DstBuffer];
-	[self.computeEncoder setTexture:rgbTex.texture atIndex:SwizzleShaderArg_RGBTexture];
+	[self.computeEncoder
+		setBuffer:srcBuffer
+		offset:0
+		atIndex:SwizzleShaderArg_SrcBuffer];
+	
+	[self.computeEncoder
+		setTexture:(srcRGBTex==nil) ? nil : srcRGBTex.texture
+		atIndex:SwizzleShaderArg_SrcRGBTexture];
+	
+	[self.computeEncoder
+		setBuffer:dstBuffer
+		offset:0
+		atIndex:SwizzleShaderArg_DstBuffer];
+	
+	[self.computeEncoder
+		setTexture:(dstRGBTex==nil) ? nil : dstRGBTex.texture
+		atIndex:SwizzleShaderArg_DstRGBTexture];
 	
 	SwizzleShaderInfo	info = self.info;
 	id<MTLBuffer>		infoBuffer = [self.device
@@ -170,7 +180,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 		id<MTLBuffer>		a = srcBuffer;
 		id<MTLBuffer>		b = dstBuffer;
-		MTLImgBuffer		*c = rgbTex;
+		MTLImgBuffer		*c = dstRGBTex;
 		id<MTLBuffer>		d = infoBuffer;
 		
 		d = nil;
@@ -184,10 +194,45 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	[self.computeEncoder dispatchThreadgroups:numGroups threadsPerThreadgroup:threadGroupSize];
 	
 	infoBuffer = nil;
-	rgbTex = nil;
+	dstRGBTex = nil;
 	dstBuffer = nil;
+	srcRGBTex = nil;
 	srcBuffer = nil;
 }
 
 
 @end
+
+
+
+
+
+
+
+
+@implementation SwizzleShaderInfoObject
++ (instancetype) createWithInfo:(SwizzleShaderImageInfo)n	{
+	return [[SwizzleShaderInfoObject alloc] initWithInfo:n];
+}
++ (instancetype) createWithPF:(SwizzlePF)inPF res:(CGSize)inRes bytesPerRow:(NSUInteger)inBytesPerRow	{
+	return [[SwizzleShaderInfoObject alloc] initWithPF:inPF res:inRes bytesPerRow:inBytesPerRow];
+}
+- (instancetype) initWithInfo:(SwizzleShaderImageInfo)n	{
+	self = [super init];
+	if (self != nil)	{
+		self.object = n;
+	}
+	return self;
+}
+- (instancetype) initWithPF:(SwizzlePF)inPF res:(CGSize)inSize bytesPerRow:(NSUInteger)inBytesPerRow	{
+	self = [super init];
+	if (self != nil)	{
+		_object.pf = inPF;
+		_object.res[0] = round(inSize.width);
+		_object.res[1] = round(inSize.height);
+		_object.bytesPerRow = (unsigned int)inBytesPerRow;
+	}
+	return self;
+}
+@end
+

@@ -25,3 +25,4 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/SizingTool_objc.h>
 //	NO, do not include this!
 //#import <VVMetalKit/SizingTool_Metal.h>
+#import <VVMetalKit/SwizzleMTLScene.h>

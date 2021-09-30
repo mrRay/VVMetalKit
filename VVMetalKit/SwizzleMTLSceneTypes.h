@@ -13,12 +13,18 @@
 
 //	these are the swizzle pixel formats supported by "SwizzleMTLScene"
 typedef enum SwizzlePF	{
+	SwizzlePF_Unknown = 0,
 	SwizzlePF_RGBA_PK_UI_8 = 'RGBA',	//	8 bit unsigned int per channel (32 bits per pixel)
-	//SwizzlePF_BGRA_PK_UI_8 = 'BGRA',
+	SwizzlePF_RGBX_PK_UI_8 = 'RGBX',
+	SwizzlePF_BGRA_PK_UI_8 = 'BGRA',
+	SwizzlePF_BGRX_PK_UI_8 = 'BGRX',
+	SwizzlePF_ARGB_PK_UI_8 = 32,
 	SwizzlePF_RGBA_PK_FP_32 = 'RGfA',	//	32 bit float per channel (128 bits per pixel)
 	SwizzlePF_UYVY_PK_422_UI_8 = '2vuy',
 	SwizzlePF_UYVY_PK_422_UI_10 = 'v210',
-	SwizzlePF_UYVY_PL_422_UI_16 = 'p216',
+	SwizzlePF_UYVA_PKPL_422_UI_8 = 'UYVA',	//	semi-planar: basically a 2vuy data blob followed by a 1-channel, 8-bit alpha image
+	SwizzlePF_UYVY_PKPL_422_UI_16 = 'p216',	//	semi-planar: first plane is 16 bit single-channel luminance, second plane is 16-bit single-channel Cb/Cr
+	SwizzlePF_UYVA_PKPL_422_UI_16 = 'PA16',	//	'p216', with an additional (third) plane consisting of 16-bit single-channel alpha channel
 } SwizzlePF;
 
 
@@ -57,8 +63,9 @@ typedef struct	{
 //	this enumerates the args that are passed to the swizzle compute shader
 typedef enum SwizzleShaderArg	{
 	SwizzleShaderArg_SrcBuffer,
+	SwizzleShaderArg_SrcRGBTexture,
 	SwizzleShaderArg_DstBuffer,
-	SwizzleShaderArg_RGBTexture,
+	SwizzleShaderArg_DstRGBTexture,
 	SwizzleShaderArg_Info
 } SwizzleShaderArg;
 

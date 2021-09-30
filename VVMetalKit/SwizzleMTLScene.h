@@ -20,19 +20,24 @@ extern "C" {
 
 
 
-/*							IMPORTANT!
-				THIS CLASS IS NOT THREAD-SAFE!
-	when asked to render, it references its ivars/properties			*/
-
-
-
-
 @interface SwizzleMTLScene : MTLComputeScene
 
 - (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(void*)b bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 
 - (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(id<MTLBuffer>)inDst dstRGBTexture:(MTLImgBuffer *)inRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;
 
+@end
+
+
+
+
+@interface SwizzleShaderInfoObject : NSObject
++ (instancetype) createWithInfo:(SwizzleShaderImageInfo)n;
++ (instancetype) createWithPF:(SwizzlePF)inPF res:(CGSize)inRes bytesPerRow:(NSUInteger)inBytesPerRow;
+- (instancetype) initWithInfo:(SwizzleShaderImageInfo)n;
+- (instancetype) initWithPF:(SwizzlePF)inPF res:(CGSize)inSize bytesPerRow:(NSUInteger)inBytesPerRow;
+@property (readwrite) SwizzleShaderImageInfo object;
 @end
 
 
