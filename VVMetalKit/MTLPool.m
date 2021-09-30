@@ -777,6 +777,9 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.storageMode = MTLStorageModeManaged;
 	//desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	desc.usage = MTLTextureUsageShaderRead /*| MTLTextureUsageShaderWrite | MTLTextureUsagePixelFormatView*/;
+	
+	NSLog(@"min linear texture alignment for PF is %ld",[self.device minimumLinearTextureAlignmentForPixelFormat:desc.pixelFormat]);
+	
 	id<MTLTexture>		tmpTex = [tmpBuffer
 		newTextureWithDescriptor:desc
 		offset:0

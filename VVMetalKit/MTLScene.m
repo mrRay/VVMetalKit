@@ -6,19 +6,15 @@
 
 
 
+#import "MTLScene_priv.h"
+
+
+
+
 @interface MTLScene ()
-
-@property (strong,nonatomic) id<MTLDevice> device;
-@property (strong,nonatomic) id<MTLCommandBuffer> commandBuffer;
-
-@property (strong,nonatomic) MTLImgBuffer * renderTarget;
 
 @property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveScheduledHandlers;
 @property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveCompletedHandlers;
-
-- (void) _renderCallback;
-- (void) _renderSetup;
-- (void) _renderTeardown;
 
 @end
 

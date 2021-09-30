@@ -41,6 +41,7 @@
 		1AB2702D26486F2300C2E931 /* MTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2702B26486F2300C2E931 /* MTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
 		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
+		1AE0E0922706340E00F03B4E /* MTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE0E0912706340E00F03B4E /* MTLScene_priv.h */; };
 		1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
 		1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -84,6 +85,7 @@
 		1AB2702C26486F2300C2E931 /* MTLRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTLRenderScene.m; sourceTree = "<group>"; };
 		1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferAdditions_Private.h; sourceTree = "<group>"; };
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
+		1AE0E0912706340E00F03B4E /* MTLScene_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTLScene_priv.h; sourceTree = "<group>"; };
 		1AE5D72326165A470064DC1C /* SizingTool_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_c.h; sourceTree = "<group>"; };
 		1AE5D72426165A470064DC1C /* SizingTool_c.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SizingTool_c.c; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -127,6 +129,7 @@
 				1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */,
 				1A0FBE9C260E1F4F00FF39BB /* MTLPool.h */,
 				1A0FBEA4260E1F5000FF39BB /* MTLPool.m */,
+				1AE0E0912706340E00F03B4E /* MTLScene_priv.h */,
 				1A0FBEA3260E1F4F00FF39BB /* MTLScene.h */,
 				1A0FBEA9260E1F5000FF39BB /* MTLScene.m */,
 				1A0FBEA5260E1F5000FF39BB /* MTLComputeScene.h */,
@@ -195,6 +198,7 @@
 				1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */,
 				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
 				1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */,
+				1AE0E0922706340E00F03B4E /* MTLScene_priv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -3,6 +3,7 @@
 //#import "MTLImgBufferShaderTypes.h"
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
+#import "MTLScene_priv.h"
 
 
 
@@ -21,9 +22,13 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 
 @interface SwizzleMTLScene ()
-@property (strong) MTLImgBuffer * inputImage;
-@property (readwrite) SwizzlePF inputPF;
-@property (readwrite) SwizzlePF outputPF;
+//@property (strong) MTLImgBuffer * inputImage;
+//@property (readwrite) SwizzlePF inputPF;
+//@property (readwrite) SwizzlePF outputPF;
+@property (strong) id<MTLBuffer> srcBuffer;
+@property (strong) id<MTLBuffer> dstBuffer;
+@property (strong) MTLImgBuffer * rgbTexture;
+@property (readwrite) SwizzleShaderInfo info;
 @end
 
 
@@ -32,88 +37,12 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 @implementation SwizzleMTLScene
 
 
-#pragma mark - class methods
-
-
-+ (BOOL) isMetalPF:(MTLPixelFormat)inMtlPF compatibleWithSwizzlePF:(SwizzlePF)inSwizzlePF	{
-	switch (inSwizzlePF)	{
-	case SwizzlePF_RGBA_UI_8:
-	//case SwizzlePF_BGRA_UI_8:
-		{
-			static MTLPixelFormat		matches[] = {
-				MTLPixelFormatRGBA8Unorm,
-				MTLPixelFormatRGBA8Unorm_sRGB,
-				
-				MTLPixelFormatRGBA8Uint,
-				
-				MTLPixelFormatBGRA8Unorm,
-				MTLPixelFormatBGRA8Unorm_sRGB
-			};
-			for (int i=0; i<sizeof(matches)/sizeof(MTLPixelFormat); ++i)	{
-				if (inMtlPF == matches[i])
-					return YES;
-			}
-		}
-		break;
-	case SwizzlePF_RGBA_FP_32:
-		{
-			static MTLPixelFormat		matches[] = {
-				MTLPixelFormatRGBA32Float
-			};
-			for (int i=0; i<sizeof(matches)/sizeof(MTLPixelFormat); ++i)	{
-				if (inMtlPF == matches[i])
-					return YES;
-			}
-		}
-		break;
-	case SwizzlePF_UYVY_422_UI_8:
-		{
-			static MTLPixelFormat		matches[] = {
-				MTLPixelFormatGBGR422,
-				MTLPixelFormatBGRG422
-			};
-			for (int i=0; i<sizeof(matches)/sizeof(MTLPixelFormat); ++i)	{
-				if (inMtlPF == matches[i])
-					return YES;
-			}
-		}
-		break;
-	case SwizzlePF_UYVY_422_UI_10:
-		{
-			static MTLPixelFormat		matches[] = {
-				MTLPixelFormatRGB10A2Unorm,
-				
-				MTLPixelFormatRGB10A2Uint,
-			};
-			for (int i=0; i<sizeof(matches)/sizeof(MTLPixelFormat); ++i)	{
-				if (inMtlPF == matches[i])
-					return YES;
-			}
-		}
-		break;
-	}
-	
-	return NO;
-}
-+ (MTLPixelFormat) metalPFForSwizzlePF:(SwizzlePF)pf	{
-	switch (pf)	{
-	case SwizzlePF_RGBA_UI_8:		return MTLPixelFormatRGBA8Unorm;
-	//case SwizzlePF_BGRA_UI_8:		return MTLPixelFormatBGRA8Unorm;
-	case SwizzlePF_RGBA_FP_32:		return MTLPixelFormatRGBA32Float;
-	case SwizzlePF_UYVY_422_UI_8:	return MTLPixelFormatGBGR422;
-	case SwizzlePF_UYVY_422_UI_10:	return MTLPixelFormatRGB10A2Unorm;
-	}
-	return MTLPixelFormatRGBA8Unorm;
-}
-
-
 #pragma mark - init/dealloc
 
 
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)n	{
 	self = [super initWithDevice:n];
 	if (self != nil)	{
-		self.inputImage = nil;
 		
 		NSError				*nsErr = nil;
 		NSBundle			*myBundle = [NSBundle bundleForClass:[self class]];
@@ -133,93 +62,131 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 #pragma mark - frontend methods
 
 
-- (void) convertSrcImg:(MTLImgBuffer *)inSrcImg srcPixelFormat:(SwizzlePF)inSrcPF dstImg:(MTLImgBuffer *)inDstImg dstPixelFormat:(SwizzlePF)inDstPF inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
-	if (inSrcImg == nil || inDstImg == nil)	{
-		NSLog(@"ERR: prereq not met, bailing, %s (%@, %@)",__func__,inSrcImg,inDstImg);
-		return;
-	}
-	if (![SwizzleMTLScene isMetalPF:inDstImg.texture.pixelFormat compatibleWithSwizzlePF:inDstPF])	{
-		NSLog(@"ERR: dst texture PF (%ld) doesn't match target PF (%@)",inDstImg.texture.pixelFormat,NSStringFromSwizzlePF(inDstPF));
-		return;
-	}
-	if (![SwizzleMTLScene isMetalPF:inSrcImg.texture.pixelFormat compatibleWithSwizzlePF:inSrcPF])	{
-		NSLog(@"ERR: src texture PF (%ld) doesn't match target PF (%@)",inSrcImg.texture.pixelFormat,NSStringFromSwizzlePF(inSrcPF));
-		return;
-	}
-	
-	//	synchronize around this instance, to guarantee that the call to render that populates the command buffer won't be interrupted
-	@synchronized (self)	{
-		self.inputImage = inSrcImg;
-		self.inputPF = inSrcPF;
-		self.outputPF = inDstPF;
-		
-		switch (inSrcPF)	{
-		case SwizzlePF_RGBA_UI_8:
-		//case SwizzlePF_BGRA_UI_8:
-		case SwizzlePF_RGBA_FP_32:
-		case SwizzlePF_UYVY_422_UI_8:
-			{
-				switch (inDstPF)	{
-				case SwizzlePF_RGBA_UI_8:
-				//case SwizzlePF_BGRA_UI_8:
-				case SwizzlePF_RGBA_FP_32:
-				case SwizzlePF_UYVY_422_UI_8:
-					self.shaderEvalSize = MTLSizeMake(1,1,1);
-					break;
-				case SwizzlePF_UYVY_422_UI_10:
-					//	each pass process a strip of 6 adjacent pixels in a horiz strip
-					//	each pass produces 6 RGB color values, which are converted to 6 YCbCr color values
-					//	because it's 422, we pack the 6 YCbCr color values into data provided by 4 RGB pixels
-					self.shaderEvalSize = MTLSizeMake(6,1,1);
-					break;
-				}
-			}
-			break;
-		case SwizzlePF_UYVY_422_UI_10:
-			{
-				switch (inDstPF)	{
-				case SwizzlePF_RGBA_UI_8:
-				//case SwizzlePF_BGRA_UI_8:
-				case SwizzlePF_RGBA_FP_32:
-				case SwizzlePF_UYVY_422_UI_8:
-					//	each pass produces a strip of 4 adjacent pixels in a horiz strip
-					//	each pass produces 4 rgb color values, which are unpacked into 6 YCbCr color values (422)
-					self.shaderEvalSize = MTLSizeMake(4,1,1);
-					break;
-				case SwizzlePF_UYVY_422_UI_10:
-					//	each pass process a strip of 6 adjacent pixels in a horiz strip
-					//	each pass produces 6 RGB color values, which are converted to 6 YCbCr color values
-					//	because it's 422, we pack the 6 YCbCr color values into data provided by 4 RGB pixels
-					self.shaderEvalSize = MTLSizeMake(1,1,1);
-					break;
-				}
-			}
-			break;
-		}
-		
-		[self renderToBuffer:inDstImg inCommandBuffer:inCB];
-		
-		self.inputImage = nil;
-	}
+- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(void*)b bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
+	id<MTLBuffer>		returnMe = nil;
+	if (b == nil)
+		returnMe = [self.device newBufferWithLength:inLength options:MTLResourceStorageModePrivate];
+	else
+		returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeManaged deallocator:d];
+	return returnMe;
 }
 
+- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(id<MTLBuffer>)inDst dstRGBTexture:(MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	//	if the src or dst are nil, bail.  the rgb texture can be nil- but that's it!
+	if (inSrc==nil || inDst==nil)	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return;
+	}
+	
+	/*
+	//	either src or dst has to be RGB.
+	BOOL		srcIsRGB = NO;
+	BOOL		dstIsRGB = NO;
+	switch (inInfo.srcImg.pf)	{
+	case SwizzlePF_RGBA_PK_UI_8:
+	case SwizzlePF_RGBA_PK_FP_32:
+		srcIsRGB = YES;
+		break;
+	default:
+		break;
+	}
+	switch (inInfo.dstImg.pf)	{
+	case SwizzlePF_RGBA_PK_UI_8:
+	case SwizzlePF_RGBA_PK_FP_32:
+		dstIsRGB = YES;
+		break;
+	default:
+		break;
+	}
+	if (!srcIsRGB && !dstIsRGB)	{
+		NSLog(@"ERR: neither src nor dst are RGB, %s",__func__);
+		return;
+	}
+	*/
+	
+	//	if there's an RGB texture, its dimensions need to match the dims of the destination buffer
+	if (inDstRGB != nil && (inInfo.dstImg.res[0] != inDstRGB.width || inInfo.dstImg.res[1] != inDstRGB.height))	{
+		NSLog(@"ERR: prereq B not met, %s",__func__);
+		return;
+	}
+	
+	self.srcBuffer = inSrc;
+	self.dstBuffer = inDst;
+	self.rgbTexture = inDstRGB;
+	self.info = inInfo;
+	
+	//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
+	switch (inInfo.dstImg.pf)	{
+	case SwizzlePF_RGBA_PK_UI_8:
+	case SwizzlePF_RGBA_PK_FP_32:
+		self.shaderEvalSize = MTLSizeMake(1,1,1);
+		break;
+	case SwizzlePF_UYVY_PK_422_UI_8:
+		self.shaderEvalSize = MTLSizeMake(2,1,1);
+		break;
+	case SwizzlePF_UYVY_PK_422_UI_10:
+		self.shaderEvalSize = MTLSizeMake(6,1,1);
+		break;
+	case SwizzlePF_UYVY_PL_422_UI_16:
+		self.shaderEvalSize = MTLSizeMake(1,1,1);
+		break;
+	}
+	
+	//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
+	//[self renderToBuffer:nil inCommandBuffer:inCB];
+	{
+		renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
+		
+		self.renderTarget = nil;
+		self.commandBuffer = inCB;
+		
+		[self _renderCallback];
+		
+		self.commandBuffer = nil;
+		self.renderTarget = nil;
+	}
+	
+	self.srcBuffer = nil;
+	self.dstBuffer = nil;
+	self.rgbTexture = nil;
+}
 
 - (void) renderCallback	{
-	[self.computeEncoder setTexture:self.inputImage.texture atIndex:SwizzleShaderArg_SrcImg];
-	[self.computeEncoder setTexture:self.renderTarget.texture atIndex:SwizzleShaderArg_DstImg];
+	id<MTLBuffer>		srcBuffer = self.srcBuffer;
+	id<MTLBuffer>		dstBuffer = self.dstBuffer;
+	MTLImgBuffer		*rgbTex = self.rgbTexture;
 	
-	SwizzleShaderInfo	info;
-	info.inputPF = self.inputPF;
-	info.outputPF = self.outputPF;
+	[self.computeEncoder setBuffer:srcBuffer offset:0 atIndex:SwizzleShaderArg_SrcBuffer];
+	[self.computeEncoder setBuffer:dstBuffer offset:0 atIndex:SwizzleShaderArg_DstBuffer];
+	[self.computeEncoder setTexture:rgbTex.texture atIndex:SwizzleShaderArg_RGBTexture];
+	
+	SwizzleShaderInfo	info = self.info;
 	id<MTLBuffer>		infoBuffer = [self.device
 		newBufferWithBytes:&info
 		length:sizeof(info)
 		options:MTLResourceStorageModeShared];
 	[self.computeEncoder setBuffer:infoBuffer offset:0 atIndex:SwizzleShaderArg_Info];
 	
+	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
+		id<MTLBuffer>		a = srcBuffer;
+		id<MTLBuffer>		b = dstBuffer;
+		MTLImgBuffer		*c = rgbTex;
+		id<MTLBuffer>		d = infoBuffer;
+		
+		d = nil;
+		c = nil;
+		b = nil;
+		a = nil;
+	}];
+	
 	MTLSize			threadGroupSize = MTLSizeMake(self.threadGroupSizeVal, self.threadGroupSizeVal, 1);
 	MTLSize			numGroups = [self calculateNumberOfGroups];
 	[self.computeEncoder dispatchThreadgroups:numGroups threadsPerThreadgroup:threadGroupSize];
+	
+	infoBuffer = nil;
+	rgbTex = nil;
+	dstBuffer = nil;
+	srcBuffer = nil;
 }
 
 

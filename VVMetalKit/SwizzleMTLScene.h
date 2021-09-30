@@ -20,12 +20,18 @@ extern "C" {
 
 
 
+/*							IMPORTANT!
+				THIS CLASS IS NOT THREAD-SAFE!
+	when asked to render, it references its ivars/properties			*/
+
+
+
+
 @interface SwizzleMTLScene : MTLComputeScene
 
-+ (BOOL) isMetalPF:(MTLPixelFormat)inMtlPF compatibleWithSwizzlePF:(SwizzlePF)inSwizzlePF;
-+ (MTLPixelFormat) metalPFForSwizzlePF:(SwizzlePF)pf;
+- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(void*)b bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 
-- (void) convertSrcImg:(MTLImgBuffer *)inSrcImg srcPixelFormat:(SwizzlePF)inSrcPF dstImg:(MTLImgBuffer *)inDstImg dstPixelFormat:(SwizzlePF)inDstPF inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(id<MTLBuffer>)inDst dstRGBTexture:(MTLImgBuffer *)inRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end
 
