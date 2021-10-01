@@ -322,13 +322,18 @@ void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<flo
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
 	for (unsigned int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
 		uint2			dstLoc = uint2( (gid.x * info.dstPixelsToProcess) + pixelIndex, gid.y);
-		float2			normDstLoc = float2( float(dstLoc.y)/float(info.dstImg.res[0]), float(dstLoc.y)/float(info.dstImg.res[1]) );
+		float2			normDstLoc = float2( float(dstLoc.x)/float(info.dstImg.res[0]-1), float(dstLoc.y)/float(info.dstImg.res[1]-1) );
 		float4			srcColor = inTex.sample(sampler, normDstLoc);
 		normRGB[pixelIndex] = srcColor;
 	}
 }
 
 void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo & info, thread float4 * normRGB, uint2 gid)	{
+	//uint2			dstLoc = uint2( (gid.x * info.dstPixelsToProcess) + pixelIndex, gid.y);
+	uint2			dstLoc = uint2( (gid.x * info.dstPixelsToProcess), gid.y);
+	if (dstLoc.x >= info.dstImg.res[0] || dstLoc.y >= info.dstImg.res[1])
+		return;
+	
 	switch (info.dstImg.pf)	{
 	case SwizzlePF_Unknown:
 		return;

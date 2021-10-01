@@ -21,7 +21,9 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 
 
-@interface SwizzleMTLScene ()
+@interface SwizzleMTLScene ()	{
+	id<MTLBuffer>		slugBuffer;	//	we can't pass nil buffers to metal because...i don't know why not
+}
 
 @property (strong) id<MTLBuffer> srcBuffer;
 @property (strong) MTLImgBuffer * srcRGBTexture;
@@ -57,6 +59,8 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 			error:&nsErr];
 		if (self.computePipelineStateObject == nil || nsErr != nil)
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
+		
+		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeManaged];
 	}
 	return self;
 }
@@ -140,6 +144,12 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		self.dstBuffer = nil;
 		self.dstRGBTexture = nil;
 	}
+	
+	if (inDst != nil)	{
+		id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
+		[blitEncoder synchronizeResource:inDst];
+		[blitEncoder endEncoding];
+	}
 }
 - (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
@@ -201,6 +211,12 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		self.dstBuffer = nil;
 		self.dstRGBTexture = nil;
 	}
+	
+	if (inDst != nil)	{
+		id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
+		[blitEncoder synchronizeResource:inDst];
+		[blitEncoder endEncoding];
+	}
 }
 
 - (void) renderCallback	{
@@ -208,6 +224,11 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	MTLImgBuffer		*srcRGBTex = self.srcRGBTexture;
 	id<MTLBuffer>		dstBuffer = self.dstBuffer;
 	MTLImgBuffer		*dstRGBTex = self.dstRGBTexture;
+	
+	if (srcBuffer == nil)
+		srcBuffer = slugBuffer;
+	if (dstBuffer == nil)
+		dstBuffer = slugBuffer;
 	
 	[self.computeEncoder
 		setBuffer:srcBuffer
