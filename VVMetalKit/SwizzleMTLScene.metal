@@ -344,7 +344,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * info.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//for (int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
@@ -371,7 +371,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * info.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//for (int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
@@ -397,7 +397,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * info.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//for (int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
@@ -423,7 +423,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * info.dstPixelsToProcess * bytesPerPixel);
 			device float		*wPtr = (device float *)dstBuffer + (offsetInBytes/sizeof(float));
 			
 			//for (int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
@@ -446,7 +446,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 	case SwizzlePF_UYVY_PK_422_UI_8:
 		{
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
-			char4		dstVals[MAX_PIXELS_TO_PROCESS];
+			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
 			//	rec709
 			const float3x3		mat = float3x3(
@@ -454,28 +454,41 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 				float3(0.614, -0.339, -0.399),
 				float3(0.062, 0.439, -0.040)
 			);
-			const float3		offsets = float3(128./255., 16./255., 128./255.);
+			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
 			for (unsigned int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
-				//	convert RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
-				normDstVal.rgb = mat * (normRGB[pixelIndex].rgb - offsets);
+				
+				//normDstVal.rgb = mat * (normRGB[pixelIndex].rgb - offsets);
+				//normDstVal.rgb = mat * (normRGB[pixelIndex].rgb + offsets);
+				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				//normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) - offsets;
+				
 				normDstVal.a = normRGB[pixelIndex].a;
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
-				dstVals[pixelIndex] = char4(round(normDstVal * 255.));
+				dstVals[pixelIndex] = uchar4(round(normDstVal * 255.));
+				//for (int i=0; i<4; ++i)	{
+				//	dstVals[pixelIndex][i] = round(normDstVal[i] * 255.);
+				//}
+				//dstVals[pixelIndex] = uchar4(normDstVal[0], normDstVal[1], normDstVal[2], normDstVal[3]);
 				//	note: we're calcating Y + Cb + Cr for each pixel (at this point we're still 444) 
 			}
 			
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * info.dstImg.bytesPerRow) + (gid.x * info.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
-			*(wPtr + 0) = dstVals[0].x;	//	Y from the first pixel
-			*(wPtr + 1) = (dstVals[0].y + dstVals[1].y) / 2;	//	Cb, adds chroma subsampling
-			*(wPtr + 2) = dstVals[1].x;	//	Y from the second pixel
-			*(wPtr + 3) = (dstVals[0].z + dstVals[1].z) / 2;	//	Cr, adds chroma subsampling
+			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;	//	Cb, adds chroma subsampling
+			++wPtr;
+			*wPtr = dstVals[0].r;	//	Y from the first pixel
+			++wPtr;
+			*wPtr = (dstVals[0].b + dstVals[1].b) / 2;	//	Cr, adds chroma subsampling
+			++wPtr;
+			*wPtr = dstVals[1].r;	//	Y from the second pixel
+			++wPtr;
 		}
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:
