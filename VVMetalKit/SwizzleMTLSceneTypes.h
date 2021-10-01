@@ -48,13 +48,13 @@ typedef struct	{
 
 
 
-//	this struct is how we pass info about the source pixel formats to the shader
+//	this struct is how we pass info about the source and destination pixel formats to the shader
 typedef struct	{
 	SwizzleShaderImageInfo		srcImg;
 	SwizzleShaderImageInfo		dstImg;
 	
 	//	must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
-	unsigned int				dstPixelsToProcess;
+	unsigned int				dstPixelsToProcess;	//	populated automatically by the backend, but you'll want to read it in shaders
 } SwizzleShaderInfo;
 
 

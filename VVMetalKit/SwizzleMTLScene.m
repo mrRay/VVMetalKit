@@ -22,14 +22,16 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 
 @interface SwizzleMTLScene ()
-//@property (strong) MTLImgBuffer * inputImage;
-//@property (readwrite) SwizzlePF inputPF;
-//@property (readwrite) SwizzlePF outputPF;
+
 @property (strong) id<MTLBuffer> srcBuffer;
 @property (strong) MTLImgBuffer * srcRGBTexture;
+
 @property (strong) id<MTLBuffer> dstBuffer;
 @property (strong) MTLImgBuffer * dstRGBTexture;
+
+//	contains information describing how the shader should execute (the compute shader needs this)
 @property (readwrite) SwizzleShaderInfo info;
+
 @end
 
 
@@ -63,18 +65,18 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 #pragma mark - frontend methods
 
 
-- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(void*)b bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
+- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
 	id<MTLBuffer>		returnMe = nil;
 	if (b == nil)
-		returnMe = [self.device newBufferWithLength:inLength options:MTLResourceStorageModePrivate];
+		returnMe = [self.device newBufferWithLength:inLength options:MTLResourceStorageModeManaged];
 	else
 		returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeManaged deallocator:d];
 	return returnMe;
 }
 
-- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(id<MTLBuffer>)inDst dstRGBTexture:(MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
-	//	if the src or dst are nil, bail.  the rgb texture can be nil- but that's it!
-	if (inSrc==nil || inDst==nil)	{
+- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
+	if (inSrc==nil || (inDst==nil && inDstRGB==nil))	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
 		return;
 	}
@@ -116,6 +118,8 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 			self.shaderEvalSize = MTLSizeMake(1,1,1);
 			break;
 		}
+		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
+		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
 	
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
 		//[self renderToBuffer:nil inCommandBuffer:inCB];
@@ -138,11 +142,64 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	}
 }
 - (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
-	
-	
+	//	if the src texture or dst buffer are nil, bail
+	if (inSrc == nil || inDst == nil)	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return;
+	}
 	
 	//	lock to prevent multiple threads from calling this method simultaneously, which wouldn't execute properly (we read the properties in the render callback)
 	@synchronized (self)	{
+		self.srcBuffer = nil;
+		self.srcRGBTexture = inSrc;
+		self.dstBuffer = inDst;
+		self.dstRGBTexture = nil;
+		self.info = inInfo;
+	
+		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
+		switch (inInfo.dstImg.pf)	{
+		case SwizzlePF_Unknown:
+		case SwizzlePF_RGBA_PK_UI_8:
+		case SwizzlePF_RGBX_PK_UI_8:
+		case SwizzlePF_BGRA_PK_UI_8:
+		case SwizzlePF_BGRX_PK_UI_8:
+		case SwizzlePF_ARGB_PK_UI_8:
+		case SwizzlePF_RGBA_PK_FP_32:
+			self.shaderEvalSize = MTLSizeMake(1,1,1);
+			break;
+		case SwizzlePF_UYVY_PK_422_UI_8:
+		case SwizzlePF_UYVA_PKPL_422_UI_8:
+		case SwizzlePF_UYVA_PKPL_422_UI_16:
+			self.shaderEvalSize = MTLSizeMake(2,1,1);
+			break;
+		case SwizzlePF_UYVY_PK_422_UI_10:
+			self.shaderEvalSize = MTLSizeMake(6,1,1);
+			break;
+		case SwizzlePF_UYVY_PKPL_422_UI_16:
+			self.shaderEvalSize = MTLSizeMake(1,1,1);
+			break;
+		}
+		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
+		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
+	
+		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
+		//[self renderToBuffer:nil inCommandBuffer:inCB];
+		{
+			renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
+		
+			self.renderTarget = nil;
+			self.commandBuffer = inCB;
+		
+			[self _renderCallback];
+		
+			self.commandBuffer = nil;
+			self.renderTarget = nil;
+		}
+	
+		self.srcBuffer = nil;
+		self.srcRGBTexture = nil;
+		self.dstBuffer = nil;
+		self.dstRGBTexture = nil;
 	}
 }
 

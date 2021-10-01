@@ -7,7 +7,8 @@ using namespace metal;
 
 
 //	returns the normalized values of the channels from the passed src buffer/info at the passed location
-//	doesn't convert any colors- only converts ints to floats, at most
+//	doesn't convert any colors- only converts ints (code point values) to normalized float vals, at most
+//	doesn't do any interpolation- 
 float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderInfo * info, uint2 loc);
 
 //	populates the passed array of 'normRGB' values from the passed 'srcBuffer', using 'info' (which describes the nature of 'srcBuffer')
@@ -62,7 +63,8 @@ kernel void SwizzleMTLSceneFunc(
 	if (!is_null_texture(dstRGBTexture))	{
 		for (unsigned int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
 			uint2			dstLoc = uint2( (gid.x * info.dstPixelsToProcess) + pixelIndex, gid.y);
-			dstRGBTexture.write(normRGB[pixelIndex], dstLoc);
+			if (dstLoc.x < info.dstImg.res[0] && dstLoc.y < info.dstImg.res[1])
+				dstRGBTexture.write(normRGB[pixelIndex], dstLoc);
 		}
 	}
 	
@@ -161,7 +163,10 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 }
 
 void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderInfo & info, uint2 gid)	{
-	//	if we're in this method, we know for a fact that the images in the src and dst buffers have the same resolution
+	
+	//				****** IMPORTANT *******
+	//	this function assumes that the src and dst buffers have the same resolution!
+	
 	switch (info.srcImg.pf)	{
 	case SwizzlePF_Unknown:
 		{
