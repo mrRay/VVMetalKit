@@ -122,23 +122,34 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 	case SwizzlePF_UYVY_PK_422_UI_8:
 		{
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
-			size_t		cbOffsetInBytes;
-			size_t		crOffsetInBytes;
-			if (loc.x % 2 == 0)	{
-				cbOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + ((loc.x) * bytesPerPixel);
-				crOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + ((loc.x + 1) * bytesPerPixel);
-			}
-			else	{
-				cbOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + ((loc.x - 1) * bytesPerPixel);
-				crOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + ((loc.x) * bytesPerPixel);
-			}
-			constant uint8_t		*rPtr = nullptr;
-			rPtr = (constant uint8_t *)srcBuffer + (cbOffsetInBytes/sizeof(uint8_t));
-			returnMe[0] = float(*rPtr) / 255.;
-			returnMe[1] = float(*(rPtr+1)) / 255.;
 			
-			rPtr = (constant uint8_t *)srcBuffer + (crOffsetInBytes/sizeof(uint8_t));
-			returnMe[2] = float(*(rPtr+1)) / 255.;
+			uint2		basePairLoc = loc;
+			//if (basePairLoc.x % 2 != 0)
+			//	basePairLoc.x = basePairLoc.x - 1;
+			basePairLoc.x -= basePairLoc.x % 2;	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
+			
+			//	in memory, the order is "Cb Y Cr Y"
+			
+			//	this is a packed pixel format- to decode one pixel of output, we have to read two pixels from the src buffer
+			
+			//	the "base pair location" is how we get Cb and Cr.  the location is how we get the Y value.
+			
+			size_t		locOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + (loc.x * bytesPerPixel);
+			size_t		basePairOffsetInBytes = (basePairLoc.y * imgInfo.bytesPerRow) + (basePairLoc.x * bytesPerPixel);
+			
+			constant uint8_t		*rPtr;
+			
+			//	get the Y value
+			rPtr = (constant uint8_t *)srcBuffer + (locOffsetInBytes/sizeof(uint8_t));
+			rPtr += 1;
+			returnMe[0] = float(*rPtr) / 255.;
+			
+			//	Cb and Cr
+			rPtr = (constant uint8_t *)srcBuffer + (basePairOffsetInBytes/sizeof(uint8_t));
+			returnMe[1] = float(*rPtr) / 255.;
+			rPtr += 2;
+			returnMe[2] = float(*rPtr) / 255.;
+			
 		}
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:
@@ -253,10 +264,13 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				);
 				const float3		offsets = float3(16./255., 128./255., 128./255.);
 				
-				//normRGB[pixelIndex].rgb = mat * (rawVals.gbr - offsets);
 				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				
+				
 				normRGB[pixelIndex].a = 1.0;
 			}
+			
+			
 		}
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:
@@ -459,20 +473,11 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			for (unsigned int pixelIndex = 0; pixelIndex < info.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
-				
-				//normDstVal.rgb = mat * (normRGB[pixelIndex].rgb - offsets);
-				//normDstVal.rgb = mat * (normRGB[pixelIndex].rgb + offsets);
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
-				//normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) - offsets;
-				
 				normDstVal.a = normRGB[pixelIndex].a;
+				
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
 				dstVals[pixelIndex] = uchar4(round(normDstVal * 255.));
-				//for (int i=0; i<4; ++i)	{
-				//	dstVals[pixelIndex][i] = round(normDstVal[i] * 255.);
-				//}
-				//dstVals[pixelIndex] = uchar4(normDstVal[0], normDstVal[1], normDstVal[2], normDstVal[3]);
-				//	note: we're calcating Y + Cb + Cr for each pixel (at this point we're still 444) 
 			}
 			
 			//	figure out the base address at which we need to start writing pixels

@@ -60,7 +60,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		if (self.computePipelineStateObject == nil || nsErr != nil)
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 		
-		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeManaged];
+		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeShared];
 	}
 	return self;
 }
@@ -70,11 +70,20 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 
 - (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
+	//NSLog(@"%s ... %ld, %p",__func__,inLength,b);
+	size_t			targetLength = 0;
+	if (inLength % 4096 == 0)	{
+		targetLength = inLength;
+	}
+	else	{
+		targetLength = 4096 - (inLength % 4096) + inLength;
+	}
+	
 	id<MTLBuffer>		returnMe = nil;
 	if (b == nil)
-		returnMe = [self.device newBufferWithLength:inLength options:MTLResourceStorageModeManaged];
+		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
 	else
-		returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeManaged deallocator:d];
+		returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
 	return returnMe;
 }
 
@@ -90,6 +99,12 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		NSLog(@"ERR: prereq B not met, %s",__func__);
 		return;
 	}
+	
+	//if (inSrc != nil)	{
+	//	id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
+	//	[blitEncoder synchronizeResource:inSrc];
+	//	[blitEncoder endEncoding];
+	//}
 	
 	//	lock to prevent multiple threads from calling this method simultaneously, which wouldn't execute properly (we read the properties in the render callback)
 	@synchronized (self)	{
@@ -145,11 +160,11 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		self.dstRGBTexture = nil;
 	}
 	
-	if (inDst != nil)	{
-		id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
-		[blitEncoder synchronizeResource:inDst];
-		[blitEncoder endEncoding];
-	}
+	//if (inDst != nil)	{
+	//	id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
+	//	[blitEncoder synchronizeResource:inDst];
+	//	[blitEncoder endEncoding];
+	//}
 }
 - (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
@@ -212,11 +227,11 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		self.dstRGBTexture = nil;
 	}
 	
-	if (inDst != nil)	{
-		id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
-		[blitEncoder synchronizeResource:inDst];
-		[blitEncoder endEncoding];
-	}
+	//if (inDst != nil)	{
+	//	id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
+	//	[blitEncoder synchronizeResource:inDst];
+	//	[blitEncoder endEncoding];
+	//}
 }
 
 - (void) renderCallback	{
