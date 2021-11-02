@@ -4,6 +4,7 @@
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
 #import "MTLScene_priv.h"
+#import <VVCore/VVCore.h>
 
 
 
@@ -69,7 +70,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 #pragma mark - frontend methods
 
 
-- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
+- (id<MTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
 	//NSLog(@"%s ... %ld, %p",__func__,inLength,b);
 	size_t			targetLength = 0;
 	if (inLength % 4096 == 0)	{
@@ -78,16 +79,40 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	else	{
 		targetLength = 4096 - (inLength % 4096) + inLength;
 	}
+	//NSLog(@"\t\ttargetLength is %ld",targetLength);
 	
 	id<MTLBuffer>		returnMe = nil;
 	if (b == nil)
 		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
-	else
-		returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
+	else	{
+		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
+		returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeShared deallocator:d];
+	}
+	return returnMe;
+}
+- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(nullable void*)b	{
+	//NSLog(@"%s ... %ld, %p",__func__,inLength,b);
+	size_t			targetLength = 0;
+	if (inLength % 4096 == 0)	{
+		targetLength = inLength;
+	}
+	else	{
+		targetLength = 4096 - (inLength % 4096) + inLength;
+	}
+	//NSLog(@"\t\ttargetLength is %ld",targetLength);
+	
+	id<MTLBuffer>		returnMe = nil;
+	if (b == nil)
+		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
+	else	{
+		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
+		returnMe = [self.device newBufferWithBytes:b length:inLength options:MTLResourceStorageModeShared];
+	}
 	return returnMe;
 }
 
 - (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	//NSLog(@"%s",__func__);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
 	if (inSrc==nil || (inDst==nil && inDstRGB==nil))	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
@@ -239,11 +264,14 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	MTLImgBuffer		*srcRGBTex = self.srcRGBTexture;
 	id<MTLBuffer>		dstBuffer = self.dstBuffer;
 	MTLImgBuffer		*dstRGBTex = self.dstRGBTexture;
+	bool				outputToBuffer = true;
 	
 	if (srcBuffer == nil)
 		srcBuffer = slugBuffer;
-	if (dstBuffer == nil)
+	if (dstBuffer == nil)	{
 		dstBuffer = slugBuffer;
+		outputToBuffer = false;
+	}
 	
 	[self.computeEncoder
 		setBuffer:srcBuffer
@@ -268,14 +296,22 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		newBufferWithBytes:&info
 		length:sizeof(info)
 		options:MTLResourceStorageModeShared];
-	[self.computeEncoder setBuffer:infoBuffer offset:0 atIndex:SwizzleShaderArg_Info];
+	[self.computeEncoder setBuffer:infoBuffer offset:0 atIndex:SwizzleShaderArg_ImgInfo];
+	
+	id<MTLBuffer>		writeBufferBuffer = [self.device
+		newBufferWithBytes:&outputToBuffer
+		length:sizeof(outputToBuffer)
+		options:MTLResourceStorageModeShared];
+	[self.computeEncoder setBuffer:writeBufferBuffer offset:0 atIndex:SwizzleShaderArg_WriteBuffer];
 	
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 		id<MTLBuffer>		a = srcBuffer;
 		id<MTLBuffer>		b = dstBuffer;
 		MTLImgBuffer		*c = dstRGBTex;
 		id<MTLBuffer>		d = infoBuffer;
+		id<MTLBuffer>		e = writeBufferBuffer;
 		
+		e = nil;
 		d = nil;
 		c = nil;
 		b = nil;

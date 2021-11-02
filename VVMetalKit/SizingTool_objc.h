@@ -33,6 +33,11 @@ GRect GRectFromCGRect(CGRect inRect);
 GRect GRectFromNSRect(NSRect inRect);
 
 
+NSString * NSStringFromGRect(GRect inRect);
+NSString * NSStringFromGSize(GSize inSize);
+NSString * NSStringFromGPoint(GPoint inPoint);
+
+
 
 
 #endif /* SizingTool_objc_h */

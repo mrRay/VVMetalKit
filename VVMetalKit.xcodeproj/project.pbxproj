@@ -30,7 +30,7 @@
 		1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */; };
 		1A0FBEC6260E1F5000FF39BB /* MTLImgBufferView.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAF260E1F5000FF39BB /* MTLImgBufferView.metal */; };
 		1A0FBED7260E243500FF39BB /* SwizzleMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A0FBED8260E243500FF39BB /* SwizzleMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBED6260E243500FF39BB /* SwizzleMTLScene.m */; };
+		1A0FBED8260E243500FF39BB /* SwizzleMTLScene.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBED6260E243500FF39BB /* SwizzleMTLScene.mm */; };
 		1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */; };
 		1A0FBEDF260E257600FF39BB /* RenderProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEDD260E257600FF39BB /* RenderProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
@@ -73,7 +73,7 @@
 		1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = CopierMTLScene.metal; sourceTree = "<group>"; };
 		1A0FBEAF260E1F5000FF39BB /* MTLImgBufferView.metal */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.metal; path = MTLImgBufferView.metal; sourceTree = "<group>"; };
 		1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLScene.h; sourceTree = "<group>"; };
-		1A0FBED6260E243500FF39BB /* SwizzleMTLScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SwizzleMTLScene.m; sourceTree = "<group>"; };
+		1A0FBED6260E243500FF39BB /* SwizzleMTLScene.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = SwizzleMTLScene.mm; sourceTree = "<group>"; };
 		1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SwizzleMTLScene.metal; sourceTree = "<group>"; };
 		1A0FBEDD260E257600FF39BB /* RenderProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProperties.h; sourceTree = "<group>"; };
 		1A0FBEDE260E257600FF39BB /* RenderProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenderProperties.m; sourceTree = "<group>"; };
@@ -138,7 +138,7 @@
 				1AB2702C26486F2300C2E931 /* MTLRenderScene.m */,
 				1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */,
 				1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */,
-				1A0FBED6260E243500FF39BB /* SwizzleMTLScene.m */,
+				1A0FBED6260E243500FF39BB /* SwizzleMTLScene.mm */,
 				1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */,
 				1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */,
 				1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */,
@@ -277,7 +277,7 @@
 				1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */,
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */,
-				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.m in Sources */,
+				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.mm in Sources */,
 				1A0FBEB7260E1F5000FF39BB /* MTLComputeScene.m in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
 				1A0FBEB6260E1F5000FF39BB /* MTLImgBufferView.m in Sources */,

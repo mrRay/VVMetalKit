@@ -50,3 +50,19 @@ GRect GRectFromNSRect(NSRect inRect)	{
 	struct GRect		returnMe = { { inRect.origin.x, inRect.origin.y }, { inRect.size.width, inRect.size.height } };
 	return returnMe;
 }
+
+
+
+
+
+
+NSString * NSStringFromGRect(GRect inRect)	{
+	return [NSString stringWithFormat:@"<GRect %@ %@>",NSStringFromGPoint(inRect.origin),NSStringFromGSize(inRect.size)];
+}
+NSString * NSStringFromGSize(GSize inSize)	{
+	return [NSString stringWithFormat:@"<GSize %0.2f x%0.2f>",inSize.width,inSize.height];
+}
+NSString * NSStringFromGPoint(GPoint inPoint)	{
+	return [NSString stringWithFormat:@"<GPoint %0.2f, %0.2f>",inPoint.x,inPoint.y];
+}
+

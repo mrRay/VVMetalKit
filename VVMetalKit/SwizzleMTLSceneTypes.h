@@ -66,7 +66,8 @@ typedef enum SwizzleShaderArg	{
 	SwizzleShaderArg_SrcRGBTexture,
 	SwizzleShaderArg_DstBuffer,
 	SwizzleShaderArg_DstRGBTexture,
-	SwizzleShaderArg_Info
+	SwizzleShaderArg_ImgInfo,
+	SwizzleShaderArg_WriteBuffer	//	boolean, whether or not to try and write to the output buffer
 } SwizzleShaderArg;
 
 
