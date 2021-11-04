@@ -166,7 +166,8 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_8:
 		{
-			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
+			size_t		bytesPerPixel = sizeof(uint8_t) * 2;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
+			size_t		bytesPerRow = bytesPerPixel * imgInfo.res[0];
 			
 			uint2		basePairLoc = loc;
 			//if (basePairLoc.x % 2 != 0)
@@ -179,18 +180,18 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 			
 			//	the "base pair location" is how we get Cb and Cr.  the location is how we get the Y value.
 			
-			size_t		locOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + (loc.x * bytesPerPixel);
-			size_t		basePairOffsetInBytes = (basePairLoc.y * imgInfo.bytesPerRow) + (basePairLoc.x * bytesPerPixel);
+			size_t		locOffsetInBytes = (loc.y * bytesPerRow) + (loc.x * bytesPerPixel);
+			size_t		basePairOffsetInBytes = (basePairLoc.y * bytesPerRow) + (basePairLoc.x * bytesPerPixel);
 			
 			constant uint8_t		*rPtr;
 			
 			//	get the Y value
-			rPtr = (constant uint8_t *)srcBuffer + (locOffsetInBytes/sizeof(uint8_t));
+			rPtr = ((constant uint8_t *)srcBuffer) + (locOffsetInBytes/sizeof(uint8_t));
 			rPtr += 1;
 			returnMe[0] = float(*rPtr) / 255.;
 			
 			//	Cb and Cr
-			rPtr = (constant uint8_t *)srcBuffer + (basePairOffsetInBytes/sizeof(uint8_t));
+			rPtr = ((constant uint8_t *)srcBuffer) + (basePairOffsetInBytes/sizeof(uint8_t));
 			returnMe[1] = float(*rPtr) / 255.;
 			rPtr += 2;
 			returnMe[2] = float(*rPtr) / 255.;
@@ -230,7 +231,8 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
 		{
-			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
+			size_t		bytesPerPixel = sizeof(uint8_t) * 2;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
+			size_t		bytesPerRow = bytesPerPixel * imgInfo.res[0];
 			
 			uint2		basePairLoc = loc;
 			//if (basePairLoc.x % 2 != 0)
@@ -243,36 +245,35 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 			
 			//	the "base pair location" is how we get Cb and Cr.  the location is how we get the Y value.
 			
-			size_t		locOffsetInBytes = (loc.y * imgInfo.bytesPerRow) + (loc.x * bytesPerPixel);
-			size_t		basePairOffsetInBytes = (basePairLoc.y * imgInfo.bytesPerRow) + (basePairLoc.x * bytesPerPixel);
+			size_t		locOffsetInBytes = (loc.y * bytesPerRow) + (loc.x * bytesPerPixel);
+			size_t		basePairOffsetInBytes = (basePairLoc.y * bytesPerRow) + (basePairLoc.x * bytesPerPixel);
 			
 			constant uint8_t		*rPtr;
 			
 			//	get the Y value
-			rPtr = (constant uint8_t *)srcBuffer + (locOffsetInBytes/sizeof(uint8_t));
+			rPtr = ((constant uint8_t *)srcBuffer) + (locOffsetInBytes/sizeof(uint8_t));
 			rPtr += 1;
 			returnMe[0] = float(*rPtr) / 255.;
 			
 			//	Cb and Cr
-			rPtr = (constant uint8_t *)srcBuffer + (basePairOffsetInBytes/sizeof(uint8_t));
+			rPtr = ((constant uint8_t *)srcBuffer) + (basePairOffsetInBytes/sizeof(uint8_t));
 			returnMe[1] = float(*rPtr) / 255.;
 			rPtr += 2;
 			returnMe[2] = float(*rPtr) / 255.;
 			
 			//	get the A value
-			size_t		alphaPlaneOffsetInBytes = imgInfo.bytesPerRow * imgInfo.res[1];
+			size_t		alphaPlaneOffsetInBytes = bytesPerRow * imgInfo.res[1];
 			size_t		alphaPlaneBytesPerPixel = sizeof(uint8_t);
 			size_t		alphaPlaneBytesPerRow = alphaPlaneBytesPerPixel * imgInfo.res[0];
 			size_t		alphaLocOffsetInBytes = alphaPlaneOffsetInBytes + (loc.y * alphaPlaneBytesPerRow) + (loc.x * alphaPlaneBytesPerPixel);
 			
-			rPtr = (constant uint8_t *)srcBuffer + (alphaLocOffsetInBytes/sizeof(uint8_t));
+			rPtr = ((constant uint8_t *)srcBuffer) + (alphaLocOffsetInBytes/sizeof(uint8_t));
 			returnMe[3] = float(*rPtr) / 255.;
 			//returnMe[3] = 1.0;
 		}
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
-			/*
 			uint2		basePairLoc = loc;
 			//if (basePairLoc.x % 2 != 0)
 			//	basePairLoc.x = basePairLoc.x - 1;
@@ -304,7 +305,6 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 			size_t		aOffsetInBytes = aPlaneOffsetInBytes + (aBytesPerRow * loc.y) + (sizeof(uint16_t) * loc.x);
 			rPtr = (constant uint16_t *)srcBuffer + (aOffsetInBytes/sizeof(uint16_t));
 			returnMe[3] = float(*rPtr) / 65535.;
-			*/
 		}
 		break;
 	}
@@ -499,7 +499,7 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
-			/*
+			
 			//	for each of the pixels we need to process in the dst image...
 			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
@@ -522,7 +522,7 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				
 				normRGB[pixelIndex].a = rawVals.a;
 			}
-			*/
+			
 		}
 		break;
 	}
