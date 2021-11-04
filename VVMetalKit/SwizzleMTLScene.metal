@@ -200,6 +200,53 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:
 		{
+			//	this pixel format processes pixels in chunks that are 6 pixels wide.  locate the base of this "chunk".
+			uint2		baseLoc = loc;
+			//baseLoc.x /= 6;
+			//baseLoc.x *= 6;
+			baseLoc.x -= (baseLoc.x % 6);
+			
+			//	calculate the offset in bytes to the base location.  note that six pixels are crammed into four, 32-bit values.
+			size_t					offsetInBytes = (imgInfo.bytesPerRow * baseLoc.y) + (baseLoc.x / 6 * 4 * sizeof(uint32_t));
+			constant uint32_t		*rPtr = ((constant uint32_t *)srcBuffer) + (offsetInBytes/sizeof(uint32_t));
+			uint32_t				rVals[4];
+			for (int i=0; i<4; ++i)
+				rVals[i] = *(rPtr + i);
+			
+			//	break down the four 32-bit values into six YCbCr values...
+			ushort4					intVals[6];
+			//	note: 0x3FF is 1023- it is the largest possible 10-bit value
+			
+			//writeVals[0] = (intVals[0].g) | (intVals[0].r << 10) | (intVals[0].b << 20) | (0x3 << 30);
+			intVals[0].g = (rVals[0]) & (0x3FF);
+			intVals[0].r = (rVals[0] >> 10) & (0x3FF);
+			intVals[0].b = (rVals[0] >> 20) & (0x3FF);
+			
+			//writeVals[1] = (intVals[1].r) | (intVals[2].g << 10) | (intVals[2].r << 20) | (0x3 << 30);
+			intVals[1].r = (rVals[1]) & (0x3FF);
+			intVals[2].g = (rVals[1] >> 10) & (0x3FF);
+			intVals[2].r = (rVals[1] >> 20) & (0x3FF);
+			
+			//writeVals[2] = (intVals[2].b) | (intVals[3].r << 10) | (intVals[4].g << 20) | (0x3 << 30);
+			intVals[2].b = (rVals[2]) & (0x3FF);
+			intVals[3].r = (rVals[2] >> 10) & (0x3FF);
+			intVals[4].g = (rVals[2] >> 20) & (0x3FF);
+			
+			//writeVals[3] = (intVals[4].r) | (intVals[4].b << 10) | (intVals[5].r << 20) | (0x3 << 30);
+			intVals[4].r = (rVals[3]) & (0x3FF);
+			intVals[4].b = (rVals[3] >> 10) & (0x3FF);
+			intVals[5].r = (rVals[3] >> 20) & (0x3FF);
+			
+			//	fill in the cb/cr vals by copying them from the adjacent pixels
+			intVals[1].g = intVals[0].g;
+			intVals[1].b = intVals[0].b;
+			intVals[3].g = intVals[2].g;
+			intVals[3].b = intVals[2].b;
+			intVals[5].g = intVals[4].g;
+			intVals[5].b = intVals[4].b;
+			
+			returnMe.rgb = float3(intVals[loc.x-baseLoc.x].rgb) / float3(1023.);
+			returnMe.a = 1.0;
 		}
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
@@ -441,6 +488,28 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:
 		{
+			//	for each of the pixels we need to process in the dst image...
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	calculate the location of the pixel we're processing in the dst image, get its value
+				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//	get the normalized channel values at that location
+				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				
+				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				
+				//	rec709
+				const float3x3		mat = float3x3(
+					float3(1.164, 1.164, 1.164),
+					float3(0.0, -0.213, 2.112),
+					float3(1.793, -0.533, 0.0)
+				);
+				const float3		offsets = float3(16./255., 128./255., 128./255.);
+				
+				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				
+				
+				normRGB[pixelIndex].a = 1.0;
+			}
 		}
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
@@ -734,6 +803,51 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:
 		{
+			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
+			float4		dstVals[MAX_PIXELS_TO_PROCESS];
+			
+			//	rec709
+			const float3x3		mat = float3x3(
+				float3(0.183, -0.101, 0.439),
+				float3(0.614, -0.339, -0.399),
+				float3(0.062, 0.439, -0.040)
+			);
+			const float3		offsets = float3(16./255., 128./255., 128./255.);
+			
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	convert normalized RGB to normalized YCbCr
+				float4		normDstVal;
+				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.a = normRGB[pixelIndex].a;
+				
+				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (10-bit vals in this case)
+				dstVals[pixelIndex] = round(normDstVal * 1023.);
+			}
+			
+			//	ycbcr0, ycbcr2, and ycbcr4 all have their "Cb" and "Cr" components output.  this adds chroma subsampling...
+			dstVals[0].gb = (dstVals[0].gb + dstVals[1].gb)/2.0;
+			dstVals[2].gb = (dstVals[2].gb + dstVals[3].gb)/2.0;
+			dstVals[4].gb = (dstVals[4].gb + dstVals[5].gb)/2.0;
+			
+			//	'dstVals' are floating-point vals ranged 0-1023.  convert them to integer values (by rounding)
+			ushort4			intVals[MAX_PIXELS_TO_PROCESS];
+			for (unsigned int pixelIndex=0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				intVals[pixelIndex] = ushort4( round(dstVals[pixelIndex]) );
+			}
+			
+			//	combine the six YCbCr values into four thirty-two bit words (each of which contains three ten-bit values, so 12 values- 6 Y values, and then 6 Cb/Cr values)
+			uint32_t			writeVals[4];
+			writeVals[0] = (intVals[0].g) | (intVals[0].r << 10) | (intVals[0].b << 20) | (0x3 << 30);
+			writeVals[1] = (intVals[1].r) | (intVals[2].g << 10) | (intVals[2].r << 20) | (0x3 << 30);
+			writeVals[2] = (intVals[2].b) | (intVals[3].r << 10) | (intVals[4].g << 20) | (0x3 << 30);
+			writeVals[3] = (intVals[4].r) | (intVals[4].b << 10) | (intVals[5].r << 20) | (0x3 << 30);
+			//	six YCbCr values are packed into four 32-bit values
+			//size_t				bytesPerRow = imgInfo.res[0] / 6 * 4 * sizeof(uint32_t);
+			size_t				offsetInBytes = (imageInfo.dstImg.bytesPerRow * gid.y) + (gid.x * 4 * sizeof(uint32_t));
+			device uint32_t		*wPtr = (device uint32_t *)dstBuffer + (offsetInBytes/sizeof(uint32_t));
+			for (int i=0; i<4; ++i)	{
+				*(wPtr+i) = writeVals[i];
+			}
 		}
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
@@ -901,3 +1015,80 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
+this is a diagram of the bitwise layout of a v210 frame.  importantly:
+- this is four 32-bit words (16 bytes)
+- you can fit six 10-bit YCbCr pixels into every 16 bytes.  (6 pixels / 16 bytes)
+- i'm going to say that again, it's important: for every FOUR RGB pixels in the OUTPUT image texture, we can pack in SIX YCbCr values
+- this is why the OUTPUT image texture is 2/3s the width of the INPUT image texture.
+- the BM SDK requires the image width to be rounded up to the nearest 48-pixel boundary ((width + 47)/48)
+
+examples:
+	input width:		48 pixels
+	rounded width:		48 pixels
+	bytes per row:		48 pixels / 6 pixel * 16 bytes = 128 bytes
+	bytes per row:		((width + 47) / 48) * 128 = 128
+	
+	input width:		53 pixels
+	rounded width:		96 pixels
+	bytes per row:		96 pixels / 6 pixel * 16 bytes = 256 bytes
+	bytes per row:		((width + 47) / 48) * 128 = 256
+
+- this shader converts RGB -> YUV, and renders to an RGB texture (RGB10A2, so each R/G/B channel of the output pixel is 10 bits to make things easier)
+	- if the input RGB texture's width is 48 pixels....
+		- the YUV texture's rounded width is 48 pixels, or 128 bytes
+		- the RGB texture we render to has a width of 128 bytes, or 32 pixels
+	- if the input RGB texture's width is 53 pixels...
+		- the YUV texture's rounded width is 96 pixels, or 256 bytes
+		- the RGB texture we render to has a width of 256 bytes, or 64 pixels
+	- if the input RGB texture's width is 96 pixels....
+		- the YUV texture's rounded width is 96 pixels, or 256 bytes
+		- the RGB texture we render to has a width of 256 bytes, or 64 pixels
+
+
+map of PIXELS WE RENDER TO:
+
+     byte 0    |     byte 1    |     byte 2    |     byte 3    |     byte 0    |     byte 1    |     byte 2    |     byte 3    |     byte 0    |     byte 1    |     byte 2    |     byte 3    |     byte 0    |     byte 1    |     byte 2    |     byte 3    |
+0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|0 1 2 3 4 5 6 7|
+---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|---------------|
+
+
+                        32-bit word                            |                        32-bit word                            |                        32-bit word                            |                        32-bit word                            |
+0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|X X|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|X X|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|X X|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|0 1 2 3 4 5 6 7 8 9|X X|
+-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|
+        Cb 0       |        Y 0        |        Cr 0       |X X|        Y 1        |       Cb 2        |        Y 2        |X X|        Cr 2       |        Y 3        |        Cb 4       |X X|        Y 4        |       Cr 4        |        Y 5        |X X|
+        (Y0)       |                   |        (Y0)       |X X|                   |       (Y2)        |                   |X X|        (Y2)       |                   |        (Y4)       |X X|                   |       (Y4)        |                   |X X|
+-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|
+                         word "A"                          |X X|                         word "B"                          |X X|                         word "C"                          |X X|                         word "D"                          |X X|
+-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|-------------------|-------------------|-------------------|X X|
+
+for each four-pixel block in the OUTPUT image...
+	get the output pixel location in the OUTPUT image of the LAST pixel in this block
+	
+	if the x location of the LAST pixel in this block is > (INPUT_image_width / 3 * 2)
+		this block in the OUTPUT image is padding, and can be ignored
+	
+	figure out the location of the six pixels in the INPUT image that correspond to the six YCbCr values we need to calculate
+	
+	get the RGB color values of the six pixels in the INPUT image
+	
+	convert the RGB color values to YCbCr colors (use chroma subsampling)
+	
+	write the YCbCr color values to the OUTPUT image
+
+
+*/
