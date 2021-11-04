@@ -72,6 +72,7 @@ NS_ASSUME_NONNULL_BEGIN
 //	if 'inCompletionHandler' is nil, will wait for the cmd buffer to complete before returning (if it's non-nil, will return immediately & execute the block when rendering completes)
 //- (MTLImgBuffer *) bufferForCVPixelBuffer:(CVPixelBufferRef)inCVPB texCache:(CVMetalTextureCacheRef)inTexCache anamorphicRatio:(double)inAR inCommandBuffer:(id<MTLCommandBuffer>)inCB completionHandler:(void(^)(MTLImgBuffer * requestedTex))inCompletionHandler;
 
+- (MTLImgBuffer *) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
 
 @end
 

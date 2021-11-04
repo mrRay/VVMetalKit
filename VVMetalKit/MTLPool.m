@@ -9,6 +9,8 @@
 
 #define LOCK(n) os_unfair_lock_lock(n)
 #define UNLOCK(n) os_unfair_lock_unlock(n)
+//	simple bitmask check
+#define A_HAS_B(a,b) (((a)&(b))==(b))
 
 
 
@@ -28,10 +30,12 @@ static MTLPool		*_globalPool = nil;
 }
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice;
 - (void) _labelTexture:(id<MTLTexture>)n;
+- (void) _labelBuffer:(id<MTLBuffer>)n;
 @property (strong) id<MTLDevice> device;
 //@property (strong) NSMutableArray<id<MTLTexture>> * textures;
 //@property (strong) NSMutableArray<TexHolder*> * textures;
 @property (strong) NSMutableArray<MTLImgBuffer*> * textures;
+@property (strong) NSMutableArray<MTLImgBuffer*> * buffers;
 //- (MTLPoolConv *) _getConvObject;
 //- (void) _returnConvObject:(MTLPoolConv *)n;
 @end
@@ -41,6 +45,8 @@ static MTLPool		*_globalPool = nil;
 
 static NSUInteger TEXINDEX = 0;
 static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
+static NSUInteger BUFFERINDEX = 0;
+static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 
 
 
@@ -72,6 +78,7 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		lock = OS_UNFAIR_LOCK_INIT;
 		_device = inDevice;
 		_textures = [[NSMutableArray alloc] init];
+		_buffers = [[NSMutableArray alloc] init];
 		_housekeepingThreshold = 120;
 		
 		CVReturn		cvErr = kCVReturnSuccess;
@@ -169,6 +176,14 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	++TEXINDEX;
 	
 	os_unfair_lock_unlock(&TEXINDEXLOCK);
+}
+- (void) _labelBuffer:(id<MTLBuffer>)n	{
+	os_unfair_lock_lock(&BUFFERINDEXLOCK);
+	
+	n.label = [NSString stringWithFormat:@"%ld",(unsigned long)BUFFERINDEX];
+	++BUFFERINDEX;
+	
+	os_unfair_lock_unlock(&BUFFERINDEXLOCK);
 }
 
 
@@ -2295,6 +2310,61 @@ static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//return nil;
 }
 */
+
+
+- (MTLImgBuffer *) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts	{
+	//NSLog(@"%s ... %ld, %ld",__func__,(long)inBufferSize,(long)inOpts);
+	if (inBufferSize < 1)
+		return nil;
+	
+	MTLImgBuffer		*returnMe = nil;
+	
+	//	run through the array of buffers in our pool, try to find one that matches the description
+	LOCK(&lock);
+	NSUInteger		idx = 0;
+	for (MTLImgBuffer * holder in _buffers)	{
+		//NSLog(@"\t\tchecking buffer with length %ld and opts %ld",(long)holder.buffer.length,(long)holder.buffer.resourceOptions);
+		if (holder.buffer.length == inBufferSize && A_HAS_B(holder.buffer.resourceOptions,inOpts))	{
+			//NSLog(@"\t\tthis is a match!");
+			returnMe = holder;
+			returnMe.preferDeletion = NO;
+			[_buffers removeObjectAtIndex:idx];
+			break;
+		}
+		++idx;
+	}
+	UNLOCK(&lock);
+	
+	//	if we found a buffer, we can return now
+	if (returnMe != nil)	{
+		//NSLog(@"reused buffer %@",returnMe);
+		return returnMe;
+	}
+	
+	returnMe = [[MTLImgBuffer alloc] init];
+	returnMe.width = 1;
+	returnMe.height = 1;
+	returnMe.srcRect = NSMakeRect(0,0,1,1);
+	returnMe.flipped = NO;
+	returnMe.preferDeletion = NO;
+	returnMe.parentPool = self;
+	
+	id<MTLBuffer>		newBuffer = [self.device newBufferWithLength:inBufferSize options:inOpts];
+	[self _labelBuffer:newBuffer];
+	//	if we managed to create a new buffer, finish populating the object we'll be returning and reutrn it
+	if (newBuffer != nil)	{
+		returnMe.bufferBytesPerRow = 1;
+		returnMe.buffer = newBuffer;
+		//NSLog(@"allocated buffer %@",returnMe);
+		return returnMe;
+	}
+	
+	//	...if we're here, something went wrong and we have to return nil.  first destroy what we've created so far.
+	
+	returnMe.preferDeletion = YES;
+	returnMe = nil;
+	return returnMe;
+}
 
 
 @end

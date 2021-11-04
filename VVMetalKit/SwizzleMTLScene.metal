@@ -203,6 +203,29 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
 		{
+			uint2		basePairLoc = loc;
+			//if (basePairLoc.x % 2 != 0)
+			//	basePairLoc.x = basePairLoc.x - 1;
+			basePairLoc.x -= (basePairLoc.x % 2);	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
+			
+			constant uint16_t		*rPtr;
+			
+			//	in memory, first there's a luma plane...
+			
+			size_t		yPlaneOffsetInBytes = 0;
+			size_t		yBytesPerRow = sizeof(uint16_t) * imgInfo.res[0];
+			size_t		yOffsetInBytes = yPlaneOffsetInBytes + (loc.y * yBytesPerRow) + (loc.x * sizeof(uint16_t));
+			rPtr = ((constant uint16_t *)srcBuffer) + (yOffsetInBytes/sizeof(uint16_t));
+			returnMe[0] = float(*rPtr) / 65535.;
+			
+			//	after the luma plane is another plane of interleaved (422 subsampling) Cb/Cr values
+			
+			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * imgInfo.res[1]);
+			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * imgInfo.res[0];
+			size_t		basePairOffsetInBytes = cbcrPlaneOffsetInBytes + (basePairLoc.y * cbcrPlaneBytesPerRow) + (basePairLoc.x * sizeof(uint16_t));
+			rPtr = ((constant uint16_t *)srcBuffer) + (basePairOffsetInBytes/sizeof(uint16_t));
+			returnMe[1] = float(*(rPtr+0)) / 65535.;
+			returnMe[2] = float(*(rPtr+1)) / 65535.;
 		}
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
@@ -249,6 +272,39 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
+			/*
+			uint2		basePairLoc = loc;
+			//if (basePairLoc.x % 2 != 0)
+			//	basePairLoc.x = basePairLoc.x - 1;
+			basePairLoc.x -= (basePairLoc.x % 2);	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
+			
+			constant uint16_t		*rPtr;
+			
+			//	in memory, first there's a luma plane...
+			
+			size_t		yPlaneOffsetInBytes = 0;
+			size_t		yBytesPerRow = sizeof(uint16_t) * imgInfo.res[0];
+			size_t		yOffsetInBytes = yPlaneOffsetInBytes + (loc.y * yBytesPerRow) + (loc.x * sizeof(uint16_t));
+			rPtr = ((constant uint16_t *)srcBuffer) + (yOffsetInBytes/sizeof(uint16_t));
+			returnMe[0] = float(*rPtr) / 65535.;
+			
+			//	after the luma plane is another plane of interleaved (422 subsampling) Cb/Cr values
+			
+			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * imgInfo.res[1]);
+			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * imgInfo.res[0];
+			size_t		basePairOffsetInBytes = cbcrPlaneOffsetInBytes + (basePairLoc.y * cbcrPlaneBytesPerRow) + (basePairLoc.x * sizeof(uint16_t));
+			rPtr = ((constant uint16_t *)srcBuffer) + (basePairOffsetInBytes/sizeof(uint16_t));
+			returnMe[1] = float(*(rPtr+0)) / 65535.;
+			returnMe[2] = float(*(rPtr+1)) / 65535.;
+			
+			//	after the Cb/Cr plane is an alpha plane
+			
+			size_t		aPlaneOffsetInBytes = cbcrPlaneOffsetInBytes + (cbcrPlaneBytesPerRow * imgInfo.res[1]);
+			size_t		aBytesPerRow = yBytesPerRow;
+			size_t		aOffsetInBytes = aPlaneOffsetInBytes + (aBytesPerRow * loc.y) + (sizeof(uint16_t) * loc.x);
+			rPtr = (constant uint16_t *)srcBuffer + (aOffsetInBytes/sizeof(uint16_t));
+			returnMe[3] = float(*rPtr) / 65535.;
+			*/
 		}
 		break;
 	}
@@ -270,8 +326,21 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 		}
 		break;
 	case SwizzlePF_RGBA_PK_UI_8:
-	case SwizzlePF_RGBX_PK_UI_8:
 	case SwizzlePF_RGBA_PK_FP_32:
+		{
+			//	for each of the pixels we need to process in the dst image...
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	calculate the location of the pixel we're processing in the dst image, get its value
+				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//	get the normalized channel values at that location
+				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				
+				//	in this case, the src image is RGB- we already have the normalized RGB vals, so we're basically done!
+				normRGB[pixelIndex] = rawVals.rgba;
+			}
+		}
+		break;
+	case SwizzlePF_RGBX_PK_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
 			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
@@ -284,12 +353,27 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				normRGB[pixelIndex] = rawVals.rgba;
 				
 				//	if it's a RGBX pixel format, set the alpha to 1!
-				if (imageInfo.srcImg.pf == SwizzlePF_RGBX_PK_UI_8)
-					normRGB[pixelIndex].a = 1.0;
+				normRGB[pixelIndex].a = 1.0;
 			}
 		}
 		break;
 	case SwizzlePF_BGRA_PK_UI_8:
+		{
+			//	for each of the pixels we need to process in the dst image...
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	calculate the location of the pixel we're processing in the dst image, get its value
+				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//	get the normalized channel values at that location
+				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				
+				//	note: the image data in the src buffer is BGRA!
+				
+				//	image data is:			B	G	R	A
+				//	code to access above:	R	G	B	A
+				normRGB[pixelIndex] = rawVals.bgra;
+			}
+		}
+		break;
 	case SwizzlePF_BGRX_PK_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
@@ -306,8 +390,7 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				normRGB[pixelIndex] = rawVals.bgra;
 				
 				//	if it's a BGRX pixel format, set the alpha to 1!
-				if (imageInfo.srcImg.pf == SwizzlePF_BGRX_PK_UI_8)
-					normRGB[pixelIndex].a = 1.0;
+				normRGB[pixelIndex].a = 1.0;
 			}
 		}
 		break;
@@ -362,6 +445,30 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
 		{
+			//	for each of the pixels we need to process in the dst image...
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	calculate the location of the pixel we're processing in the dst image, get its value
+				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//	get the normalized channel values at that location
+				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				
+				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				
+				//	rec709
+				const float3x3		mat = float3x3(
+					float3(1.164, 1.164, 1.164),
+					float3(0.0, -0.213, 2.112),
+					float3(1.793, -0.533, 0.0)
+				);
+				const float3		offsets = float3(16./255., 128./255., 128./255.);
+				
+				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				
+				
+				normRGB[pixelIndex].a = 1.0;
+			}
+			
+			
 		}
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
@@ -392,6 +499,30 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
+			/*
+			//	for each of the pixels we need to process in the dst image...
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	calculate the location of the pixel we're processing in the dst image, get its value
+				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//	get the normalized channel values at that location
+				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				
+				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				
+				//	rec709
+				const float3x3		mat = float3x3(
+					float3(1.164, 1.164, 1.164),
+					float3(0.0, -0.213, 2.112),
+					float3(1.793, -0.533, 0.0)
+				);
+				const float3		offsets = float3(16./255., 128./255., 128./255.);
+				
+				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				
+				
+				normRGB[pixelIndex].a = rawVals.a;
+			}
+			*/
 		}
 		break;
 	}
@@ -607,14 +738,162 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
 		{
+			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
+			ushort4		dstVals[MAX_PIXELS_TO_PROCESS];
+			
+			//	rec709
+			const float3x3		mat = float3x3(
+				float3(0.183, -0.101, 0.439),
+				float3(0.614, -0.339, -0.399),
+				float3(0.062, 0.439, -0.040)
+			);
+			const float3		offsets = float3(16./255., 128./255., 128./255.);
+			
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	convert normalized RGB to normalized YCbCr
+				float4		normDstVal;
+				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.a = normRGB[pixelIndex].a;
+				
+				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (16-bit vals in this case)
+				dstVals[pixelIndex] = ushort4(round(normDstVal * 65535.));
+			}
+			
+			uint2		basePairLoc = dstLoc;
+			//if (basePairLoc.x % 2 != 0)
+			//	basePairLoc.x = basePairLoc.x - 1;
+			basePairLoc.x -= basePairLoc.x % 2;	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
+			
+			device uint16_t		*wPtr;
+			
+			//	first there's a plane of Y values
+			size_t		yPlaneOffsetInBytes = 0;
+			size_t		yBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		yOffsetInBytes = yPlaneOffsetInBytes + (dstLoc.y * yBytesPerRow) + (dstLoc.x * sizeof(uint16_t));
+			wPtr = ((device uint16_t *)dstBuffer) + (yOffsetInBytes/sizeof(uint16_t));
+			*wPtr = dstVals[0].r;
+			++wPtr;
+			*wPtr = dstVals[1].r;
+			
+			//	after the y plane there's another plane of interleaved (422 subsampling) Cb/Cr values
+			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * imageInfo.dstImg.res[1]);
+			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		basePairOffsetInBytes = cbcrPlaneOffsetInBytes + (basePairLoc.y * cbcrPlaneBytesPerRow) + (basePairLoc.x * sizeof(uint16_t));
+			wPtr = (device uint16_t *)dstBuffer + (basePairOffsetInBytes/sizeof(uint16_t));
+			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;
+			++wPtr;
+			*wPtr = (dstVals[0].b + dstVals[1].b) / 2;
 		}
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
 		{
+			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
+			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
+			
+			//	rec709
+			const float3x3		mat = float3x3(
+				float3(0.183, -0.101, 0.439),
+				float3(0.614, -0.339, -0.399),
+				float3(0.062, 0.439, -0.040)
+			);
+			const float3		offsets = float3(16./255., 128./255., 128./255.);
+			
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	convert normalized RGB to normalized YCbCr
+				float4		normDstVal;
+				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.a = normRGB[pixelIndex].a;
+				
+				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
+				dstVals[pixelIndex] = uchar4(round(normDstVal * 255.));
+			}
+			
+			//	figure out the base address at which we need to start writing pixels
+			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
+			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
+			
+			//	(combine and) write the pixels (this is where we go from 444 to 422)
+			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;	//	Cb, adds chroma subsampling
+			++wPtr;
+			*wPtr = dstVals[0].r;	//	Y from the first pixel
+			++wPtr;
+			*wPtr = (dstVals[0].b + dstVals[1].b) / 2;	//	Cr, adds chroma subsampling
+			++wPtr;
+			*wPtr = dstVals[1].r;	//	Y from the second pixel
+			++wPtr;
+			
+			//	get the A value
+			size_t		alphaPlaneOffsetInBytes = imageInfo.dstImg.bytesPerRow * imageInfo.dstImg.res[1];
+			size_t		alphaPlaneBytesPerPixel = sizeof(uint8_t);
+			size_t		alphaPlaneBytesPerRow = alphaPlaneBytesPerPixel * imageInfo.dstImg.res[0];
+			size_t		alphaLocOffsetInBytes = alphaPlaneOffsetInBytes + (dstLoc.y * alphaPlaneBytesPerRow) + (dstLoc.x * alphaPlaneBytesPerPixel);
+			
+			wPtr = (device uint8_t *)dstBuffer + (alphaLocOffsetInBytes/sizeof(uint8_t));
+			*wPtr = dstVals[0].a;
+			++wPtr;
+			*wPtr = dstVals[1].a;
 		}
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
+			
+			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
+			ushort4		dstVals[MAX_PIXELS_TO_PROCESS];
+			
+			//	rec709
+			const float3x3		mat = float3x3(
+				float3(0.183, -0.101, 0.439),
+				float3(0.614, -0.339, -0.399),
+				float3(0.062, 0.439, -0.040)
+			);
+			const float3		offsets = float3(16./255., 128./255., 128./255.);
+			
+			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+				//	convert normalized RGB to normalized YCbCr
+				float4		normDstVal;
+				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.a = normRGB[pixelIndex].a;
+				
+				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (16-bit vals in this case)
+				dstVals[pixelIndex] = ushort4(round(normDstVal * 65535.));
+			}
+			
+			uint2		basePairLoc = dstLoc;
+			//if (basePairLoc.x % 2 != 0)
+			//	basePairLoc.x = basePairLoc.x - 1;
+			basePairLoc.x -= basePairLoc.x % 2;	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
+			
+			device uint16_t		*wPtr;
+			
+			//	first there's a plane of Y values
+			size_t		yPlaneOffsetInBytes = 0;
+			size_t		yBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		yOffsetInBytes = yPlaneOffsetInBytes + (dstLoc.y * yBytesPerRow) + (dstLoc.x * sizeof(uint16_t));
+			wPtr = ((device uint16_t *)dstBuffer) + (yOffsetInBytes/sizeof(uint16_t));
+			*wPtr = dstVals[0].r;
+			++wPtr;
+			*wPtr = dstVals[1].r;
+			
+			//	after the y plane there's another plane of interleaved (422 subsampling) Cb/Cr values
+			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * imageInfo.dstImg.res[1]);
+			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		basePairOffsetInBytes = cbcrPlaneOffsetInBytes + (basePairLoc.y * cbcrPlaneBytesPerRow) + (basePairLoc.x * sizeof(uint16_t));
+			wPtr = (device uint16_t *)dstBuffer + (basePairOffsetInBytes/sizeof(uint16_t));
+			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;
+			++wPtr;
+			*wPtr = (dstVals[0].b + dstVals[1].b) / 2;
+			
+			//	after the Cb/Cr plane there is an alpha plane
+			
+			size_t		aPlaneOffsetInBytes = cbcrPlaneOffsetInBytes + (cbcrPlaneBytesPerRow * imageInfo.dstImg.res[1]);
+			size_t		aBytesPerRow = yBytesPerRow;
+			size_t		aOffsetInBytes = aPlaneOffsetInBytes + (aBytesPerRow * dstLoc.y) + (sizeof(uint16_t) * dstLoc.x);
+			wPtr = (device uint16_t *)dstBuffer + (aOffsetInBytes/sizeof(uint16_t));
+			*wPtr = dstVals[0].a;
+			++wPtr;
+			*wPtr = dstVals[1].a;
+			
 		}
 		break;
 	}

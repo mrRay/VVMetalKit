@@ -220,13 +220,11 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		case SwizzlePF_UYVY_PK_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_16:
+		case SwizzlePF_UYVY_PKPL_422_UI_16:
 			self.shaderEvalSize = MTLSizeMake(2,1,1);
 			break;
 		case SwizzlePF_UYVY_PK_422_UI_10:
 			self.shaderEvalSize = MTLSizeMake(6,1,1);
-			break;
-		case SwizzlePF_UYVY_PKPL_422_UI_16:
-			self.shaderEvalSize = MTLSizeMake(1,1,1);
 			break;
 		}
 		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
