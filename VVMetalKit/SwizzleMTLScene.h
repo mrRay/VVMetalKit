@@ -33,15 +33,4 @@ extern "C" {
 
 
 
-@interface SwizzleShaderInfoObject : NSObject
-+ (instancetype) createWithInfo:(SwizzleShaderImageInfo)n;
-+ (instancetype) createWithPF:(SwizzlePF)inPF res:(CGSize)inRes bytesPerRow:(NSUInteger)inBytesPerRow;
-- (instancetype) initWithInfo:(SwizzleShaderImageInfo)n;
-- (instancetype) initWithPF:(SwizzlePF)inPF res:(CGSize)inSize bytesPerRow:(NSUInteger)inBytesPerRow;
-@property (readwrite) SwizzleShaderImageInfo object;
-@end
-
-
-
-
 NS_ASSUME_NONNULL_END

@@ -73,11 +73,12 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 - (id<MTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
 	//NSLog(@"%s ... %ld, %p",__func__,inLength,b);
 	size_t			targetLength = 0;
-	if (inLength % 4096 == 0)	{
+	size_t			pageSize = getpagesize();
+	if (inLength % pageSize == 0)	{
 		targetLength = inLength;
 	}
 	else	{
-		targetLength = 4096 - (inLength % 4096) + inLength;
+		targetLength = pageSize - (inLength % pageSize) + inLength;
 	}
 	//NSLog(@"\t\ttargetLength is %ld",targetLength);
 	
@@ -328,38 +329,5 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 }
 
 
-@end
-
-
-
-
-
-
-
-
-@implementation SwizzleShaderInfoObject
-+ (instancetype) createWithInfo:(SwizzleShaderImageInfo)n	{
-	return [[SwizzleShaderInfoObject alloc] initWithInfo:n];
-}
-+ (instancetype) createWithPF:(SwizzlePF)inPF res:(CGSize)inRes bytesPerRow:(NSUInteger)inBytesPerRow	{
-	return [[SwizzleShaderInfoObject alloc] initWithPF:inPF res:inRes bytesPerRow:inBytesPerRow];
-}
-- (instancetype) initWithInfo:(SwizzleShaderImageInfo)n	{
-	self = [super init];
-	if (self != nil)	{
-		self.object = n;
-	}
-	return self;
-}
-- (instancetype) initWithPF:(SwizzlePF)inPF res:(CGSize)inSize bytesPerRow:(NSUInteger)inBytesPerRow	{
-	self = [super init];
-	if (self != nil)	{
-		_object.pf = inPF;
-		_object.res[0] = round(inSize.width);
-		_object.res[1] = round(inSize.height);
-		_object.bytesPerRow = (unsigned int)inBytesPerRow;
-	}
-	return self;
-}
 @end
 
