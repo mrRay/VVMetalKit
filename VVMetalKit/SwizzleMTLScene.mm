@@ -114,6 +114,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 - (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	//NSLog(@"%s",__func__);
+	//NSLog(@"%s ... %@ -> %@",__func__,[NSString stringFromFourCC:inInfo.srcImg.pf],[NSString stringFromFourCC:inInfo.dstImg.pf]);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
 	if (inSrc==nil || (inDst==nil && inDstRGB==nil))	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
@@ -154,14 +155,15 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		case SwizzlePF_UYVY_PK_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_16:
+		case SwizzlePF_UYVY_PKPL_422_UI_16:
 			self.shaderEvalSize = MTLSizeMake(2,1,1);
 			break;
 		case SwizzlePF_UYVY_PK_422_UI_10:
 			self.shaderEvalSize = MTLSizeMake(6,1,1);
 			break;
-		case SwizzlePF_UYVY_PKPL_422_UI_16:
-			self.shaderEvalSize = MTLSizeMake(1,1,1);
-			break;
+		//case SwizzlePF_UYVY_PKPL_422_UI_16:
+		//	self.shaderEvalSize = MTLSizeMake(1,1,1);
+		//	break;
 		}
 		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;

@@ -58,28 +58,28 @@
 - (void) dealloc	{
 	//NSLog(@"%s ... %@",__func__,self);
 	if (_preferDeletion || self.srcBuffer != nil)	{
-		self.texture = nil;
-		self.buffer = nil;
+		_texture = nil;
+		_buffer = nil;
 		
-		if (self.destroyBlock != nil)
-			self.destroyBlock(self);
+		if (_destroyBlock != nil)
+			_destroyBlock(self);
 		
 	}
 	else	{
-		[self.parentPool _returnToPool:self];
+		[_parentPool _returnToPool:self];
 	}
 	
 	//	release the supporting object and clear out the supporting context
-	self.supportingObject = nil;
-	self.supportingContext = NULL;
+	_supportingObject = nil;
+	_supportingContext = NULL;
 	//	if there's an IOSurface/CVPixelBufferRef, toss those now
-	if (self.iosfc != NULL)	{
-		CFRelease(self.iosfc);
-		self.iosfc = NULL;
+	if (_iosfc != NULL)	{
+		CFRelease(_iosfc);
+		_iosfc = NULL;
 	}
-	if (self.cvpb != NULL)	{
-		CVPixelBufferRelease(self.cvpb);
-		self.cvpb = NULL;
+	if (_cvpb != NULL)	{
+		CVPixelBufferRelease(_cvpb);
+		_cvpb = NULL;
 	}
 }
 
@@ -122,6 +122,10 @@
 	//	return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %ld x %ld (%ld x %ld)>",self.texture.label,(unsigned long)myWidth,(unsigned long)myHeight,(unsigned long)myDisplayWidth,(unsigned long)myDisplayHeight];
 	
 	//return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %@>",self.texture.label,TIMEDESC(self.time)];
+	
+	if (_buffer!=nil && _texture==nil)	{
+		return [NSString stringWithFormat:@"<MTLImgBuffer, B %ld>",_buffer.length];
+	}
 	
 	return [NSString stringWithFormat:@"<MTLImgBuffer, %@, %d x %d>", self.texture.label, (int)self.size.width, (int)self.size.height];
 }
