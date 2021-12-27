@@ -24,6 +24,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 @interface SwizzleMTLScene ()	{
 	id<MTLBuffer>		slugBuffer;	//	we can't pass nil buffers to metal because...i don't know why not
+	MTLImgBuffer		*slugTexture;	//	we can't pass nil textures to metal because...if we do, the metal debugger doesn't work.
 }
 
 @property (strong) id<MTLBuffer> srcBuffer;
@@ -62,6 +63,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 		
 		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeShared];
+		slugTexture = [[MTLPool global] rgbaFloatTexSized:NSMakeSize(16,16)];
 	}
 	return self;
 }
@@ -153,6 +155,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 			self.shaderEvalSize = MTLSizeMake(1,1,1);
 			break;
 		case SwizzlePF_UYVY_PK_422_UI_8:
+		case SwizzlePF_YUYV_PK_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_16:
 		case SwizzlePF_UYVY_PKPL_422_UI_16:
@@ -165,6 +168,9 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		//	self.shaderEvalSize = MTLSizeMake(1,1,1);
 		//	break;
 		}
+		
+		_info.readSrcImgFromBuffer = true;
+		
 		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
 	
@@ -221,6 +227,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 			self.shaderEvalSize = MTLSizeMake(1,1,1);
 			break;
 		case SwizzlePF_UYVY_PK_422_UI_8:
+		case SwizzlePF_YUYV_PK_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_8:
 		case SwizzlePF_UYVA_PKPL_422_UI_16:
 		case SwizzlePF_UYVY_PKPL_422_UI_16:
@@ -230,6 +237,9 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 			self.shaderEvalSize = MTLSizeMake(6,1,1);
 			break;
 		}
+		
+		_info.readSrcImgFromBuffer = false;
+		
 		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
 	
@@ -274,13 +284,16 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		outputToBuffer = false;
 	}
 	
+	if (srcRGBTex == nil)
+		srcRGBTex = slugTexture;
+	
 	[self.computeEncoder
 		setBuffer:srcBuffer
 		offset:0
 		atIndex:SwizzleShaderArg_SrcBuffer];
 	
 	[self.computeEncoder
-		setTexture:(srcRGBTex==nil) ? nil : srcRGBTex.texture
+		setTexture:srcRGBTex.texture
 		atIndex:SwizzleShaderArg_SrcRGBTexture];
 	
 	[self.computeEncoder

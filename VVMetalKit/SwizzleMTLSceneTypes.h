@@ -21,6 +21,7 @@ typedef enum SwizzlePF	{
 	SwizzlePF_ARGB_PK_UI_8 = 32,
 	SwizzlePF_RGBA_PK_FP_32 = 'RGfA',	//	32 bit float per channel (128 bits per pixel)
 	SwizzlePF_UYVY_PK_422_UI_8 = '2vuy',
+	SwizzlePF_YUYV_PK_422_UI_8 = 'yuvs',
 	SwizzlePF_UYVY_PK_422_UI_10 = 'v210',
 	SwizzlePF_UYVA_PKPL_422_UI_8 = 'UYVA',	//	semi-planar: basically a 2vuy data blob followed by a 1-channel, 8-bit alpha image
 	SwizzlePF_UYVY_PKPL_422_UI_16 = 'p216',	//	semi-planar: first plane is 16 bit single-channel luminance, second plane is 16-bit single-channel Cb/Cr
@@ -52,6 +53,8 @@ typedef struct	{
 typedef struct	{
 	SwizzleShaderImageInfo		srcImg;
 	SwizzleShaderImageInfo		dstImg;
+	
+	bool						readSrcImgFromBuffer;	//	if YES, we need to pull the src image out of the src image buffer.  if NO, we need to pull the src image out of the src img texture.  (we can no longer just pass a nil texture and check for that in the shader, as the metal debugger doesn't work unless all attachments are non-nil)
 	
 	//	must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
 	unsigned int				dstPixelsToProcess;	//	populated automatically by the backend, but you'll want to read it in shaders

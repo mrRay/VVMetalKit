@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (assign) NSUInteger housekeepingThreshold;
 
-- (CVMetalTextureCacheRef) cvTexCache;
+@property (readonly) CVMetalTextureCacheRef cvTexCache;
 
 //	buffers retain the pool that created them- this ensures that any "in flight" buffers will have their resources freed, and the corresponding pool will also be released as soon as possible
 - (void) prepForRelease;
