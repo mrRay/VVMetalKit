@@ -82,13 +82,14 @@
 		}
 		passDescriptor.colorAttachments[0].texture = currentDrawable.texture;
 		
+		MTLImgBuffer		*localImgBuffer = self.imgBuffer;
 		//	if there's an image buffer...
-		if (self.imgBuffer != nil)	{
+		if (localImgBuffer != nil)	{
 			//NSLog(@"\t\tthere's an image buffer to draw...");
 			
 			CGRect			viewRect = CGRectMake(0,0,viewportSize.x,viewportSize.y);
 			
-			//NSLog(@"\t\timgBuffer is %@",self.imgBuffer);
+			//NSLog(@"\t\timgBuffer is %@",localImgBuffer);
 			//	make sure the vert buffer exists, create it if it doesn't
 			if (self.vertBuffer == nil)	{
 				const MTLImgBufferViewVertex		quadVerts[] = {
@@ -108,7 +109,7 @@
 			MTLImgBufferStruct		localGeoStruct;
 			
 			//	populate it with the contents of the img buffer (src rect of the texture that contains the image)
-			[self.imgBuffer populateStruct:&localGeoStruct];
+			[localImgBuffer populateStruct:&localGeoStruct];
 			
 			//	calculate where the image will draw in my bounds, apply it to the geometry struct
 			NSRect			imgRect = [VVSizingTool
@@ -155,7 +156,7 @@
 		[renderEncoder setRenderPipelineState:_pso];
 		
 		//	if there's an image buffer...
-		if (self.imgBuffer != nil)	{
+		if (localImgBuffer != nil)	{
 			//	pass data to the render encoder
 			[renderEncoder
 				setVertexBuffer:self.vertBuffer
@@ -167,7 +168,7 @@
 				atIndex:MTLImgBufferView_VS_Index_MVPMatrix];
 			
 			[renderEncoder
-				setFragmentTexture:self.imgBuffer.texture
+				setFragmentTexture:localImgBuffer.texture
 				atIndex:MTLImgBufferView_FS_Index_Color];
 			
 			[renderEncoder
@@ -182,7 +183,7 @@
 			
 			//	make sure the buffer we're drawing is retained until the command buffer has completed...
 			[cmdBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
-				MTLImgBuffer		*tmpBuffer = self.imgBuffer;
+				MTLImgBuffer		*tmpBuffer = localImgBuffer;
 				tmpBuffer = nil;
 			}];
 		}
@@ -195,6 +196,8 @@
 		[cmdBuffer presentDrawable:currentDrawable];
 		
 		currentDrawable = nil;
+		
+		localImgBuffer = nil;
 	}
 }
 

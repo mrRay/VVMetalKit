@@ -18,7 +18,7 @@
 @property (strong,nullable) id<MTLBuffer> geoBuffer;
 
 //	texture containing the image we want to draw
-@property (strong,nullable) MTLImgBuffer * imgBuffer;
+@property (strong,nullable,atomic) MTLImgBuffer * imgBuffer;
 
 //	a label that appears in command buffers and NSLog()
 @property (strong,nullable) NSString * label;
