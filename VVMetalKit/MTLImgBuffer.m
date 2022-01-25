@@ -35,23 +35,25 @@
 - (instancetype) init	{
 	self = [super init];
 	if (self != nil)	{
-		self.texture = nil;
-		self.buffer = nil;
-		self.bufferBytesPerRow = 0;
-		self.width = 0;
-		self.height = 0;
-		self.size = CGSizeMake(self.width, self.height);
-		self.srcRect = NSMakeRect(0,0,self.width,self.height);
-		self.flipped = NO;
-		self.preferDeletion = NO;
-		self.checkCount = 0;
-		self.parentPool = nil;
-		self.supportingObject = nil;
-		self.supportingContext = nil;
-		self.destroyBlock = nil;
-		self.iosfc = nil;
-		self.cvpb = nil;
-		self.srcBuffer = nil;
+		_texture = nil;
+		_buffer = nil;
+		_bufferBytesPerRow = 0;
+		_width = 0;
+		_height = 0;
+		_size = CGSizeMake(_width, _height);
+		_srcRect = NSMakeRect(0,0,_width,_height);
+		_flipped = NO;
+		_preferDeletion = NO;
+		_checkCount = 0;
+		_time = kCMTimeInvalid;
+		_duration = kCMTimeInvalid;
+		_parentPool = nil;
+		_supportingObject = nil;
+		_supportingContext = nil;
+		_destroyBlock = nil;
+		_iosfc = nil;
+		_cvpb = nil;
+		_srcBuffer = nil;
 	}
 	return self;
 }
@@ -84,42 +86,42 @@
 }
 
 
-@synthesize width=myWidth;
+@synthesize width=_width;
 - (void) setWidth:(NSUInteger)n	{
-	myWidth = n;
-	mySize.width = n;
+	_width = n;
+	_size.width = n;
 }
 - (NSUInteger) width	{
-	return myWidth;
+	return _width;
 }
 
-@synthesize height=myHeight;
+@synthesize height=_height;
 - (void) setHeight:(NSUInteger)n	{
-	myHeight = n;
-	mySize.height = n;
+	_height = n;
+	_size.height = n;
 }
 - (NSUInteger) height	{
-	return myHeight;
+	return _height;
 }
 
-@synthesize size=mySize;
+@synthesize size=_size;
 - (void) setSize:(CGSize)n	{
-	mySize = n;
-	myWidth = mySize.width;
-	myHeight = mySize.height;
+	_size = n;
+	_width = _size.width;
+	_height = _size.height;
 }
 - (CGSize) size	{
-	return mySize;
+	return _size;
 }
 
 
 - (NSString *) description	{
 	//return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %@>",self.texture.label,NSStringFromRect(self.srcRect)];
 	
-	//if (CGSizeEqualToSize(mySize,myDisplaySize))
-	//	return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %ld x %ld>",self.texture.label,(unsigned long)myWidth,(unsigned long)myHeight];
+	//if (CGSizeEqualToSize(_size,myDisplaySize))
+	//	return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %ld x %ld>",self.texture.label,(unsigned long)_width,(unsigned long)_height];
 	//else
-	//	return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %ld x %ld (%ld x %ld)>",self.texture.label,(unsigned long)myWidth,(unsigned long)myHeight,(unsigned long)myDisplayWidth,(unsigned long)myDisplayHeight];
+	//	return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %ld x %ld (%ld x %ld)>",self.texture.label,(unsigned long)_width,(unsigned long)_height,(unsigned long)myDisplayWidth,(unsigned long)myDisplayHeight];
 	
 	//return [NSString stringWithFormat:@"<MTLImgBuffer, %@- %@>",self.texture.label,TIMEDESC(self.time)];
 	
@@ -150,31 +152,32 @@
 	//	if 'supportingObject' is a MTLImgBuffer
 	MTLImgBuffer	*tmp = [[[tmpSelf class] allocWithZone:zone] init];
 	
-	tmp.texture = tmpSelf.texture;
-	tmp.buffer = tmpSelf.buffer;
-	tmp.bufferBytesPerRow = tmpSelf.bufferBytesPerRow;
-	tmp.width = tmpSelf.width;	//	don't bother manually copying these, 'size' will populate these ivars
-	tmp.height = tmpSelf.height;
-	tmp.size = tmpSelf.size;
-	tmp.flipped = tmpSelf.flipped;
-	tmp.preferDeletion = tmpSelf.preferDeletion;
+	tmp.texture = _texture;
+	tmp.buffer = _buffer;
+	tmp.bufferBytesPerRow = _bufferBytesPerRow;
+	tmp.width = _width;	//	don't bother manually copying these, 'size' will populate these ivars
+	tmp.height = _height;
+	tmp.size = _size;
+	tmp.flipped = _flipped;
+	tmp.preferDeletion = _preferDeletion;
 	tmp.checkCount = 0;
-	tmp.time = tmpSelf.time;
+	tmp.time = _time;
+	tmp.duration = _duration;
 	
-	tmp.srcRect = tmpSelf.srcRect;
+	tmp.srcRect = _srcRect;
 	
-	tmp.parentPool = tmpSelf.parentPool;
+	tmp.parentPool = _parentPool;
 	
-	tmp.supportingObject = tmpSelf.supportingObject;
-	tmp.supportingContext = tmpSelf.supportingContext;
+	tmp.supportingObject = _supportingObject;
+	tmp.supportingContext = _supportingContext;
 	
 	tmp.destroyBlock = nil;	//	nil b/c 'srcBuffer' retains the MTLImgBuffer we were copied from...
 	
-	tmp.iosfc = (tmpSelf.iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(tmpSelf.iosfc);
-	tmp.cvpb = (tmpSelf.cvpb==NULL) ? NULL : (CVPixelBufferRef)CVPixelBufferRetain(tmpSelf.cvpb);
+	tmp.iosfc = (_iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(_iosfc);
+	tmp.cvpb = (_cvpb==NULL) ? NULL : (CVPixelBufferRef)CVPixelBufferRetain(_cvpb);
 	
 	//	retain the original buffer that contains the resources we're using here
-	tmp.srcBuffer = (tmpSelf.srcBuffer!=nil) ? tmpSelf.srcBuffer : tmpSelf;
+	tmp.srcBuffer = (_srcBuffer!=nil) ? _srcBuffer : tmpSelf;
 	
 	return tmp;
 }
@@ -203,27 +206,28 @@
 	
 	if (self != nil)	{
 		//	copy all the properties from the instance we were passed...
-		self.texture = n.texture;
-		self.buffer = n.buffer;
-		self.bufferBytesPerRow = n.bufferBytesPerRow;
-		self.width = n.width;
-		self.height = n.height;
-		self.size = n.size;
-		self.flipped = n.flipped;
-		self.preferDeletion = NO;	//	if it was 'YES', we would be returning nil here
-		self.checkCount = 0;
-		self.time = kCMTimeZero;	//	do NOT copy the time!
+		_texture = n.texture;
+		_buffer = n.buffer;
+		_bufferBytesPerRow = n.bufferBytesPerRow;
+		_width = n.width;
+		_height = n.height;
+		_size = n.size;
+		_flipped = n.flipped;
+		_preferDeletion = NO;	//	if it was 'YES', we would be returning nil here
+		_checkCount = 0;
+		_time = kCMTimeInvalid;	//	do NOT copy any of the timing info!
+		_duration = kCMTimeInvalid;
 		
-		self.srcRect = n.srcRect;
-		self.parentPool = n.parentPool;
-		self.supportingObject = n.supportingObject;
-		self.supportingContext = n.supportingContext;
-		self.destroyBlock = n.destroyBlock;
+		_srcRect = n.srcRect;
+		_parentPool = n.parentPool;
+		_supportingObject = n.supportingObject;
+		_supportingContext = n.supportingContext;
+		_destroyBlock = n.destroyBlock;
 		
-		self.iosfc = (n.iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(n.iosfc);
-		self.cvpb = (n.cvpb==NULL) ? NULL : (CVPixelBufferRef)CVPixelBufferRetain(n.cvpb);
+		_iosfc = (n.iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(n.iosfc);
+		_cvpb = (n.cvpb==NULL) ? NULL : (CVPixelBufferRef)CVPixelBufferRetain(n.cvpb);
 		
-		self.srcBuffer = nil;	//	always nil because we only recycle buffers that own their own content
+		_srcBuffer = nil;	//	always nil because we only recycle buffers that own their own content
 		
 		//	clear out some of the properties from the instance we were passed- it's going to be deallocated, and we don't want it to clean itself up yet!
 		n.supportingObject = nil;

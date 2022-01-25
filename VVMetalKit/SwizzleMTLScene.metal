@@ -3,6 +3,8 @@
 
 using namespace metal;
 
+#include "VVColorConversions.h"
+
 
 
 
@@ -508,15 +510,22 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer (and reordered YCbCr into YCbCr) and provided us with all three vals, we just have to convert them to RGB.
 				
 				//	rec709
-				const float3x3		mat = float3x3(
-					float3(1.164, 1.164, 1.164),
-					float3(0.0, -0.213, 2.112),
-					float3(1.793, -0.533, 0.0)
-				);
-				const float3		offsets = float3(16./255., 128./255., 128./255.);
+				//const float3x3		mat = float3x3(
+				//	float3(1.1644f, 1.1644f, 1.1644f),
+				//	float3(0.0f, -0.2132f, 2.1124f),
+				//	float3(1.7927f, -0.5329f, 0.0f)
+				//);
+				//const float3		offsets = float3(16./255., 128./255., 128./255.);
+				//
+				//
+				//
+				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
 				
-				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
-				
+				//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_601 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_601);
+				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
+				//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_Full * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_Full);
+				//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_SD * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_SD);
+				//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_HD * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_HD);
 				
 				normRGB[pixelIndex].a = 1.0;
 			}
@@ -536,15 +545,15 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
 				//	rec709
-				const float3x3		mat = float3x3(
-					float3(1.164, 1.164, 1.164),
-					float3(0.0, -0.213, 2.112),
-					float3(1.793, -0.533, 0.0)
-				);
-				const float3		offsets = float3(16./255., 128./255., 128./255.);
-				
-				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
-				
+				//const float3x3		mat = float3x3(
+				//	float3(1.1644f, 1.1644f, 1.1644f),
+				//	float3(0.0f, -0.2132f, 2.1124f),
+				//	float3(1.7927f, -0.5329f, 0.0f)
+				//);
+				//const float3		offsets = float3(16./255., 128./255., 128./255.);
+				//
+				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = 1.0;
 			}
@@ -562,15 +571,15 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
 				//	rec709
-				const float3x3		mat = float3x3(
-					float3(1.164, 1.164, 1.164),
-					float3(0.0, -0.213, 2.112),
-					float3(1.793, -0.533, 0.0)
-				);
-				const float3		offsets = float3(16./255., 128./255., 128./255.);
-				
-				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
-				
+				//const float3x3		mat = float3x3(
+				//	float3(1.1644f, 1.1644f, 1.1644f),
+				//	float3(0.0f, -0.2132f, 2.1124f),
+				//	float3(1.7927f, -0.5329f, 0.0f)
+				//);
+				//const float3		offsets = float3(16./255., 128./255., 128./255.);
+				//
+				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = 1.0;
 			}
@@ -590,15 +599,15 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
 				//	rec709
-				const float3x3		mat = float3x3(
-					float3(1.164, 1.164, 1.164),
-					float3(0.0, -0.213, 2.112),
-					float3(1.793, -0.533, 0.0)
-				);
-				const float3		offsets = float3(16./255., 128./255., 128./255.);
-				
-				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
-				
+				//const float3x3		mat = float3x3(
+				//	float3(1.1644f, 1.1644f, 1.1644f),
+				//	float3(0.0f, -0.2132f, 2.1124f),
+				//	float3(1.7927f, -0.5329f, 0.0f)
+				//);
+				//const float3		offsets = float3(16./255., 128./255., 128./255.);
+				//
+				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = rawVals.a;
 			}
@@ -617,15 +626,15 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
 				//	rec709
-				const float3x3		mat = float3x3(
-					float3(1.164, 1.164, 1.164),
-					float3(0.0, -0.213, 2.112),
-					float3(1.793, -0.533, 0.0)
-				);
-				const float3		offsets = float3(16./255., 128./255., 128./255.);
-				
-				normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
-				
+				//const float3x3		mat = float3x3(
+				//	float3(1.1644f, 1.1644f, 1.1644f),
+				//	float3(0.0f, -0.2132f, 2.1124f),
+				//	float3(1.7927f, -0.5329f, 0.0f)
+				//);
+				//const float3		offsets = float3(16./255., 128./255., 128./255.);
+				//
+				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = rawVals.a;
 			}

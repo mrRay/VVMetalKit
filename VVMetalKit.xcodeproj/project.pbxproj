@@ -23,7 +23,7 @@
 		1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */; };
 		1A0FBEC0260E1F5000FF39BB /* MTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA9260E1F5000FF39BB /* MTLScene.m */; };
-		1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */; };
+		1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEC2260E1F5000FF39BB /* MTLImgBufferShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAB260E1F5000FF39BB /* MTLImgBufferShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */; };
 		1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */; };
@@ -34,6 +34,8 @@
 		1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */; };
 		1A0FBEDF260E257600FF39BB /* RenderProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEDD260E257600FF39BB /* RenderProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
+		1A199DF0279F6A1F00EE9ACB /* VVColorConversions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */; };
 		1A19F329260E788800214C6B /* VVSizingTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A19F327260E788800214C6B /* VVSizingTool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F328260E788800214C6B /* VVSizingTool.m */; };
 		1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
@@ -77,6 +79,8 @@
 		1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = SwizzleMTLScene.metal; sourceTree = "<group>"; };
 		1A0FBEDD260E257600FF39BB /* RenderProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProperties.h; sourceTree = "<group>"; };
 		1A0FBEDE260E257600FF39BB /* RenderProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenderProperties.m; sourceTree = "<group>"; };
+		1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVColorConversions.h; sourceTree = "<group>"; };
+		1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VVColorConversions.metal; sourceTree = "<group>"; };
 		1A19F327260E788800214C6B /* VVSizingTool.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVSizingTool.h; sourceTree = "<group>"; };
 		1A19F328260E788800214C6B /* VVSizingTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VVSizingTool.m; sourceTree = "<group>"; };
 		1A2149D3263851A0007AD273 /* SizingTool_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SizingTool_objc.m; sourceTree = "<group>"; };
@@ -159,6 +163,8 @@
 				1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */,
 				1A19F327260E788800214C6B /* VVSizingTool.h */,
 				1A19F328260E788800214C6B /* VVSizingTool.m */,
+				1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */,
+				1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */,
 				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
 			);
 			path = VVMetalKit;
@@ -196,6 +202,7 @@
 				1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */,
 				1A0FBEBC260E1F5000FF39BB /* MTLComputeScene.h in Headers */,
 				1A0FBEBE260E1F5000FF39BB /* SizingToolTypes.h in Headers */,
+				1A199DF0279F6A1F00EE9ACB /* VVColorConversions.h in Headers */,
 				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
 				1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */,
 				1AE0E0922706340E00F03B4E /* MTLScene_priv.h in Headers */,
@@ -282,6 +289,7 @@
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
 				1A0FBEB6260E1F5000FF39BB /* MTLImgBufferView.m in Sources */,
 				1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */,
+				1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */,
 				1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */,
 				1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */,
 				1A0FBEBB260E1F5000FF39BB /* MTLPool.m in Sources */,

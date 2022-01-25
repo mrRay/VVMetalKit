@@ -37,6 +37,7 @@ typedef void (^MTLImgBufferAvailableBlock)(MTLImgBuffer *);
 @property (readwrite) BOOL preferDeletion;
 @property (readwrite) int checkCount;
 @property (readwrite) CMTime time;
+@property (readwrite) CMTime duration;
 
 //	the region of the texture/buffer that contains the image that this instance represents
 @property (readwrite) NSRect srcRect;

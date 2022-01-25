@@ -5,6 +5,9 @@
 
 
 
+#ifdef __METAL_VERSION__
+
+
 GPoint MakePoint(float inX, float inY);
 bool GPointsEqual(GPoint inA, GPoint inB);
 
@@ -31,6 +34,11 @@ GPoint NormCoordsOfPixelInRect(thread GPoint & inPoint, thread GRect & inRect);
 
 GPoint PixelForNormCoordsInRect(thread GPoint & inPoint, thread GRect & inRect);
 //GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect);
+
+
+#endif
+
+
 
 
 #endif /* SizingTool_h */

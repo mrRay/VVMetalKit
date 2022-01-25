@@ -6,6 +6,9 @@ using namespace metal;
 
 
 
+#ifdef __METAL_VERSION__
+
+
 GPoint MakePoint(float inX, float inY)	{
 	return { inX, inY };
 }
@@ -165,5 +168,8 @@ GPoint PixelForNormCoordsInRect(thread GPoint & inPoint, thread GRect & inRect)	
 GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect)	{
 	return MakePoint( (inPoint.x*(inRect.size.width-1.))+inRect.origin.x, (inPoint.y*(inRect.size.height-1.))+inRect.origin.y );
 }
+
+
+#endif
 
 
