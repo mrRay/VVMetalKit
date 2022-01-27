@@ -1460,6 +1460,9 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.preferDeletion = YES;
 	returnMe.parentPool = self;
 	
+	IOSurfaceRef		tmpIosfc = n.iosurface;
+	returnMe.iosfc = (tmpIosfc==NULL) ? nil : (IOSurfaceRef)CFRetain( tmpIosfc );
+	
 	[self _labelTexture:n];
 	n.label = [n.label stringByAppendingString:@"- existing"];
 	//NSLog(@"made buffer for existing texture %@",returnMe);
@@ -1563,7 +1566,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	if (newTex != nil)	{
 		returnMe.texture = newTex;
 		returnMe.cvpb = cvpb;
-		returnMe.iosfc = CVPixelBufferGetIOSurface(cvpb);
+		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(cvpb);
 		};
@@ -1675,7 +1678,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	if (newTex != nil)	{
 		returnMe.texture = newTex;
 		returnMe.cvpb = cvpb;
-		returnMe.iosfc = CVPixelBufferGetIOSurface(cvpb);
+		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(cvpb);
 		};
@@ -1793,7 +1796,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	if (newTex != nil)	{
 		returnMe.texture = newTex;
 		returnMe.cvpb = inCVPB;
-		returnMe.iosfc = iosfc;
+		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(inCVPB);
 		};
@@ -1905,7 +1908,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	if (newTex != nil)	{
 		returnMe.texture = newTex;
 		returnMe.cvpb = cvpb;
-		returnMe.iosfc = CVPixelBufferGetIOSurface(cvpb);
+		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(cvpb);
 		};
