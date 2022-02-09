@@ -492,6 +492,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	
 	size_t				bufferSizeInBytes = bpr * s.height;
+	
+	if (bufferSizeInBytes % 4096 == 0)	{
+		//	intentionally blank, buffer size is 4k-aligned
+	}
+	else	{
+		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
+	}
+	
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
@@ -532,6 +540,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.buffer = tmpBuffer;
 	returnMe.bufferBytesPerRow = bpr;
 	returnMe.texture = tmpTex;
+	returnMe.preferDeletion = YES;
 	//NSLog(@"allocated texture %@",returnMe);
 	
 	return returnMe;
@@ -769,8 +778,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	
 	size_t				bufferSizeInBytes = bpr * s.height;
-	if (bufferSizeInBytes % 4096 != 0)
-		bufferSizeInBytes = ((bufferSizeInBytes/4096)+1)*4096;
+	
+	if (bufferSizeInBytes % 4096 == 0)	{
+		//	intentionally blank, buffer size is 4k-aligned
+	}
+	else	{
+		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
+	}
+	
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
@@ -814,6 +829,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.buffer = tmpBuffer;
 	returnMe.bufferBytesPerRow = bpr;
 	returnMe.texture = tmpTex;
+	returnMe.preferDeletion = YES;
 	//NSLog(@"allocated texture %@",returnMe);
 	
 	return returnMe;
@@ -974,6 +990,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	
 	size_t				bufferSizeInBytes = bpr * s.height;
+	
+	if (bufferSizeInBytes % 4096 == 0)	{
+		//	intentionally blank, buffer size is 4k-aligned
+	}
+	else	{
+		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
+	}
+	
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
@@ -1013,6 +1037,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.buffer = tmpBuffer;
 	returnMe.bufferBytesPerRow = bpr;
 	returnMe.texture = tmpTex;
+	returnMe.preferDeletion = YES;
 	//NSLog(@"allocated texture %@",returnMe);
 	
 	return returnMe;
@@ -1203,6 +1228,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	
 	size_t				bufferSizeInBytes = bpr * s.height;
+	
+	if (bufferSizeInBytes % 4096 == 0)	{
+		//	intentionally blank, buffer size is 4k-aligned
+	}
+	else	{
+		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
+	}
+	
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
 	//id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytes:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged];
 	if (tmpBuffer == nil)	{
@@ -1243,6 +1276,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.buffer = tmpBuffer;
 	returnMe.bufferBytesPerRow = bpr;
 	returnMe.texture = tmpTex;
+	returnMe.preferDeletion = YES;
 	//NSLog(@"allocated texture %@",returnMe);
 	
 	return returnMe;
@@ -1402,6 +1436,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	
 	size_t				bufferSizeInBytes = bpr * s.height;
+	
+	if (bufferSizeInBytes % 4096 == 0)	{
+		//	intentionally blank, buffer size is 4k-aligned
+	}
+	else	{
+		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
+	}
+	
 	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
@@ -1441,6 +1483,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.buffer = tmpBuffer;
 	returnMe.bufferBytesPerRow = bpr;
 	returnMe.texture = tmpTex;
+	returnMe.preferDeletion = YES;
 	//NSLog(@"allocated texture %@",returnMe);
 	
 	return returnMe;
