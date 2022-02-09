@@ -76,6 +76,7 @@
 	_supportingContext = NULL;
 	//	if there's an IOSurface/CVPixelBufferRef, toss those now
 	if (_iosfc != NULL)	{
+		IOSurfaceDecrementUseCount(_iosfc);
 		CFRelease(_iosfc);
 		_iosfc = NULL;
 	}
@@ -173,7 +174,15 @@
 	
 	tmp.destroyBlock = nil;	//	nil b/c 'srcBuffer' retains the MTLImgBuffer we were copied from...
 	
-	tmp.iosfc = (_iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(_iosfc);
+	//tmp.iosfc = (_iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(_iosfc);
+	if (_iosfc == NULL)	{
+		tmp.iosfc = NULL;
+	}
+	else	{
+		tmp.iosfc = (IOSurfaceRef)CFRetain(_iosfc);
+		IOSurfaceIncrementUseCount(_iosfc);
+	}
+	
 	tmp.cvpb = (_cvpb==NULL) ? NULL : (CVPixelBufferRef)CVPixelBufferRetain(_cvpb);
 	
 	//	retain the original buffer that contains the resources we're using here
@@ -224,7 +233,15 @@
 		_supportingContext = n.supportingContext;
 		_destroyBlock = n.destroyBlock;
 		
-		_iosfc = (n.iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(n.iosfc);
+		//_iosfc = (n.iosfc==NULL) ? NULL : (IOSurfaceRef)CFRetain(n.iosfc);
+		if (n.iosfc == NULL)	{
+			_iosfc = NULL;
+		}
+		else	{
+			_iosfc = (IOSurfaceRef)CFRetain(n.iosfc);
+			IOSurfaceIncrementUseCount(_iosfc);
+		}
+		
 		_cvpb = (n.cvpb==NULL) ? NULL : (CVPixelBufferRef)CVPixelBufferRetain(n.cvpb);
 		
 		_srcBuffer = nil;	//	always nil because we only recycle buffers that own their own content

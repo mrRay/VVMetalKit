@@ -1461,7 +1461,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.parentPool = self;
 	
 	IOSurfaceRef		tmpIosfc = n.iosurface;
-	returnMe.iosfc = (tmpIosfc==NULL) ? nil : (IOSurfaceRef)CFRetain( tmpIosfc );
+	//returnMe.iosfc = (tmpIosfc==NULL) ? nil : (IOSurfaceRef)CFRetain( tmpIosfc );
+	if (tmpIosfc == NULL)	{
+		returnMe.iosfc = nil;
+	}
+	else	{
+		returnMe.iosfc = (IOSurfaceRef)CFRetain( tmpIosfc );
+		IOSurfaceIncrementUseCount(tmpIosfc);
+	}
 	
 	[self _labelTexture:n];
 	n.label = [n.label stringByAppendingString:@"- existing"];
@@ -1567,6 +1574,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		returnMe.texture = newTex;
 		returnMe.cvpb = cvpb;
 		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
+		IOSurfaceIncrementUseCount(iosfc);
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(cvpb);
 		};
@@ -1679,6 +1687,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		returnMe.texture = newTex;
 		returnMe.cvpb = cvpb;
 		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
+		IOSurfaceIncrementUseCount(iosfc);
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(cvpb);
 		};
@@ -1797,6 +1806,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		returnMe.texture = newTex;
 		returnMe.cvpb = inCVPB;
 		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
+		IOSurfaceIncrementUseCount(iosfc);
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(inCVPB);
 		};
@@ -1909,6 +1919,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		returnMe.texture = newTex;
 		returnMe.cvpb = cvpb;
 		returnMe.iosfc = (IOSurfaceRef)CFRetain( iosfc );
+		IOSurfaceIncrementUseCount(iosfc);
 		returnMe.destroyBlock = ^(MTLImgBuffer * bufferBeingFreed)	{
 			CFRelease(cvpb);
 		};
