@@ -153,6 +153,10 @@ GPoint NormCoordsOfPointInRect(thread GPoint & inPoint, thread GRect & inRect)	{
 	//return float2( localCoords.x/inRect.size.width, localCoords.y/inRect.size.height );
 }
 
+GPoint PointForNormCoordsInRect(thread GPoint & inPoint, thread GRect & inRect)	{
+	return MakePoint( (inPoint.x*(inRect.size.width))+inRect.origin.x, (inPoint.y*(inRect.size.height))+inRect.origin.y );
+}
+
 
 GPoint NormCoordsOfPixelInRect(thread GPoint & inPoint, thread GRect & inRect)	{
 	GPoint		localCoords = MakePoint(inPoint.x - inRect.origin.x, inPoint.y - inRect.origin.y);
@@ -168,6 +172,29 @@ GPoint PixelForNormCoordsInRect(thread GPoint & inPoint, thread GRect & inRect)	
 GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect)	{
 	return MakePoint( (inPoint.x*(inRect.size.width-1.))+inRect.origin.x, (inPoint.y*(inRect.size.height-1.))+inRect.origin.y );
 }
+
+
+
+
+GRange MakeGRange(int32_t inLocation, int32_t inLength)	{
+	GRange		returnMe;
+	returnMe.location = inLocation;
+	returnMe.length = inLength;
+	return returnMe;
+}
+GRange MakeGRangeAbsolute(GRange inRange)	{
+	if (inRange.length >= 0 || inRange.location == GRangeLocationNotFound)
+		return inRange;
+	return InvertGRangeLength(inRange);
+}
+GRange InvertGRangeLength(GRange inRange)	{
+	GRange		returnMe;
+	returnMe.length = inRange.length * -1;
+	returnMe.location = inRange.location - returnMe.length;
+	return returnMe;
+}
+
+
 
 
 #endif

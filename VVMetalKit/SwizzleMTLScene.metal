@@ -8,20 +8,20 @@ using namespace metal;
 
 
 
-//	returns the normalized values of the channels from the passed src buffer/imageInfo at the passed location
+//	returns the normalized values of the channels from the passed src buffer/opInfo at the passed location
 //	doesn't convert any colors- only converts ints (code point values) to normalized float vals, at most
-//	doesn't do any interpolation- 
-float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderInfo * imageInfo, uint2 loc);
+//	doesn't do any interpolation- expects its location to be integral
+float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderOpInfo * opInfo, uint2 loc);
 
-//	populates the passed array of 'normRGB' values from the passed 'srcBuffer', using 'imageInfo' (which describes the nature of 'srcBuffer')
-void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderInfo & imageInfo, uint2 gid);
+//	populates the passed array of 'normRGB' values from the passed 'srcBuffer', using 'opInfo' (which describes the nature of 'srcBuffer')
+void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
 //	same as above, but there's a size mismatch between the src and dst images and we need to do some resampling!
-void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderInfo & imageInfo, uint2 gid);
-//	populates the passed array of 'normRGB' values from the passed texture, using 'imageInfo' (which describes the nature of 'srcTexture')
-void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderInfo & imageInfo, uint2 gid);
+void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
+//	populates the passed array of 'normRGB' values from the passed texture, using 'opInfo' (which describes the nature of 'srcTexture')
+void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
 
 //	populates the passed dst buffer using the contents of the passed normalized RGB values
-void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo & imageInfo, thread float4 * normRGB, uint2 gid);
+void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInfo & opInfo, thread float4 * normRGB, uint2 gid);
 
 
 
@@ -31,7 +31,7 @@ kernel void SwizzleMTLSceneFunc(
 	texture2d<float,access::sample> srcRGBTexture [[ texture(SwizzleShaderArg_SrcRGBTexture) ]],
 	device void * dstBuffer [[ buffer(SwizzleShaderArg_DstBuffer) ]],
 	texture2d<float,access::write> dstRGBTexture [[ texture(SwizzleShaderArg_DstRGBTexture) ]],
-	constant SwizzleShaderInfo & imageInfo [[ buffer(SwizzleShaderArg_ImgInfo) ]],
+	constant SwizzleShaderOpInfo & opInfo [[ buffer(SwizzleShaderArg_OpInfo) ]],
 	//constant SwizzleShaderProviderInfo & providerInfo [[ buffer(SwizzleShaderArg_ProviderInfo) ]],
 	constant bool & writeToBuffer [[ buffer(SwizzleShaderArg_WriteBuffer) ]],
 	uint2 gid [[ thread_position_in_grid ]])
@@ -47,36 +47,36 @@ kernel void SwizzleMTLSceneFunc(
 	
 	
 	//	if we're reading from a src texture...
-	if (!imageInfo.readSrcImgFromBuffer)	{
+	if (!opInfo.readSrcImgFromBuffer)	{
 		//	populate the normalized RGB pixel values from the RGB texture....
-		PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, imageInfo, gid);
+		PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
 	}
 	//	else we're not reading from a src texture- we're reading from a src buffer...
 	else	{
 		//	if the dst and src image sizes differ...
-		if (imageInfo.dstImg.res[0] != imageInfo.srcImg.res[0] || imageInfo.dstImg.res[1] != imageInfo.srcImg.res[1])	{
+		if (opInfo.dstImg.res[0] != opInfo.srcImg.res[0] || opInfo.dstImg.res[1] != opInfo.srcImg.res[1])	{
 			//	use a different function to calculate the normalized RGB vals- we'll do this part last, once we get everything else working!
-			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, imageInfo, gid);
+			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
 		}
 		//	else the dst and src images have the same size...
 		else	{
 			//	populate the normalized RGB vals from the src buffer
-			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, imageInfo, gid);
+			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
 		}
 	}
 	
 	//	if there's a destination RGB texture attached, write the pixels to it now
 	if (!is_null_texture(dstRGBTexture))	{
-		for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
-			uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
-			if (dstLoc.x < imageInfo.dstImg.res[0] && dstLoc.y < imageInfo.dstImg.res[1])
+		for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
+			uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+			if (dstLoc.x < opInfo.dstImg.res[0] && dstLoc.y < opInfo.dstImg.res[1])
 				dstRGBTexture.write(normRGB[pixelIndex], dstLoc);
 		}
 	}
 	
 	//	if we're supposed to be writing to the buffer, and the dst buffer is non-nil, populate it now
 	if (writeToBuffer && dstBuffer != nullptr)	{
-		PopulateDstFromNormRGB(dstBuffer, imageInfo, normRGB, gid);
+		PopulateDstFromNormRGB(dstBuffer, opInfo, normRGB, gid);
 	}
 	
 	
@@ -90,34 +90,34 @@ kernel void SwizzleMTLSceneFunc(
 	//	if we're reading from a src texture...
 	if (!is_null_texture(srcRGBTexture))	{
 		//	populate the normalized RGB pixel values from the RGB texture....
-		PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, imageInfo, gid);
+		PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
 	}
 	//	else we're not reading from a src texture- we're reading from a src buffer...
 	else	{
 		//	if the dst and src image sizes differ...
-		if (imageInfo.dstImg.res[0] != imageInfo.srcImg.res[0] || imageInfo.dstImg.res[1] != imageInfo.srcImg.res[1])	{
+		if (opInfo.dstImg.res[0] != opInfo.srcImg.res[0] || opInfo.dstImg.res[1] != opInfo.srcImg.res[1])	{
 			//	use a different function to calculate the normalized RGB vals- we'll do this part last, once we get everything else working!
-			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, imageInfo, gid);
+			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
 		}
 		//	else the dst and src images have the same size...
 		else	{
 			//	populate the normalized RGB vals from the src buffer
-			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, imageInfo, gid);
+			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
 		}
 	}
 	
 	//	if there's a destination RGB texture attached, write the pixels to it now
 	if (!is_null_texture(dstRGBTexture))	{
-		for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
-			uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
-			if (dstLoc.x < imageInfo.dstImg.res[0] && dstLoc.y < imageInfo.dstImg.res[1])
+		for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
+			uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+			if (dstLoc.x < opInfo.dstImg.res[0] && dstLoc.y < opInfo.dstImg.res[1])
 				dstRGBTexture.write(normRGB[pixelIndex], dstLoc);
 		}
 	}
 	
 	//	if there's a dst buffer, populate it from the RGB values!
 	if (dstBuffer != nullptr)	{
-		PopulateDstFromNormRGB(dstBuffer, imageInfo, normRGB, gid);
+		PopulateDstFromNormRGB(dstBuffer, opInfo, normRGB, gid);
 	}
 	*/
 }
@@ -125,7 +125,7 @@ kernel void SwizzleMTLSceneFunc(
 
 
 
-float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc)
+float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc)
 {
 	float4			returnMe = float4(0,0,0,1);
 	if (loc.x < 0 || loc.y < 0 || loc.x >= imgInfo.res[0] || loc.y >= imgInfo.res[1])
@@ -398,15 +398,16 @@ float4 NormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderIma
 	return returnMe;
 }
 
-void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderInfo & imageInfo, uint2 gid)	{
+void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
 	
 	//				****** IMPORTANT *******
 	//	this function assumes that the src and dst buffers have the same resolution!
+	//	this function DOES NOT PERFORM ANY INTERPOLATION
 	
-	switch (imageInfo.srcImg.pf)	{
+	switch (opInfo.srcImg.pf)	{
 	case SwizzlePF_Unknown:
 		{
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				normRGB[pixelIndex] = float4(0,1,0,1);
 			}
 		}
@@ -415,11 +416,11 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_RGBA_PK_FP_32:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
 				//	in this case, the src image is RGB- we already have the normalized RGB vals, so we're basically done!
 				normRGB[pixelIndex] = rawVals.rgba;
@@ -429,11 +430,11 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_RGBX_PK_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
 				//	in this case, the src image is RGB- we already have the normalized RGB vals, so we're basically done!
 				normRGB[pixelIndex] = rawVals.rgba;
@@ -446,16 +447,16 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_BGRA_PK_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
 				//	note: the image data in the src buffer is BGRA!
 				
 				//	image data is:			B	G	R	A
-				//	code to access above:	R	G	B	A
+				//	code to access above:	R	G	B	A	=>	BGRA
 				normRGB[pixelIndex] = rawVals.bgra;
 			}
 		}
@@ -463,16 +464,16 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_BGRX_PK_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
 				//	note: the image data in the src buffer is BGRA!
 				
 				//	image data is:			B	G	R	A
-				//	code to access above:	R	G	B	A
+				//	code to access above:	R	G	B	A	=>	BGRA
 				normRGB[pixelIndex] = rawVals.bgra;
 				
 				//	if it's a BGRX pixel format, set the alpha to 1!
@@ -483,16 +484,16 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_ARGB_PK_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
 				//	note: the image data in the src buffer is ARGB!
 				
 				//	image data is:			A	R	G	B
-				//	code to access above:	R	G	B	A
+				//	code to access above:	R	G	B	A	=>	GBAR
 				normRGB[pixelIndex] = rawVals.gbar;
 			}
 		}
@@ -501,25 +502,13 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_YUYV_PK_422_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
-				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer (and reordered YCbCr into YCbCr) and provided us with all three vals, we just have to convert them to RGB.
-				
-				//	rec709
-				//const float3x3		mat = float3x3(
-				//	float3(1.1644f, 1.1644f, 1.1644f),
-				//	float3(0.0f, -0.2132f, 2.1124f),
-				//	float3(1.7927f, -0.5329f, 0.0f)
-				//);
-				//const float3		offsets = float3(16./255., 128./255., 128./255.);
-				//
-				//
-				//
-				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
+				//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer (and reordered YCbCr into YCbCr) and provided us with all three vals, we just have to convert them to RGB.
 				
 				//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_601 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_601);
 				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
@@ -536,23 +525,14 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_UYVY_PK_422_UI_10:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
-				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
-				//	rec709
-				//const float3x3		mat = float3x3(
-				//	float3(1.1644f, 1.1644f, 1.1644f),
-				//	float3(0.0f, -0.2132f, 2.1124f),
-				//	float3(1.7927f, -0.5329f, 0.0f)
-				//);
-				//const float3		offsets = float3(16./255., 128./255., 128./255.);
-				//
-				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
 				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = 1.0;
@@ -562,23 +542,14 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
-				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
-				//	rec709
-				//const float3x3		mat = float3x3(
-				//	float3(1.1644f, 1.1644f, 1.1644f),
-				//	float3(0.0f, -0.2132f, 2.1124f),
-				//	float3(1.7927f, -0.5329f, 0.0f)
-				//);
-				//const float3		offsets = float3(16./255., 128./255., 128./255.);
-				//
-				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
 				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = 1.0;
@@ -590,23 +561,14 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
 		{
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
-				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
-				//	rec709
-				//const float3x3		mat = float3x3(
-				//	float3(1.1644f, 1.1644f, 1.1644f),
-				//	float3(0.0f, -0.2132f, 2.1124f),
-				//	float3(1.7927f, -0.5329f, 0.0f)
-				//);
-				//const float3		offsets = float3(16./255., 128./255., 128./255.);
-				//
-				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
 				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = rawVals.a;
@@ -617,23 +579,14 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 		{
 			
 			//	for each of the pixels we need to process in the dst image...
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	calculate the location of the pixel we're processing in the dst image, get its value
-				uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				//	get the normalized channel values at that location
-				float4			rawVals = NormChannelValsAtLoc(srcBuffer, imageInfo.srcImg, dstLoc);
+				float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, dstLoc);
 				
-				//	in this case, the src img is YCbCr.  NormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
+				//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 				
-				//	rec709
-				//const float3x3		mat = float3x3(
-				//	float3(1.1644f, 1.1644f, 1.1644f),
-				//	float3(0.0f, -0.2132f, 2.1124f),
-				//	float3(1.7927f, -0.5329f, 0.0f)
-				//);
-				//const float3		offsets = float3(16./255., 128./255., 128./255.);
-				//
-				//normRGB[pixelIndex].rgb = mat * (rawVals.rgb - offsets);
 				normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709);
 				
 				normRGB[pixelIndex].a = rawVals.a;
@@ -644,30 +597,31 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	}
 }
 
-void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderInfo & imageInfo, uint2 gid)	{
+
+void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
 	//	INCOMPLETE- let's get the basic pixel format conversions finished before we take this on, hmm?
 	for (int i=0; i<MAX_PIXELS_TO_PROCESS; ++i)	{
 		normRGB[i] = float4(1,0,0,1);	//	just make everything red for now...
 	}
 }
-void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderInfo & imageInfo, uint2 gid)	{
+void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
-	for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
-		uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
-		float2			normDstLoc = float2( float(dstLoc.x)/float(imageInfo.dstImg.res[0]-1), float(dstLoc.y)/float(imageInfo.dstImg.res[1]-1) );
+	for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
+		uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+		float2			normDstLoc = float2( float(dstLoc.x)/float(opInfo.dstImg.res[0]-1), float(dstLoc.y)/float(opInfo.dstImg.res[1]-1) );
 		float4			srcColor = inTex.sample(sampler, normDstLoc);
 		normRGB[pixelIndex] = srcColor;
 	}
 }
 
 
-void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo & imageInfo, thread float4 * normRGB, uint2 gid)	{
-	//uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
-	uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess), gid.y);
-	if (dstLoc.x >= imageInfo.dstImg.res[0] || dstLoc.y >= imageInfo.dstImg.res[1])
+void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInfo & opInfo, thread float4 * normRGB, uint2 gid)	{
+	//uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+	uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess), gid.y);
+	if (dstLoc.x >= opInfo.dstImg.res[0] || dstLoc.y >= opInfo.dstImg.res[1])
 		return;
 	
-	switch (imageInfo.dstImg.pf)	{
+	switch (opInfo.dstImg.pf)	{
 	case SwizzlePF_Unknown:
 		return;
 	case SwizzlePF_RGBA_PK_UI_8:
@@ -677,12 +631,12 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
-			//for (int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			//for (int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//normCodeVals[pixelIndex] = normRGB[pixelIndex];
-				//uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				
 				*(wPtr + 0) = round(normRGB[0].r * 255.);
 				*(wPtr + 1) = round(normRGB[0].g * 255.);
@@ -704,12 +658,12 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
-			//for (int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			//for (int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//normCodeVals[pixelIndex] = normRGB[pixelIndex];
-				//uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				
 				*(wPtr + 0) = round(normRGB[0].b * 255.);
 				*(wPtr + 1) = round(normRGB[0].g * 255.);
@@ -730,12 +684,12 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
-			//for (int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			//for (int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//normCodeVals[pixelIndex] = normRGB[pixelIndex];
-				//uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				
 				*(wPtr + 0) = round(normRGB[0].a * 255.);
 				*(wPtr + 1) = round(normRGB[0].r * 255.);
@@ -756,12 +710,12 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device float		*wPtr = (device float *)dstBuffer + (offsetInBytes/sizeof(float));
 			
-			//for (int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			//for (int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//normCodeVals[pixelIndex] = normRGB[pixelIndex];
-				//uint2			dstLoc = uint2( (gid.x * imageInfo.dstPixelsToProcess) + pixelIndex, gid.y);
+				//uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
 				
 				*(wPtr + 0) = normRGB[0].r;
 				*(wPtr + 1) = normRGB[0].g;
@@ -789,7 +743,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			);
 			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
@@ -801,7 +755,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
@@ -828,7 +782,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			);
 			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
@@ -840,7 +794,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
@@ -867,7 +821,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			);
 			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
@@ -884,7 +838,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	'dstVals' are floating-point vals ranged 0-1023.  convert them to integer values (by rounding)
 			ushort4			intVals[MAX_PIXELS_TO_PROCESS];
-			for (unsigned int pixelIndex=0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex=0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				intVals[pixelIndex] = ushort4( round(dstVals[pixelIndex]) );
 			}
 			
@@ -896,7 +850,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			writeVals[3] = (intVals[4].r) | (intVals[4].b << 10) | (intVals[5].r << 20) | (0x3 << 30);
 			//	six YCbCr values are packed into four 32-bit values
 			//size_t				bytesPerRow = imgInfo.res[0] / 6 * 4 * sizeof(uint32_t);
-			size_t				offsetInBytes = (imageInfo.dstImg.bytesPerRow * gid.y) + (gid.x * 4 * sizeof(uint32_t));
+			size_t				offsetInBytes = (opInfo.dstImg.bytesPerRow * gid.y) + (gid.x * 4 * sizeof(uint32_t));
 			device uint32_t		*wPtr = (device uint32_t *)dstBuffer + (offsetInBytes/sizeof(uint32_t));
 			for (int i=0; i<4; ++i)	{
 				*(wPtr+i) = writeVals[i];
@@ -916,7 +870,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			);
 			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
@@ -935,7 +889,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	first there's a plane of Y values
 			size_t		yPlaneOffsetInBytes = 0;
-			size_t		yBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		yBytesPerRow = sizeof(uint16_t) * opInfo.dstImg.res[0];
 			size_t		yOffsetInBytes = yPlaneOffsetInBytes + (dstLoc.y * yBytesPerRow) + (dstLoc.x * sizeof(uint16_t));
 			wPtr = ((device uint16_t *)dstBuffer) + (yOffsetInBytes/sizeof(uint16_t));
 			*wPtr = dstVals[0].r;
@@ -943,8 +897,8 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			*wPtr = dstVals[1].r;
 			
 			//	after the y plane there's another plane of interleaved (422 subsampling) Cb/Cr values
-			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * imageInfo.dstImg.res[1]);
-			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * opInfo.dstImg.res[1]);
+			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * opInfo.dstImg.res[0];
 			size_t		basePairOffsetInBytes = cbcrPlaneOffsetInBytes + (basePairLoc.y * cbcrPlaneBytesPerRow) + (basePairLoc.x * sizeof(uint16_t));
 			wPtr = (device uint16_t *)dstBuffer + (basePairOffsetInBytes/sizeof(uint16_t));
 			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;
@@ -965,7 +919,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			);
 			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
@@ -977,7 +931,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
-			size_t		offsetInBytes = (gid.y * imageInfo.dstImg.bytesPerRow) + (gid.x * imageInfo.dstPixelsToProcess * bytesPerPixel);
+			size_t		offsetInBytes = (gid.y * opInfo.dstImg.bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (offsetInBytes/sizeof(uint8_t));
 			
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
@@ -991,9 +945,9 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			++wPtr;
 			
 			//	get the A value
-			size_t		alphaPlaneOffsetInBytes = imageInfo.dstImg.bytesPerRow * imageInfo.dstImg.res[1];
+			size_t		alphaPlaneOffsetInBytes = opInfo.dstImg.bytesPerRow * opInfo.dstImg.res[1];
 			size_t		alphaPlaneBytesPerPixel = sizeof(uint8_t);
-			size_t		alphaPlaneBytesPerRow = alphaPlaneBytesPerPixel * imageInfo.dstImg.res[0];
+			size_t		alphaPlaneBytesPerRow = alphaPlaneBytesPerPixel * opInfo.dstImg.res[0];
 			size_t		alphaLocOffsetInBytes = alphaPlaneOffsetInBytes + (dstLoc.y * alphaPlaneBytesPerRow) + (dstLoc.x * alphaPlaneBytesPerPixel);
 			
 			wPtr = (device uint8_t *)dstBuffer + (alphaLocOffsetInBytes/sizeof(uint8_t));
@@ -1016,7 +970,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			);
 			const float3		offsets = float3(16./255., 128./255., 128./255.);
 			
-			for (unsigned int pixelIndex = 0; pixelIndex < imageInfo.dstPixelsToProcess; ++pixelIndex)	{
+			for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
 				//	convert normalized RGB to normalized YCbCr
 				float4		normDstVal;
 				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
@@ -1035,7 +989,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	first there's a plane of Y values
 			size_t		yPlaneOffsetInBytes = 0;
-			size_t		yBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		yBytesPerRow = sizeof(uint16_t) * opInfo.dstImg.res[0];
 			size_t		yOffsetInBytes = yPlaneOffsetInBytes + (dstLoc.y * yBytesPerRow) + (dstLoc.x * sizeof(uint16_t));
 			wPtr = ((device uint16_t *)dstBuffer) + (yOffsetInBytes/sizeof(uint16_t));
 			*wPtr = dstVals[0].r;
@@ -1043,8 +997,8 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			*wPtr = dstVals[1].r;
 			
 			//	after the y plane there's another plane of interleaved (422 subsampling) Cb/Cr values
-			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * imageInfo.dstImg.res[1]);
-			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * imageInfo.dstImg.res[0];
+			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * opInfo.dstImg.res[1]);
+			size_t		cbcrPlaneBytesPerRow = sizeof(uint16_t) * opInfo.dstImg.res[0];
 			size_t		basePairOffsetInBytes = cbcrPlaneOffsetInBytes + (basePairLoc.y * cbcrPlaneBytesPerRow) + (basePairLoc.x * sizeof(uint16_t));
 			wPtr = (device uint16_t *)dstBuffer + (basePairOffsetInBytes/sizeof(uint16_t));
 			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;
@@ -1053,7 +1007,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderInfo 
 			
 			//	after the Cb/Cr plane there is an alpha plane
 			
-			size_t		aPlaneOffsetInBytes = cbcrPlaneOffsetInBytes + (cbcrPlaneBytesPerRow * imageInfo.dstImg.res[1]);
+			size_t		aPlaneOffsetInBytes = cbcrPlaneOffsetInBytes + (cbcrPlaneBytesPerRow * opInfo.dstImg.res[1]);
 			size_t		aBytesPerRow = yBytesPerRow;
 			size_t		aOffsetInBytes = aPlaneOffsetInBytes + (aBytesPerRow * dstLoc.y) + (sizeof(uint16_t) * dstLoc.x);
 			wPtr = (device uint16_t *)dstBuffer + (aOffsetInBytes/sizeof(uint16_t));
@@ -1145,3 +1099,22 @@ for each four-pixel block in the OUTPUT image...
 
 
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

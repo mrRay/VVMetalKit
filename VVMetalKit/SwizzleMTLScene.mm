@@ -34,7 +34,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 @property (strong) MTLImgBuffer * dstRGBTexture;
 
 //	contains information describing how the shader should execute (the compute shader needs this)
-@property (readwrite) SwizzleShaderInfo info;
+@property (readwrite) SwizzleShaderOpInfo info;
 
 @end
 
@@ -114,7 +114,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	return returnMe;
 }
 
-- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	//NSLog(@"%s",__func__);
 	//NSLog(@"%s ... %@ -> %@",__func__,[NSString stringFromFourCC:inInfo.srcImg.pf],[NSString stringFromFourCC:inInfo.dstImg.pf]);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
@@ -171,7 +171,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		
 		_info.readSrcImgFromBuffer = true;
 		
-		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
+		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
 	
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
@@ -200,7 +200,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	//	[blitEncoder endEncoding];
 	//}
 }
-- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
+- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
 	if (inSrc == nil || inDst == nil)	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
@@ -240,7 +240,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		
 		_info.readSrcImgFromBuffer = false;
 		
-		//	make sure our SwizzleShaderInfo object has an accurate record of how many pixels need to be processed in the shader
+		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
 	
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
@@ -305,12 +305,12 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		setTexture:(dstRGBTex==nil) ? nil : dstRGBTex.texture
 		atIndex:SwizzleShaderArg_DstRGBTexture];
 	
-	SwizzleShaderInfo	info = self.info;
+	SwizzleShaderOpInfo	info = self.info;
 	id<MTLBuffer>		infoBuffer = [self.device
 		newBufferWithBytes:&info
 		length:sizeof(info)
 		options:MTLResourceStorageModeShared];
-	[self.computeEncoder setBuffer:infoBuffer offset:0 atIndex:SwizzleShaderArg_ImgInfo];
+	[self.computeEncoder setBuffer:infoBuffer offset:0 atIndex:SwizzleShaderArg_OpInfo];
 	
 	id<MTLBuffer>		writeBufferBuffer = [self.device
 		newBufferWithBytes:&outputToBuffer

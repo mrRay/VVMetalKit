@@ -8,6 +8,8 @@
 #ifndef SwizzleMTLSceneTypes_h
 #define SwizzleMTLSceneTypes_h
 
+#include <VVMetalKit/SizingToolTypes.h>
+
 
 
 
@@ -38,6 +40,8 @@ typedef struct	{
 	unsigned int	bytesPerRow;
 } SwizzleShaderImageInfo;
 
+SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow);
+
 
 
 
@@ -49,16 +53,24 @@ typedef struct	{
 
 
 
-//	this struct is how we pass info about the source and destination pixel formats to the shader
+//	this struct is how we pass info about the images and operation to the swizzle shader
 typedef struct	{
 	SwizzleShaderImageInfo		srcImg;
 	SwizzleShaderImageInfo		dstImg;
 	
-	bool						readSrcImgFromBuffer;	//	if YES, we need to pull the src image out of the src image buffer.  if NO, we need to pull the src image out of the src img texture.  (we can no longer just pass a nil texture and check for that in the shader, as the metal debugger doesn't work unless all attachments are non-nil)
+	GRect			srcImgFrame;	//	the src image is to be drawn within this rect.  may be bigger or smaller than the dst image.
+	bool			flipH;	//	if true, this image's contents should be flipped horizontally on retrieval
+	bool			flipV;	//	if true, this image's contents should be flipped vertically on retrieval
+	float			fadeToBlack;	//	if 1.0, this image is faded to black.  if 0.0, the image is unaltered.
 	
-	//	must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
-	unsigned int				dstPixelsToProcess;	//	populated automatically by the backend, but you'll want to read it in shaders
-} SwizzleShaderInfo;
+	//	-------	you should not have to populate the following vars (backend should handle them automatically)
+	
+	bool			readSrcImgFromBuffer;	//	populated automatically by the backend, but you'll want to read it in shaders.  if YES, we need to pull the src image out of the src image buffer.  if NO, we need to pull the src image out of the src img texture.  (we can no longer just pass a nil texture and check for that in the shader, as the metal debugger doesn't work unless all attachments are non-nil)
+	unsigned int	dstPixelsToProcess;	//	populated automatically by the backend, but you'll want to read it in shaders.  must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
+} SwizzleShaderOpInfo;
+
+//	returned op info struct automatically attempts to draw 'srcImage' in the bounds of 'dstImg' (if they have different aspect ratios, this will result in distortion)
+SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, SwizzleShaderImageInfo inDst);
 
 
 
@@ -69,7 +81,7 @@ typedef enum SwizzleShaderArg	{
 	SwizzleShaderArg_SrcRGBTexture,
 	SwizzleShaderArg_DstBuffer,
 	SwizzleShaderArg_DstRGBTexture,
-	SwizzleShaderArg_ImgInfo,
+	SwizzleShaderArg_OpInfo,
 	SwizzleShaderArg_WriteBuffer	//	boolean, whether or not to try and write to the output buffer
 } SwizzleShaderArg;
 

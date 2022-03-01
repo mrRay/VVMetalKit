@@ -39,4 +39,15 @@ typedef struct GRect	{
 
 
 
+//	this struct describes an integer range of values
+typedef struct GRange	{
+	int32_t		location;	//	if GRangeLocationNotFound, the location was not found
+	int32_t		length;
+} GRange;
+
+#define GRangeLocationNotFound 0x7FFFFFFF
+
+
+
+
 #endif /* SizingToolTypes_h */
