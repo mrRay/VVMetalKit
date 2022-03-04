@@ -200,9 +200,11 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	//	[blitEncoder endEncoding];
 	//}
 }
-- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(id<MTLBuffer>)inDst swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
+- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
-	if (inSrc == nil || inDst == nil)	{
+	//if (inSrc == nil || inDst == nil)
+	if (inSrc==nil && !(inDst!=nil || inRGB != nil))
+	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
 		return;
 	}
@@ -212,7 +214,7 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		self.srcBuffer = nil;
 		self.srcRGBTexture = inSrc;
 		self.dstBuffer = inDst;
-		self.dstRGBTexture = nil;
+		self.dstRGBTexture = inRGB;
 		self.info = inInfo;
 	
 		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
