@@ -1,6 +1,12 @@
-#import <Cocoa/Cocoa.h>
+//#import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#else
+#import <Cocoa/Cocoa.h>
 #import <Quartz/Quartz.h>
+#endif
 #import <simd/simd.h>
 
 @class CustomMetalView;
@@ -17,7 +23,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-@interface CustomMetalView : NSView <CALayerDelegate>	{
+@interface CustomMetalView : 
+#if TARGET_OS_IOS
+UIView
+#else
+NSView
+#endif
+<CALayerDelegate>	{
 	id<MTLDevice>			device;
 	MTLRenderPassDescriptor			*passDescriptor;
 	id<MTLRenderPipelineState>		_pso;

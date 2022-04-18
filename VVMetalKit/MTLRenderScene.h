@@ -5,7 +5,12 @@
 //  Created by testAdmin on 5/9/21.
 //
 
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <VVMetalKitTouch/MTLScene.h>
+#else
 #import <VVMetalKit/MTLScene.h>
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 

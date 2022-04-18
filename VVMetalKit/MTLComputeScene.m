@@ -47,7 +47,7 @@
 	if (self.label != nil)
 		self.computeEncoder.label = self.label;
 	else
-		self.computeEncoder.label = [NSString stringWithFormat:@"%@ encoder",[self className]];
+		self.computeEncoder.label = [NSString stringWithFormat:@"%@ encoder",NSStringFromClass(self.class)];
 	
 	//	set the pipeline state
 	[self.computeEncoder setComputePipelineState:self.computePipelineStateObject];

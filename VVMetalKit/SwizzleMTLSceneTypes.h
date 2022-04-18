@@ -8,7 +8,14 @@
 #ifndef SwizzleMTLSceneTypes_h
 #define SwizzleMTLSceneTypes_h
 
+//#include <VVMetalKit/SizingToolTypes.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#include <VVMetalKitTouch/SizingToolTypes.h>
+#else
 #include <VVMetalKit/SizingToolTypes.h>
+#endif
+//#include "SizingToolTypes.h"
 
 
 
@@ -28,27 +35,47 @@ typedef enum SwizzlePF	{
 	SwizzlePF_UYVA_PKPL_422_UI_8 = 'UYVA',	//	semi-planar: basically a 2vuy data blob followed by a 1-channel, 8-bit alpha image
 	SwizzlePF_UYVY_PKPL_422_UI_16 = 'p216',	//	semi-planar: first plane is 16 bit single-channel luminance, second plane is 16-bit single-channel Cb/Cr
 	SwizzlePF_UYVA_PKPL_422_UI_16 = 'PA16',	//	'p216', with an additional (third) plane consisting of 16-bit single-channel alpha channel
+	
+	SwizzlePF_UYVY_PKPL_420_UI_8 = '420f',	//	bi-planar (2 planes, Y/CbCr) YCbCr 8-bit 4:2:0 full-range (luma=[0,255] chroma=[1,255]).
+	
+	SwizzlePF_UYVY_PL_420_UI_8 = 'y420',	//	planar (3 planes, Y/Cb/Cr) YCbCr 8-bit 4:2:0 full-range (luma=[0,255] chroma=[1,255]).
+	
+	//SwizzlePF_BGR_PKPL_FL_16 = 'APP0',	//	'Apple Proprietary Pixelformat 0'.  semi-planar, half-float per channel, three channels per pixel.  all the B values, followed by all the G values, followed by all the R values.
 } SwizzlePF;
+
+
+
+
+
+//	the max # of pixels that we'll want to process in a single execution unit on the GPU (it makes sense to process "chunks" of pixels when outputting to some packed pixel formats)
+#define MAX_PIXELS_TO_PROCESS_WIDTH 6
+#define MAX_PIXELS_TO_PROCESS_HEIGHT 6
+#define MAX_PIXELS_TO_PROCESS 6
+#define MAX_NUM_PLANES 3
+//#define MAX_NUM_CHANNELS 3
+
+
+
+
+typedef struct	{
+	unsigned int	offset;	//	the offset in bytes into the plane at which the image data starts.  may exist to align data, or to specify a plane in a single large MTLBuffer that contains multiple planes
+	unsigned int	bytesPerRow;	//	the number of bytes per row of image data used for this plane.  used to accommodate data layouts that have padding.
+} SwizzleShaderImagePlaneInfo;
 
 
 
 
 //	this struct contains some basic properties we need when reading images from or writing images to memory
 typedef struct	{
-	SwizzlePF		pf;
+	SwizzlePF		pf;	//	the pixel format of the image as it is stored in memory
 	unsigned int	res[2];
-	unsigned int	bytesPerRow;
+	
+	unsigned int	planeCount;
+	SwizzleShaderImagePlaneInfo		planes[MAX_NUM_PLANES];
+	
 } SwizzleShaderImageInfo;
 
 SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow);
-
-
-
-
-//	the max # of pixels that we'll want to process in a single execution unit on the GPU (it makes sense to process "chunks" of pixels when outputting to some packed pixel formats)
-#define MAX_PIXELS_TO_PROCESS 6
-
-//#define MAX_NUM_CHANNELS 3
 
 
 
@@ -66,7 +93,7 @@ typedef struct	{
 	//	-------	you should not have to populate the following vars (backend should handle them automatically)
 	
 	bool			readSrcImgFromBuffer;	//	populated automatically by the backend, but you'll want to read it in shaders.  if YES, we need to pull the src image out of the src image buffer.  if NO, we need to pull the src image out of the src img texture.  (we can no longer just pass a nil texture and check for that in the shader, as the metal debugger doesn't work unless all attachments are non-nil)
-	unsigned int	dstPixelsToProcess;	//	populated automatically by the backend, but you'll want to read it in shaders.  must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
+	unsigned int	dstPixelsToProcess[2];	//	populated automatically by the backend, but you'll want to read it in shaders.  must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
 } SwizzleShaderOpInfo;
 
 //	returned op info struct automatically attempts to draw 'srcImage' in the bounds of 'dstImg' (if they have different aspect ratios, this will result in distortion)

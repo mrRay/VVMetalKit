@@ -1,6 +1,12 @@
+#import <TargetConditionals.h>
 #import <Foundation/Foundation.h>
+#if TARGET_OS_IOS
+#import <VVMetalKitTouch/MTLComputeScene.h>
+#import <VVMetalKitTouch/SwizzleMTLSceneTypes.h>
+#else
 #import <VVMetalKit/MTLComputeScene.h>
 #import <VVMetalKit/SwizzleMTLSceneTypes.h>
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -26,6 +32,7 @@ extern "C" {
 - (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(nullable void*)b;
 
 - (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+
 - (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end

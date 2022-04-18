@@ -1,4 +1,8 @@
 #import "CustomMetalView.h"
+#import "TargetConditionals.h"
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#endif
 
 
 
@@ -9,6 +13,15 @@
 #pragma mark - init/teardown
 
 
+#if TARGET_OS_IOS
+- (instancetype) initWithFrame:(CGRect)frame	{
+	self = [super initWithFrame:frame];
+	if (self != nil)	{
+		[self generalInit];
+	}
+	return self;
+}
+#else
 - (instancetype) initWithFrame:(NSRect)frame	{
 	self = [super initWithFrame:frame];
 	if (self != nil)	{
@@ -16,6 +29,7 @@
 	}
 	return self;
 }
+#endif
 - (instancetype) initWithCoder:(NSCoder *)inCoder	{
 	self = [super initWithCoder:inCoder];
 	if (self != nil)	{
@@ -27,9 +41,14 @@
 	//NSLog(@"%s ... %@",__func__,self);
 	viewportSize = simd_make_uint2(1,1);
 	
+	#if TARGET_OS_IOS
+	metalLayer = (CAMetalLayer*)self.layer;
+	#else
 	metalLayer = [CAMetalLayer layer];
 	//metalLayer.maximumDrawableCount = 2;
 	//metalLayer.framebufferOnly = true;
+	#endif
+	//NSLog(@"\t\tmetalLayer is now %@",metalLayer);
 	
 	passDescriptor = [MTLRenderPassDescriptor new];
 	passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
@@ -46,11 +65,13 @@
 	if (tmpSpace != NULL)
 		CGColorSpaceRelease(tmpSpace);
 	
+	#if !TARGET_OS_IOS
 	self.wantsLayer = YES;
-	self.layer = metalLayer;
-	//[self.layer addSublayer:metalLayer];	//	doesn't work!
 	//self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawDuringViewResize;
 	self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawCrossfade;
+	self.layer = metalLayer;
+	//[self.layer addSublayer:metalLayer];	//	doesn't work!
+	#endif
 	
 	self.layer.delegate = self;
 	
@@ -65,6 +86,12 @@
 #pragma mark - superclass overrides
 
 
+#if TARGET_OS_IOS
++ (Class) layerClass	{
+	//return [super layerClass];
+	return [CAMetalLayer class];
+}
+#else
 - (void) viewDidMoveToWindow	{
 	[super viewDidMoveToWindow];
 	[self reconfigureDrawable];
@@ -102,6 +129,7 @@
 	if (n && self.delegate != nil)
 		[self.delegate redrawView:self];
 }
+#endif
 
 
 #pragma mark - backend
@@ -123,9 +151,14 @@
 }
 - (BOOL) reconfigureDrawable	{
 	//NSLog(@"%s",__func__);
-	NSScreen		*screen = self.window.screen;
-	CGFloat			scale = screen.backingScaleFactor;
+	#if TARGET_OS_IOS
+	CGFloat			scale = self.window.screen.scale;
+	#else
+	CGFloat			scale = self.window.screen.backingScaleFactor;
+	#endif
+	//NSLog(@"\t\tscale is %0.2f",scale);
 	
+	//NSLog(@"\t\tbounds are %@",NSStringFromCGRect(self.bounds));
 	CGSize			newSize = self.bounds.size;
 	newSize.width *= scale;
 	newSize.height *= scale;

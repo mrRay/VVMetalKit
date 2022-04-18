@@ -44,6 +44,47 @@
 		1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
 		1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */; };
 		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
+		1AC82CC927FF2901009A9989 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CCA27FF2901009A9989 /* CustomMetalView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CCB27FF2901009A9989 /* SwizzleMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CCC27FF2901009A9989 /* VVSizingTool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A19F327260E788800214C6B /* VVSizingTool.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CCD27FF2901009A9989 /* MTLImgBuffer.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE99260E1F4F00FF39BB /* MTLImgBuffer.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CCE27FF2901009A9989 /* MTLImgBufferView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9A260E1F4F00FF39BB /* MTLImgBufferView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CCF27FF2901009A9989 /* MTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA3260E1F4F00FF39BB /* MTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD027FF2901009A9989 /* MTLPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9C260E1F4F00FF39BB /* MTLPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD127FF2901009A9989 /* RenderProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEDD260E257600FF39BB /* RenderProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD227FF2901009A9989 /* CopierMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD327FF2901009A9989 /* VVMetalKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD427FF2901009A9989 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD527FF2901009A9989 /* MTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2702B26486F2300C2E931 /* MTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD627FF2901009A9989 /* MTLImgBufferShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAB260E1F5000FF39BB /* MTLImgBufferShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD727FF2901009A9989 /* MTLImgBufferViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA1260E1F4F00FF39BB /* MTLImgBufferViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD827FF2901009A9989 /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CD927FF2901009A9989 /* MTLComputeScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA5260E1F5000FF39BB /* MTLComputeScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CDA27FF2901009A9989 /* SizingToolTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CDB27FF2901009A9989 /* VVColorConversions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CDC27FF2901009A9989 /* SizingTool_metal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AC82CDD27FF2901009A9989 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
+		1AC82CDE27FF2901009A9989 /* MTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE0E0912706340E00F03B4E /* MTLScene_priv.h */; };
+		1AC82CE027FF2901009A9989 /* MTLImgBufferView.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAF260E1F5000FF39BB /* MTLImgBufferView.metal */; };
+		1AC82CE127FF2901009A9989 /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
+		1AC82CE227FF2901009A9989 /* SwizzleMTLSceneTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */; };
+		1AC82CE327FF2901009A9989 /* CopierMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */; };
+		1AC82CE427FF2901009A9989 /* CopierMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */; };
+		1AC82CE527FF2901009A9989 /* MTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA9260E1F5000FF39BB /* MTLScene.m */; };
+		1AC82CE627FF2901009A9989 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
+		1AC82CE727FF2901009A9989 /* SizingTool_metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */; };
+		1AC82CE827FF2901009A9989 /* VVSizingTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F328260E788800214C6B /* VVSizingTool.m */; };
+		1AC82CE927FF2901009A9989 /* SwizzleMTLScene.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBED6260E243500FF39BB /* SwizzleMTLScene.mm */; };
+		1AC82CEA27FF2901009A9989 /* MTLComputeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA0260E1F4F00FF39BB /* MTLComputeScene.m */; };
+		1AC82CEB27FF2901009A9989 /* CustomMetalView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */; };
+		1AC82CEC27FF2901009A9989 /* MTLImgBufferView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBE9F260E1F4F00FF39BB /* MTLImgBufferView.m */; };
+		1AC82CED27FF2901009A9989 /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
+		1AC82CEE27FF2901009A9989 /* VVColorConversions.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */; };
+		1AC82CEF27FF2901009A9989 /* SwizzleMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */; };
+		1AC82CF027FF2901009A9989 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
+		1AC82CF127FF2901009A9989 /* MTLPool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA4260E1F5000FF39BB /* MTLPool.m */; };
+		1AC82CF227FF2901009A9989 /* MTLImgBuffer.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA8260E1F5000FF39BB /* MTLImgBuffer.m */; };
 		1AE0E0922706340E00F03B4E /* MTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE0E0912706340E00F03B4E /* MTLScene_priv.h */; };
 		1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
@@ -90,6 +131,8 @@
 		1AB2702C26486F2300C2E931 /* MTLRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTLRenderScene.m; sourceTree = "<group>"; };
 		1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SwizzleMTLSceneTypes.m; sourceTree = "<group>"; };
 		1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferAdditions_Private.h; sourceTree = "<group>"; };
+		1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKitTouch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AC82CF927FF2901009A9989 /* VVMetalKit copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "VVMetalKit copy-Info.plist"; path = "/Users/testadmin/Documents/VVTestApps/VVMetalKit/VVMetalKit copy-Info.plist"; sourceTree = "<absolute>"; };
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
 		1AE0E0912706340E00F03B4E /* MTLScene_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTLScene_priv.h; sourceTree = "<group>"; };
 		1AE5D72326165A470064DC1C /* SizingTool_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_c.h; sourceTree = "<group>"; };
@@ -98,6 +141,13 @@
 
 /* Begin PBXFrameworksBuildPhase section */
 		1A0FBE8A260E1C2E00FF39BB /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AC82CF327FF2901009A9989 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -113,6 +163,7 @@
 				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
 				1A0FBE8E260E1C2E00FF39BB /* Products */,
 				1A8C0409261631FC00038DC9 /* Frameworks */,
+				1AC82CF927FF2901009A9989 /* VVMetalKit copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -120,6 +171,7 @@
 			isa = PBXGroup;
 			children = (
 				1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */,
+				1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -212,6 +264,35 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AC82CC827FF2901009A9989 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AC82CC927FF2901009A9989 /* SwizzleMTLSceneTypes.h in Headers */,
+				1AC82CCA27FF2901009A9989 /* CustomMetalView.h in Headers */,
+				1AC82CCB27FF2901009A9989 /* SwizzleMTLScene.h in Headers */,
+				1AC82CCC27FF2901009A9989 /* VVSizingTool.h in Headers */,
+				1AC82CCD27FF2901009A9989 /* MTLImgBuffer.h in Headers */,
+				1AC82CCE27FF2901009A9989 /* MTLImgBufferView.h in Headers */,
+				1AC82CCF27FF2901009A9989 /* MTLScene.h in Headers */,
+				1AC82CD027FF2901009A9989 /* MTLPool.h in Headers */,
+				1AC82CD127FF2901009A9989 /* RenderProperties.h in Headers */,
+				1AC82CD227FF2901009A9989 /* CopierMTLScene.h in Headers */,
+				1AC82CD327FF2901009A9989 /* VVMetalKit.h in Headers */,
+				1AC82CD427FF2901009A9989 /* SizingTool_objc.h in Headers */,
+				1AC82CD527FF2901009A9989 /* MTLRenderScene.h in Headers */,
+				1AC82CD627FF2901009A9989 /* MTLImgBufferShaderTypes.h in Headers */,
+				1AC82CD727FF2901009A9989 /* MTLImgBufferViewShaderTypes.h in Headers */,
+				1AC82CD827FF2901009A9989 /* SizingTool_c.h in Headers */,
+				1AC82CD927FF2901009A9989 /* MTLComputeScene.h in Headers */,
+				1AC82CDA27FF2901009A9989 /* SizingToolTypes.h in Headers */,
+				1AC82CDB27FF2901009A9989 /* VVColorConversions.h in Headers */,
+				1AC82CDC27FF2901009A9989 /* SizingTool_metal.h in Headers */,
+				1AC82CDD27FF2901009A9989 /* MTLImgBufferAdditions_Private.h in Headers */,
+				1AC82CDE27FF2901009A9989 /* MTLScene_priv.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXNativeTarget section */
@@ -231,6 +312,24 @@
 			name = VVMetalKit;
 			productName = VVMetalKit;
 			productReference = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */;
+			productType = "com.apple.product-type.framework";
+		};
+		1AC82CC727FF2901009A9989 /* VVMetalKitTouch */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AC82CF527FF2901009A9989 /* Build configuration list for PBXNativeTarget "VVMetalKitTouch" */;
+			buildPhases = (
+				1AC82CC827FF2901009A9989 /* Headers */,
+				1AC82CDF27FF2901009A9989 /* Sources */,
+				1AC82CF327FF2901009A9989 /* Frameworks */,
+				1AC82CF427FF2901009A9989 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = VVMetalKitTouch;
+			productName = VVMetalKit;
+			productReference = 1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */;
 			productType = "com.apple.product-type.framework";
 		};
 /* End PBXNativeTarget section */
@@ -260,12 +359,20 @@
 			projectRoot = "";
 			targets = (
 				1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */,
+				1AC82CC727FF2901009A9989 /* VVMetalKitTouch */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
 		1A0FBE8B260E1C2E00FF39BB /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AC82CF427FF2901009A9989 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -298,6 +405,32 @@
 				1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */,
 				1A0FBEBB260E1F5000FF39BB /* MTLPool.m in Sources */,
 				1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		1AC82CDF27FF2901009A9989 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AC82CE027FF2901009A9989 /* MTLImgBufferView.metal in Sources */,
+				1AC82CE127FF2901009A9989 /* SizingTool_c.c in Sources */,
+				1AC82CE227FF2901009A9989 /* SwizzleMTLSceneTypes.m in Sources */,
+				1AC82CE327FF2901009A9989 /* CopierMTLScene.metal in Sources */,
+				1AC82CE427FF2901009A9989 /* CopierMTLScene.m in Sources */,
+				1AC82CE527FF2901009A9989 /* MTLScene.m in Sources */,
+				1AC82CE627FF2901009A9989 /* SizingTool_objc.m in Sources */,
+				1AC82CE727FF2901009A9989 /* SizingTool_metal.metal in Sources */,
+				1AC82CE827FF2901009A9989 /* VVSizingTool.m in Sources */,
+				1AC82CE927FF2901009A9989 /* SwizzleMTLScene.mm in Sources */,
+				1AC82CEA27FF2901009A9989 /* MTLComputeScene.m in Sources */,
+				1AC82CEB27FF2901009A9989 /* CustomMetalView.m in Sources */,
+				1AC82CEC27FF2901009A9989 /* MTLImgBufferView.m in Sources */,
+				1AC82CED27FF2901009A9989 /* RenderProperties.m in Sources */,
+				1AC82CEE27FF2901009A9989 /* VVColorConversions.metal in Sources */,
+				1AC82CEF27FF2901009A9989 /* SwizzleMTLScene.metal in Sources */,
+				1AC82CF027FF2901009A9989 /* MTLRenderScene.m in Sources */,
+				1AC82CF127FF2901009A9989 /* MTLPool.m in Sources */,
+				1AC82CF227FF2901009A9989 /* MTLImgBuffer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -467,6 +600,50 @@
 			};
 			name = Release;
 		};
+		1AC82CF627FF2901009A9989 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = VVMetalKit/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+			};
+			name = Debug;
+		};
+		1AC82CF727FF2901009A9989 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				COMBINE_HIDPI_IMAGES = YES;
+				DEFINES_MODULE = YES;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				INFOPLIST_FILE = VVMetalKit/Info.plist;
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -484,6 +661,15 @@
 			buildConfigurations = (
 				1A0FBE96260E1C2E00FF39BB /* Debug */,
 				1A0FBE97260E1C2E00FF39BB /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AC82CF527FF2901009A9989 /* Build configuration list for PBXNativeTarget "VVMetalKitTouch" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AC82CF627FF2901009A9989 /* Debug */,
+				1AC82CF727FF2901009A9989 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

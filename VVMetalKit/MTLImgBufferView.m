@@ -1,8 +1,17 @@
 #import "MTLImgBufferView.h"
+#import "TargetConditionals.h"
 #import "MTLImgBufferViewShaderTypes.h"
 #import "RenderProperties.h"
 #import "VVSizingTool.h"
 #import "SizingTool_c.h"
+
+
+
+
+#if TARGET_OS_IOS
+#define NSMakeRect CGRectMake
+#define NSRect CGRect
+#endif
 
 
 
@@ -30,13 +39,18 @@
 	
 	//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 	self.layer.opaque = NO;
+	#if TARGET_OS_IOS
+	self.layer.backgroundColor = [[UIColor clearColor] CGColor];
+	#else
 	self.layer.backgroundColor = [[NSColor clearColor] CGColor];
+	#endif
 	passDescriptor = [MTLRenderPassDescriptor new];
 	passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
 	passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0);
 	passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
 }
 - (void) awakeFromNib	{
+	[super awakeFromNib];
 }
 - (BOOL) opaque	{
 	return NO;

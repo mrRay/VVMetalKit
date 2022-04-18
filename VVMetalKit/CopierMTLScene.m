@@ -3,6 +3,17 @@
 #import "MTLImgBufferShaderTypes.h"
 #import "RenderProperties.h"
 #import "SizingTool_objc.h"
+#import "TargetConditionals.h"
+
+
+
+
+#if TARGET_OS_IOS
+#define NSSize CGSize
+#define NSMakeSize CGSizeMake
+#define NSEqualSizes CGSizeEqualToSize
+#define NSStringFromSize NSStringFromCGSize
+#endif
 
 
 

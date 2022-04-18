@@ -1,4 +1,10 @@
+//#import <Cocoa/Cocoa.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#else
 #import <Cocoa/Cocoa.h>
+#endif
 #import <CoreMedia/CoreMedia.h>
 #import <MetalKit/MetalKit.h>
 
@@ -40,7 +46,11 @@ typedef void (^MTLImgBufferAvailableBlock)(MTLImgBuffer *);
 @property (readwrite) CMTime duration;
 
 //	the region of the texture/buffer that contains the image that this instance represents
+#if TARGET_OS_IOS
+@property (readwrite) CGRect srcRect;
+#else
 @property (readwrite) NSRect srcRect;
+#endif
 //	whether or not the image that this instance represents is flipped vertically
 @property (readwrite) BOOL flipped;
 

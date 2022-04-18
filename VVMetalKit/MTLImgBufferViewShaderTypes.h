@@ -1,8 +1,18 @@
 #ifndef PreviewViewShaderTypes_h
 #define PreviewViewShaderTypes_h
 
+//#include <VVMetalKit/SizingToolTypes.h>
+//#include <VVMetalKit/MTLImgBufferShaderTypes.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#include <VVMetalKitTouch/SizingToolTypes.h>
+#include <VVMetalKitTouch/MTLImgBufferShaderTypes.h>
+#else
 #include <VVMetalKit/SizingToolTypes.h>
 #include <VVMetalKit/MTLImgBufferShaderTypes.h>
+#endif
+//#include "SizingToolTypes.h"
+//#include "MTLImgBufferShaderTypes.h"
 
 
 

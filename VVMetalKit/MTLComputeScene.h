@@ -1,4 +1,9 @@
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <VVMetalKitTouch/MTLScene.h>
+#else
 #import <VVMetalKit/MTLScene.h>
+#endif
 
 NS_ASSUME_NONNULL_BEGIN
 

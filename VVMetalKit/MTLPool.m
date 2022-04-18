@@ -1,5 +1,6 @@
 #import "MTLPool.h"
-
+#import <os/lock.h>
+#import "TargetConditionals.h"
 #import "MTLImgBuffer.h"
 #import "RenderProperties.h"
 #import "MTLImgBufferAdditions_Private.h"
@@ -11,6 +12,10 @@
 #define UNLOCK(n) os_unfair_lock_unlock(n)
 //	simple bitmask check
 #define A_HAS_B(a,b) (((a)&(b))==(b))
+
+#if TARGET_OS_IOS
+#define NSMakeRect CGRectMake
+#endif
 
 
 
@@ -500,7 +505,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
 	}
 	
-	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:options deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
 		returnMe.preferDeletion = YES;
@@ -516,9 +530,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = returnMe.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.resourceOptions = MTLResourceStorageModeManaged;
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeManaged;
+	desc.storageMode = storageMode;
 	//desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite | MTLTextureUsagePixelFormatView;
 	id<MTLTexture>		tmpTex = [tmpBuffer
@@ -786,7 +802,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
 	}
 	
-	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:options deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
 		returnMe.preferDeletion = YES;
@@ -802,9 +827,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = returnMe.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.resourceOptions = MTLResourceStorageModeManaged;
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeManaged;
+	desc.storageMode = storageMode;
 	//desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	desc.usage = MTLTextureUsageShaderRead /*| MTLTextureUsageShaderWrite | MTLTextureUsagePixelFormatView*/;
 	
@@ -885,6 +912,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//	...if we're here then we couldn't find a pooled texture- we have to create one.
 	//NSLog(@"\thad to create a new texture...");
 	
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	
 	MTLTextureDescriptor	*desc = [[MTLTextureDescriptor alloc] init];
 	desc.textureType = MTLTextureType2D;
 	desc.pixelFormat = mpf;
@@ -892,9 +929,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = n.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;	//	GPU-only
+	//desc.resourceOptions = MTLResourceStorageModeManaged;	//	GPU-only
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;	//	GPU-only
+	//desc.storageMode = MTLStorageModeManaged;	//	GPU-only
+	desc.storageMode = storageMode;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite;
 	
 	//	make a new texture matching the descriptor
@@ -998,7 +1037,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
 	}
 	
-	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:options deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
 		returnMe.preferDeletion = YES;
@@ -1014,9 +1062,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = returnMe.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.resourceOptions = MTLResourceStorageModeManaged;
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeManaged;
+	desc.storageMode = storageMode;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	id<MTLTexture>		tmpTex = [tmpBuffer
 		newTextureWithDescriptor:desc
@@ -1100,6 +1150,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	
 	//	make an appropriately-sized MTLBuffer
 	size_t				bufferBytesPerRow = returnMe.width * 32 * 4 / 8;
 	size_t				acceptableBytesPerRow = [self.device minimumLinearTextureAlignmentForPixelFormat:mpf];
@@ -1109,7 +1169,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	}
 	//NSLog(@"\t\tactual bytesPerRow is %ld",bufferBytesPerRow);
 	size_t				bufferSizeInBytes = bufferBytesPerRow * returnMe.height;
-	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithLength:bufferSizeInBytes options:MTLResourceStorageModeManaged];
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithLength:bufferSizeInBytes options:options];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
 		returnMe.preferDeletion = YES;
@@ -1125,9 +1185,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = returnMe.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.resourceOptions = MTLResourceStorageModeManaged;
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeManaged;
+	desc.storageMode = storageMode;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	id<MTLTexture>		tmpTex = [tmpBuffer
 		newTextureWithDescriptor:desc
@@ -1236,7 +1298,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
 	}
 	
-	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:options deallocator:d];
 	//id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytes:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
@@ -1253,9 +1324,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = returnMe.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.resourceOptions = MTLResourceStorageModeManaged;
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeManaged;
+	desc.storageMode = storageMode;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	id<MTLTexture>		tmpTex = [tmpBuffer
 		newTextureWithDescriptor:desc
@@ -1331,6 +1404,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//	...if we're here then we couldn't find a pooled texture- we have to create one.
 	//NSLog(@"\thad to create a new texture...");
 	
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	
 	MTLTextureDescriptor	*desc = [[MTLTextureDescriptor alloc] init];
 	desc.textureType = MTLTextureType2D;
 	desc.pixelFormat = mpf;
@@ -1338,9 +1421,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = n.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;	//	GPU-only
+	//desc.resourceOptions = MTLResourceStorageModeManaged;	//	GPU-only
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;	//	GPU-only
+	//desc.storageMode = MTLStorageModeManaged;	//	GPU-only
+	desc.storageMode = storageMode;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite;
 	
 	//	make a new texture matching the descriptor
@@ -1444,7 +1529,16 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		bufferSizeInBytes = 4096 - (bufferSizeInBytes % 4096) + bufferSizeInBytes;
 	}
 	
-	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:MTLResourceStorageModeManaged deallocator:d];
+	MTLResourceOptions		options;
+	MTLStorageMode			storageMode;
+	#if TARGET_OS_IOS
+	options = MTLResourceStorageModeShared;
+	storageMode = MTLStorageModeShared;
+	#else
+	options = MTLResourceStorageModeManaged;
+	storageMode = MTLStorageModeManaged;
+	#endif
+	id<MTLBuffer>		tmpBuffer = [self.device newBufferWithBytesNoCopy:b length:bufferSizeInBytes options:options deallocator:d];
 	if (tmpBuffer == nil)	{
 		NSLog(@"ERR: unable to create buffer in %s",__func__);
 		returnMe.preferDeletion = YES;
@@ -1460,9 +1554,11 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	desc.height = returnMe.height;
 	desc.depth = 1;
 	//desc.resourceOptions = MTLResourceStorageModePrivate;	//	GPU-only
-	desc.resourceOptions = MTLResourceStorageModeManaged;
+	//desc.resourceOptions = MTLResourceStorageModeManaged;
+	desc.resourceOptions = options;
 	//desc.storageMode = MTLStorageModePrivate;	//	GPU-only
-	desc.storageMode = MTLStorageModeManaged;
+	//desc.storageMode = MTLStorageModeManaged;
+	desc.storageMode = storageMode;
 	desc.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
 	id<MTLTexture>		tmpTex = [tmpBuffer
 		newTextureWithDescriptor:desc

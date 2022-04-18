@@ -1,10 +1,18 @@
 #import "SwizzleMTLScene.h"
+#import "TargetConditionals.h"
 #import "MTLPool.h"
 //#import "MTLImgBufferShaderTypes.h"
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
 #import "MTLScene_priv.h"
-#import <VVCore/VVCore.h>
+//#import <VVCore/VVCore.h>
+
+
+
+
+#if TARGET_OS_IOS
+#define NSMakeSize CGSizeMake
+#endif
 
 
 
@@ -167,13 +175,22 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		//case SwizzlePF_UYVY_PKPL_422_UI_16:
 		//	self.shaderEvalSize = MTLSizeMake(1,1,1);
 		//	break;
+		case SwizzlePF_UYVY_PKPL_420_UI_8:
+		case SwizzlePF_UYVY_PL_420_UI_8:
+			self.shaderEvalSize = MTLSizeMake(2,2,1);
+			break;
+		//case SwizzlePF_Y_8:	//	these should never get hit, the pixel formats are basically used to refer to planes
+		//case SwizzlePF_CbCr_PK_8:
+		//	self.shaderEvalSize = MTLSizeMake(1,1,1);
+		//	break;
 		}
 		
 		_info.readSrcImgFromBuffer = true;
 		
 		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
-		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
-	
+		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
+		_info.dstPixelsToProcess[1] = (int)self.shaderEvalSize.height;
+		
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
 		//[self renderToBuffer:nil inCommandBuffer:inCB];
 		{
@@ -235,6 +252,10 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		case SwizzlePF_UYVY_PKPL_422_UI_16:
 			self.shaderEvalSize = MTLSizeMake(2,1,1);
 			break;
+		case SwizzlePF_UYVY_PKPL_420_UI_8:
+		case SwizzlePF_UYVY_PL_420_UI_8:
+			self.shaderEvalSize = MTLSizeMake(2,2,1);
+			break;
 		case SwizzlePF_UYVY_PK_422_UI_10:
 			self.shaderEvalSize = MTLSizeMake(6,1,1);
 			break;
@@ -243,7 +264,8 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 		_info.readSrcImgFromBuffer = false;
 		
 		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
-		_info.dstPixelsToProcess = (int)self.shaderEvalSize.width;
+		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
+		_info.dstPixelsToProcess[1] = (int)self.shaderEvalSize.height;
 	
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
 		//[self renderToBuffer:nil inCommandBuffer:inCB];

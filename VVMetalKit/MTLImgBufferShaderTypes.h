@@ -1,7 +1,13 @@
 #ifndef MTLImgBufferShaderTypes_h
 #define MTLImgBufferShaderTypes_h
 
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#include <VVMetalKitTouch/SizingToolTypes.h>
+#else
 #include <VVMetalKit/SizingToolTypes.h>
+#endif
+//#include "SizingToolTypes.h"
 
 
 

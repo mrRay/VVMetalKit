@@ -1,5 +1,6 @@
 #import "MTLImgBuffer.h"
 #import <Accelerate/Accelerate.h>
+#import "TargetConditionals.h"
 
 #import "MTLPool.h"
 #import "MTLImgBufferShaderTypes.h"
@@ -7,7 +8,12 @@
 
 
 
+
 #define TIMEDESC(n) CMTimeCopyDescription(kCFAllocatorDefault,n)
+
+#if TARGET_OS_IOS
+#define NSMakeRect CGRectMake
+#endif
 
 
 

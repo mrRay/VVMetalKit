@@ -1,4 +1,10 @@
+//#import <Cocoa/Cocoa.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#else
 #import <Cocoa/Cocoa.h>
+#endif
 
 
 

@@ -1,6 +1,13 @@
+//#import <Cocoa/Cocoa.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#import <VVMetalKitTouch/MTLImgBuffer.h>
+#else
 #import <Cocoa/Cocoa.h>
-#import <Metal/Metal.h>
 #import <VVMetalKit/MTLImgBuffer.h>
+#endif
+#import <Metal/Metal.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

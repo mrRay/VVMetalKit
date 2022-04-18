@@ -1,6 +1,14 @@
+//#import <Cocoa/Cocoa.h>
+#import <TargetConditionals.h>
+#if TARGET_OS_IOS
+#import <UIKit/UIKit.h>
+#import <VVMetalKitTouch/CustomMetalView.h>
+#import <VVMetalKitTouch/MTLPool.h>
+#else
 #import <Cocoa/Cocoa.h>
 #import <VVMetalKit/CustomMetalView.h>
 #import <VVMetalKit/MTLPool.h>
+#endif
 
 //NS_ASSUME_NONNULL_BEGIN
 
