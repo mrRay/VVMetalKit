@@ -13,19 +13,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-#if defined __cplusplus
-extern "C" {
-#endif
-	
-	NSString * NSStringFromSwizzlePF(SwizzlePF inPF);
-	
-#if defined __cplusplus
-};
-#endif
-
-
-
-
 @interface SwizzleMTLScene : MTLComputeScene
 
 - (id<MTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d;

@@ -45,6 +45,19 @@ typedef enum SwizzlePF	{
 	//SwizzlePF_BGR_PKPL_FL_16 = 'APP0',	//	'Apple Proprietary Pixelformat 0'.  semi-planar, half-float per channel, three channels per pixel.  all the B values, followed by all the G values, followed by all the R values.
 } SwizzlePF;
 
+#ifdef __METAL_VERSION__
+#else
+	#if defined __cplusplus
+	extern "C" {
+	#endif
+		
+		NSString * NSStringFromSwizzlePF(SwizzlePF inPF);
+		
+	#if defined __cplusplus
+	};
+	#endif
+#endif
+
 
 
 
@@ -77,8 +90,12 @@ typedef struct	{
 	
 } SwizzleShaderImageInfo;
 
+#ifdef __METAL_VERSION__
+#else
+size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo);
 SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight);
 SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow);
+#endif
 
 
 

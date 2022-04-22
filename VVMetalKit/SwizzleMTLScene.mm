@@ -17,19 +17,6 @@
 
 
 
-NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
-	char		destCharPtr[5];
-	destCharPtr[0] = (inPF>>24) & 0xFF;
-	destCharPtr[1] = (inPF>>16) & 0xFF;
-	destCharPtr[2] = (inPF>>8) & 0xFF;
-	destCharPtr[3] = (inPF) & 0xFF;
-	destCharPtr[4] = 0;
-	return [NSString stringWithCString:destCharPtr encoding:NSASCIIStringEncoding];
-}
-
-
-
-
 @interface SwizzleMTLScene ()	{
 	id<MTLBuffer>		slugBuffer;	//	we can't pass nil buffers to metal because...i don't know why not
 	MTLImgBuffer		*slugTexture;	//	we can't pass nil textures to metal because...if we do, the metal debugger doesn't work.
