@@ -113,8 +113,9 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 	//NSLog(@"\t\ttargetLength is %ld",targetLength);
 	
 	id<MTLBuffer>		returnMe = nil;
-	if (b == nil)
+	if (b == nil)	{
 		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
+	}
 	else	{
 		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
 		returnMe = [self.device newBufferWithBytes:b length:inLength options:MTLResourceStorageModeShared];
