@@ -40,6 +40,14 @@
 		1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A19F328260E788800214C6B /* VVSizingTool.m */; };
 		1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
 		1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A4819732816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; };
+		1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */; };
+		1A4819772816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */; };
+		1A4819792816C7D600CE2D00 /* BicubicInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */; };
+		1A48197C2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */; };
+		1A48197D2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */; };
 		1AB2702D26486F2300C2E931 /* MTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2702B26486F2300C2E931 /* MTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
 		1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */; };
@@ -127,6 +135,10 @@
 		1A19F328260E788800214C6B /* VVSizingTool.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = VVSizingTool.m; sourceTree = "<group>"; };
 		1A2149D3263851A0007AD273 /* SizingTool_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SizingTool_objc.m; sourceTree = "<group>"; };
 		1A2149D7263851BA007AD273 /* SizingTool_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_objc.h; sourceTree = "<group>"; };
+		1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BilinearInterpolation.h; sourceTree = "<group>"; };
+		1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BilinearInterpolation.metal; sourceTree = "<group>"; };
+		1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BicubicInterpolation.h; sourceTree = "<group>"; };
+		1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BicubicInterpolation.metal; sourceTree = "<group>"; };
 		1AB2702B26486F2300C2E931 /* MTLRenderScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTLRenderScene.h; sourceTree = "<group>"; };
 		1AB2702C26486F2300C2E931 /* MTLRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTLRenderScene.m; sourceTree = "<group>"; };
 		1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SwizzleMTLSceneTypes.m; sourceTree = "<group>"; };
@@ -220,6 +232,10 @@
 				1A19F328260E788800214C6B /* VVSizingTool.m */,
 				1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */,
 				1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */,
+				1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */,
+				1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */,
+				1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */,
+				1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */,
 				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
 			);
 			path = VVMetalKit;
@@ -239,6 +255,8 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A4819792816C7D600CE2D00 /* BicubicInterpolation.h in Headers */,
+				1A4819732816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */,
 				1A0FBEB9260E1F5000FF39BB /* CustomMetalView.h in Headers */,
 				1A0FBED7260E243500FF39BB /* SwizzleMTLScene.h in Headers */,
@@ -273,8 +291,10 @@
 				1AC82CCB27FF2901009A9989 /* SwizzleMTLScene.h in Headers */,
 				1AC82CCC27FF2901009A9989 /* VVSizingTool.h in Headers */,
 				1AC82CCD27FF2901009A9989 /* MTLImgBuffer.h in Headers */,
+				1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */,
 				1AC82CCE27FF2901009A9989 /* MTLImgBufferView.h in Headers */,
 				1AC82CCF27FF2901009A9989 /* MTLScene.h in Headers */,
+				1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AC82CD027FF2901009A9989 /* MTLPool.h in Headers */,
 				1AC82CD127FF2901009A9989 /* RenderProperties.h in Headers */,
 				1AC82CD227FF2901009A9989 /* CopierMTLScene.h in Headers */,
@@ -396,12 +416,14 @@
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A19F32A260E788800214C6B /* VVSizingTool.m in Sources */,
 				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.mm in Sources */,
+				1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */,
 				1A0FBEB7260E1F5000FF39BB /* MTLComputeScene.m in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
 				1A0FBEB6260E1F5000FF39BB /* MTLImgBufferView.m in Sources */,
 				1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */,
 				1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */,
 				1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */,
+				1A48197C2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */,
 				1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */,
 				1A0FBEBB260E1F5000FF39BB /* MTLPool.m in Sources */,
 				1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */,
@@ -422,12 +444,14 @@
 				1AC82CE727FF2901009A9989 /* SizingTool_metal.metal in Sources */,
 				1AC82CE827FF2901009A9989 /* VVSizingTool.m in Sources */,
 				1AC82CE927FF2901009A9989 /* SwizzleMTLScene.mm in Sources */,
+				1A4819772816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */,
 				1AC82CEA27FF2901009A9989 /* MTLComputeScene.m in Sources */,
 				1AC82CEB27FF2901009A9989 /* CustomMetalView.m in Sources */,
 				1AC82CEC27FF2901009A9989 /* MTLImgBufferView.m in Sources */,
 				1AC82CED27FF2901009A9989 /* RenderProperties.m in Sources */,
 				1AC82CEE27FF2901009A9989 /* VVColorConversions.metal in Sources */,
 				1AC82CEF27FF2901009A9989 /* SwizzleMTLScene.metal in Sources */,
+				1A48197D2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */,
 				1AC82CF027FF2901009A9989 /* MTLRenderScene.m in Sources */,
 				1AC82CF127FF2901009A9989 /* MTLPool.m in Sources */,
 				1AC82CF227FF2901009A9989 /* MTLImgBuffer.m in Sources */,

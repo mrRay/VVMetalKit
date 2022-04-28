@@ -29,6 +29,8 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/SizingTool_Metal.h>
 #import <VVMetalKitTouch/SwizzleMTLScene.h>
 #import <VVMetalKitTouch/VVColorConversions.h>
+#import <VVMetalKitTouch/BilinearInterpolation.h>
+#import <VVMetalKitTouch/BicubicInterpolation.h>
 
 #else
 
@@ -50,6 +52,8 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/SizingTool_Metal.h>
 #import <VVMetalKit/SwizzleMTLScene.h>
 #import <VVMetalKit/VVColorConversions.h>
+#import <VVMetalKit/BilinearInterpolation.h>
+#import <VVMetalKit/BicubicInterpolation.h>
 
 #endif
 
