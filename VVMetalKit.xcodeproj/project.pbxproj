@@ -41,11 +41,11 @@
 		1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
 		1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A4819732816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; };
+		1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */; };
 		1A4819772816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */; };
 		1A4819792816C7D600CE2D00 /* BicubicInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */; };
+		1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A48197C2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */; };
 		1A48197D2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */; };
 		1AB2702D26486F2300C2E931 /* MTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB2702B26486F2300C2E931 /* MTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -291,10 +291,8 @@
 				1AC82CCB27FF2901009A9989 /* SwizzleMTLScene.h in Headers */,
 				1AC82CCC27FF2901009A9989 /* VVSizingTool.h in Headers */,
 				1AC82CCD27FF2901009A9989 /* MTLImgBuffer.h in Headers */,
-				1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */,
 				1AC82CCE27FF2901009A9989 /* MTLImgBufferView.h in Headers */,
 				1AC82CCF27FF2901009A9989 /* MTLScene.h in Headers */,
-				1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AC82CD027FF2901009A9989 /* MTLPool.h in Headers */,
 				1AC82CD127FF2901009A9989 /* RenderProperties.h in Headers */,
 				1AC82CD227FF2901009A9989 /* CopierMTLScene.h in Headers */,
@@ -306,6 +304,8 @@
 				1AC82CD827FF2901009A9989 /* SizingTool_c.h in Headers */,
 				1AC82CD927FF2901009A9989 /* MTLComputeScene.h in Headers */,
 				1AC82CDA27FF2901009A9989 /* SizingToolTypes.h in Headers */,
+				1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */,
+				1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AC82CDB27FF2901009A9989 /* VVColorConversions.h in Headers */,
 				1AC82CDC27FF2901009A9989 /* SizingTool_metal.h in Headers */,
 				1AC82CDD27FF2901009A9989 /* MTLImgBufferAdditions_Private.h in Headers */,
