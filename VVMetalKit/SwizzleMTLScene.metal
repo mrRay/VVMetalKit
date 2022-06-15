@@ -5,6 +5,7 @@ using namespace metal;
 
 #include "VVColorConversions.h"
 #include "SizingTool_metal.h"
+#include "BilinearInterpolation.h"
 
 
 
@@ -743,7 +744,7 @@ void PopulateNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * 
 }
 
 void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
-	/*
+	
 	//constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
 	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
 	
@@ -769,12 +770,17 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 				normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
 			if (opInfo.flipV)
 				normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
+			//normRGB[pixelIndex] = float4(normSamplePointInSrc.x, normSamplePointInSrc.y, 0., 1.);
 			
-			GPoint			samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrame);
+			//GPoint			samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrame);
+			GPoint			samplePointInSrc = MakePoint(
+				normSamplePointInSrc.x * float(opInfo.srcImg.res[0]),
+				normSamplePointInSrc.y * float(opInfo.srcImg.res[1])
+			);
 			
 			uint2			minVals( floor(samplePointInSrc.x), floor(samplePointInSrc.y) );
 			uint2			maxVals( ceil(samplePointInSrc.x), ceil(samplePointInSrc.y) );
-			float2			mixVals = float2( samplePointInSrc.x - minVals.x, samplePointInSrc.y - minVals.y );
+			float2			mixVals = float2( samplePointInSrc.x - minVals.x, maxVals.y - samplePointInSrc.y );
 			
 			float4			topLeft;
 			float4			topRight;
@@ -788,9 +794,7 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			PopulateNormRGBFromSrcBufferAtLoc(&botLeft, srcBuffer, opInfo, uint2(minVals.x, minVals.y));
 			PopulateNormRGBFromSrcBufferAtLoc(&botRight, srcBuffer, opInfo, uint2(maxVals.x, minVals.y));
 			
-			normRGB[pixelIndex] = BilinearInterpolation(topLeft, topRight, botLeft, botRight, mixVals);
-			
-			//static inline void BilinearInterpolation(float4 topLeft, float4 topRight, float4 botLeft, float4 botRight, float2 mix);
+			normRGB[pixelIndex] = fadeToBlackMultiplier * BilinearInterpolation(topLeft, topRight, botLeft, botRight, mixVals);
 			
 			
 			
@@ -807,9 +811,9 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			++pixelIndex;
 		}
 	}
-	*/
 	
 	
+	/*
 	//float4		fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
 	//	INCOMPLETE- let's get the basic pixel format conversions finished before we take this on, hmm?
 	unsigned int			pixelIndex = 0;
@@ -820,7 +824,7 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			++pixelIndex;
 		}
 	}
-	
+	*/
 }
 void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
 	
