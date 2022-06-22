@@ -125,6 +125,8 @@
 //@synthesize needsDisplay=myNeedsDisplay;
 - (void) setNeedsDisplay:(BOOL)n	{
 	//myNeedsDisplay = n;
+	if (n)
+		self.contentNeedsRedraw = YES;
 	[super setNeedsDisplay:n];
 	if (n && self.delegate != nil)
 		[self.delegate redrawView:self];
@@ -148,6 +150,10 @@
 	//	subclasses should override this method, call the super, and then make the pso here
 }
 - (void) drawInCmdBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
+	//	intentionally blank, override this in your subclass
+	//	IMPORTANT NOTE:
+	//	always include the following line in your subclass overrides of this method:
+	//self.contentNeedsRedraw = NO;
 }
 - (BOOL) reconfigureDrawable	{
 	//NSLog(@"%s",__func__);
@@ -168,6 +174,8 @@
 	metalLayer.drawableSize = newSize;
 	viewportSize.x = newSize.width;
 	viewportSize.y = newSize.height;
+	
+	self.contentNeedsRedraw = YES;
 	
 	return returnMe;
 }

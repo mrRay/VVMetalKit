@@ -66,6 +66,7 @@
 	@synchronized (self)	{
 		myImgBuffer = inBuffer;
 	}
+	self.contentNeedsRedraw = YES;
 }
 - (MTLImgBuffer *)imgBuffer	{
 	return myImgBuffer;
@@ -95,6 +96,9 @@
 			return;
 		}
 		passDescriptor.colorAttachments[0].texture = currentDrawable.texture;
+		
+		//	always set this to NO as soon as you're pretty sure the frame can/will be drawn!
+		self.contentNeedsRedraw = NO;
 		
 		MTLImgBuffer		*localImgBuffer = self.imgBuffer;
 		//	if there's an image buffer...
@@ -251,6 +255,7 @@
 		self.vertBuffer = nil;
 		self.mvpBuffer = nil;
 	}
+	self.contentNeedsRedraw = YES;
 }
 - (BOOL) reconfigureDrawable	{
 	@synchronized (self)	{
