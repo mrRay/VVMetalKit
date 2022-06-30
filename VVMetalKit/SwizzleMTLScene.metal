@@ -15,27 +15,30 @@ using namespace metal;
 
 
 
-
+//	just unpacks data from packed/planar pixel formats.
 //	returns the normalized values of the channels from the passed src buffer/opInfo at the passed location
 //	doesn't convert any colors- only converts ints (code point values) to normalized float vals, at most
-//	doesn't do any interpolation- expects its location to be integral
-float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderOpInfo * opInfo, uint2 loc);
+//	doesn't do any interpolation- expects its location to be integral, and coords are relative to the srcBuffer.
+float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc);
+
+
+//	'dstLoc' is the location of the pixel in the DESTINATION IMAGE- we want to retrieve the val of the pixel at this loc in the source image
+void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 dstLoc);
+
 
 //	populates the passed array of 'normRGB' values from the passed 'srcBuffer', using 'opInfo' (which describes the nature of 'srcBuffer')
 void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
-//	'dstLoc' is the location of the pixel in the DESTINATION IMAGE- we want to retrieve the val of the pixel at this loc in the source image
-void PopulateNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 dstLoc);
-
 //	same as above, but there's a size mismatch between the src and dst images and we need to do some resampling!
 void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
 
-//	populates the passed array of 'normRGB' values from the passed texture, using 'opInfo' (which describes the nature of 'srcTexture')
-void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
 
 //	populates the passed array of 'normRGB' values from the passed texture, using 'opInfo' (which describes the nature of 'srcTexture')
 void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
+//	populates the passed array of 'normRGB' values from the passed texture, using 'opInfo' (which describes the nature of 'srcTexture')
+void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
 
-//	populates the passed dst buffer using the contents of the passed normalized RGB values
+
+//	last part of the process.  takes the normalized RGB color vals, and uses them to populate the dst image with them
 void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInfo & opInfo, thread float4 * normRGB, uint2 gid);
 
 
@@ -60,6 +63,31 @@ kernel void SwizzleMTLSceneFunc(
 	float4			normRGB[MAX_PIXELS_TO_PROCESS];
 	bool			resMismatch = ( (opInfo.dstImg.res[0] != opInfo.srcImg.res[0] || opInfo.dstImg.res[1] != opInfo.srcImg.res[1])
 	|| !GRectsEqual(opInfo.srcImgFrameInDst, MakeRect(0,0,opInfo.srcImg.res[0],opInfo.srcImg.res[1])) );
+	
+	//	if the src image is in a buffer
+	if (opInfo.readSrcImgFromBuffer)	{
+		if (resMismatch)	{
+			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
+		}
+		else	{
+			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
+		}
+	}
+	//	else the src image is in a texture
+	else	{
+		if (resMismatch)	{
+			PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
+		}
+		else	{
+			PopulateNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
+		}
+	}
+	
+	
+	
+	
+	
+	
 	
 	
 	//	if we're reading from a src texture...
@@ -120,54 +148,17 @@ kernel void SwizzleMTLSceneFunc(
 		PopulateDstFromNormRGB(dstBuffer, opInfo, normRGB, gid);
 	}
 	
-	
-	
-	
-	
-	
-	
-	
-	/*
-	//	if we're reading from a src texture...
-	if (!is_null_texture(srcRGBTexture))	{
-		//	populate the normalized RGB pixel values from the RGB texture....
-		PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
-	}
-	//	else we're not reading from a src texture- we're reading from a src buffer...
-	else	{
-		//	if the dst and src image sizes differ...
-		if (opInfo.dstImg.res[0] != opInfo.srcImg.res[0] || opInfo.dstImg.res[1] != opInfo.srcImg.res[1])	{
-			//	use a different function to calculate the normalized RGB vals- we'll do this part last, once we get everything else working!
-			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
-		}
-		//	else the dst and src images have the same size...
-		else	{
-			//	populate the normalized RGB vals from the src buffer
-			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
-		}
-	}
-	
-	//	if there's a destination RGB texture attached, write the pixels to it now
-	if (!is_null_texture(dstRGBTexture))	{
-		for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
-			uint2			dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
-			if (dstLoc.x < opInfo.dstImg.res[0] && dstLoc.y < opInfo.dstImg.res[1])
-				dstRGBTexture.write(normRGB[pixelIndex], dstLoc);
-		}
-	}
-	
-	//	if there's a dst buffer, populate it from the RGB values!
-	if (dstBuffer != nullptr)	{
-		PopulateDstFromNormRGB(dstBuffer, opInfo, normRGB, gid);
-	}
-	*/
 }
 
 
 
 
-float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc)
-{
+#pragma mark - extract single pixel to RGB
+
+
+
+
+float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc)	{
 	float4			returnMe = float4(0,0,0,1);
 	if (loc.x < 0 || loc.y < 0 || loc.x >= imgInfo.res[0] || loc.y >= imgInfo.res[1])
 		return returnMe;
@@ -499,26 +490,8 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 	return returnMe;
 }
 
-void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
-	
-	//				****** IMPORTANT *******
-	//	this function assumes that the src and dst buffers have the same resolution!
-	//	this function DOES NOT PERFORM ANY INTERPOLATION
-	
-	unsigned int			pixelIndex = 0;
-	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
-		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//	determine the location of the pixel we're populating in the destination
-			uint2		dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
-			
-			PopulateNormRGBFromSrcBufferAtLoc(normRGB + pixelIndex, srcBuffer, opInfo, dstLoc);
-			
-			++pixelIndex;
-		}
-	}
-}
 
-void PopulateNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInDst)	{
+void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInDst)	{
 	GPoint		dstLoc = MakePoint(locInDst.x, locInDst.y);
 	//	if the pixel we're populating is outside the bounds of the source image, it's solid black
 	//if (!PixelInRect(dstLoc, opInfo.srcImgFrameInDst))	{
@@ -758,6 +731,32 @@ void PopulateNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * 
 	}
 }
 
+
+
+
+#pragma mark - src -> normalized RGB
+
+
+
+
+void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
+	
+	//				****** IMPORTANT *******
+	//	this function assumes that the src and dst buffers have the same resolution!
+	//	this function DOES NOT PERFORM ANY INTERPOLATION
+	
+	unsigned int			pixelIndex = 0;
+	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
+		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
+			//	determine the location of the pixel we're populating in the destination
+			uint2		dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
+			
+			ReadNormRGBFromSrcBufferAtLoc(normRGB + pixelIndex, srcBuffer, opInfo, dstLoc);
+			
+			++pixelIndex;
+		}
+	}
+}
 void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
 	//constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
 	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
@@ -808,10 +807,10 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			float4			row2[4];
 			float4			row3[4];
 			for (int i=0; i<4; ++i)	{
-				PopulateNormRGBFromSrcBufferAtLoc( &row0[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+0) );
-				PopulateNormRGBFromSrcBufferAtLoc( &row1[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+1) );
-				PopulateNormRGBFromSrcBufferAtLoc( &row2[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+2) );
-				PopulateNormRGBFromSrcBufferAtLoc( &row3[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+3) );
+				ReadNormRGBFromSrcBufferAtLoc( &row0[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+0) );
+				ReadNormRGBFromSrcBufferAtLoc( &row1[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+1) );
+				ReadNormRGBFromSrcBufferAtLoc( &row2[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+2) );
+				ReadNormRGBFromSrcBufferAtLoc( &row3[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+3) );
 			}
 			normRGB[pixelIndex] = fadeToBlackMultiplier * BicubicInterpolation(&row0[0], &row1[0], &row2[0], &row3[0], mixVals);
 #else
@@ -826,11 +825,11 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			float4			botRight;
 			
 			//PopulateNormRGBFromSrcBuffer(&topLeft, srcBuffer, opInfo, gid)
-			//void PopulateNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInDst)
-			PopulateNormRGBFromSrcBufferAtLoc(&topLeft, srcBuffer, opInfo, uint2(minVals.x, maxVals.y));
-			PopulateNormRGBFromSrcBufferAtLoc(&topRight, srcBuffer, opInfo, uint2(maxVals.x, maxVals.y));
-			PopulateNormRGBFromSrcBufferAtLoc(&botLeft, srcBuffer, opInfo, uint2(minVals.x, minVals.y));
-			PopulateNormRGBFromSrcBufferAtLoc(&botRight, srcBuffer, opInfo, uint2(maxVals.x, minVals.y));
+			//void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInDst)
+			ReadNormRGBFromSrcBufferAtLoc(&topLeft, srcBuffer, opInfo, uint2(minVals.x, maxVals.y));
+			ReadNormRGBFromSrcBufferAtLoc(&topRight, srcBuffer, opInfo, uint2(maxVals.x, maxVals.y));
+			ReadNormRGBFromSrcBufferAtLoc(&botLeft, srcBuffer, opInfo, uint2(minVals.x, minVals.y));
+			ReadNormRGBFromSrcBufferAtLoc(&botRight, srcBuffer, opInfo, uint2(maxVals.x, minVals.y));
 			
 			normRGB[pixelIndex] = fadeToBlackMultiplier * BilinearInterpolation(topLeft, topRight, botLeft, botRight, mixVals);
 #endif
@@ -864,6 +863,47 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 		}
 	}
 	*/
+}
+
+
+void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
+	
+	//	...technically this does a linear interpolation, but since the function is only called in situations where there's no res change, it should result in a direct copy?
+	
+	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
+	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
+	
+	unsigned int			pixelIndex = 0;
+	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
+		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
+			//	determine the location of the pixel we're populating in the destination
+			GPoint		dstLoc = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
+			
+			//	if the pixel we're populating is outside the bounds of the source image, it's solid black
+			if (!PixelInRect(dstLoc, opInfo.srcImgFrameInDst))	{
+				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
+				++pixelIndex;
+				continue;
+			}
+		
+			//	...if we're here, the pixel we're populating in the destination is within the source frame, so we have to sample the input texture
+		
+			//	convert the pixel coords to the normalized location within the source image's frame
+			GPoint			normSamplePixelInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
+			//	compensate for horizontal or vertical flippedness
+			if (opInfo.flipH)
+				normSamplePixelInSrc.x = 1. - normSamplePixelInSrc.x;
+			if (opInfo.flipV)
+				normSamplePixelInSrc.y = 1. - normSamplePixelInSrc.y;
+		
+			//	sample the input texture
+			float4			srcColor = inTex.sample(sampler, float2(normSamplePixelInSrc.x, normSamplePixelInSrc.y));
+			//	populate the normalized RGB value
+			normRGB[pixelIndex] = srcColor * fadeToBlackMultiplier;
+			
+			++pixelIndex;
+		}
+	}
 }
 void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
 	
@@ -949,45 +989,13 @@ void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<flo
 	//	normRGB[pixelIndex] = srcColor;
 	//}
 }
-void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
-	
-	//	...technically this does a linear interpolation, but since the function is only called in situations where there's no res change, it should result in a direct copy?
-	
-	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
-	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
-	
-	unsigned int			pixelIndex = 0;
-	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
-		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//	determine the location of the pixel we're populating in the destination
-			GPoint		dstLoc = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
-			
-			//	if the pixel we're populating is outside the bounds of the source image, it's solid black
-			if (!PixelInRect(dstLoc, opInfo.srcImgFrameInDst))	{
-				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
-				++pixelIndex;
-				continue;
-			}
-		
-			//	...if we're here, the pixel we're populating in the destination is within the source frame, so we have to sample the input texture
-		
-			//	convert the pixel coords to the normalized location within the source image's frame
-			GPoint			normSamplePixelInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-			//	compensate for horizontal or vertical flippedness
-			if (opInfo.flipH)
-				normSamplePixelInSrc.x = 1. - normSamplePixelInSrc.x;
-			if (opInfo.flipV)
-				normSamplePixelInSrc.y = 1. - normSamplePixelInSrc.y;
-		
-			//	sample the input texture
-			float4			srcColor = inTex.sample(sampler, float2(normSamplePixelInSrc.x, normSamplePixelInSrc.y));
-			//	populate the normalized RGB value
-			normRGB[pixelIndex] = srcColor * fadeToBlackMultiplier;
-			
-			++pixelIndex;
-		}
-	}
-}
+
+
+
+
+#pragma mark - normalized RGB -> dst
+
+
 
 
 void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInfo & opInfo, thread float4 * normRGB, uint2 gid)	{
