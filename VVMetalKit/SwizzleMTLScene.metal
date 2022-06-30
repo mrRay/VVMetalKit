@@ -22,7 +22,7 @@ using namespace metal;
 float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc);
 
 
-//	'dstLoc' is the location of the pixel in the DESTINATION IMAGE- we want to retrieve the val of the pixel at this loc in the source image
+//	'dstLoc' is the location of the pixel in the SOURCE IMAGE- we want to retrieve the val of the pixel at this loc in the source image
 void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 dstLoc);
 
 
@@ -80,37 +80,6 @@ kernel void SwizzleMTLSceneFunc(
 		}
 		else	{
 			PopulateNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
-		}
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	//	if we're reading from a src texture...
-	if (!opInfo.readSrcImgFromBuffer)	{
-		if (resMismatch)	{
-			//	populate the normalized RGB pixel values from the RGB texture....
-			PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
-		}
-		else	{
-			PopulateNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
-		}
-	}
-	//	else we're not reading from a src texture- we're reading from a src buffer...
-	else	{
-		//	if the dst and src image sizes differ or are otherwise not a 1:1 match...
-		if (resMismatch)	{
-			//	use a different function to calculate the normalized RGB vals
-			PopulateAndResampleNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
-		}
-		//	else the dst and src images have the same size...
-		else	{
-			//	populate the normalized RGB vals from the src buffer
-			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
 		}
 	}
 	
@@ -491,8 +460,9 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 }
 
 
-void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInDst)	{
-	GPoint		dstLoc = MakePoint(locInDst.x, locInDst.y);
+void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInSrc)	{
+	uint2			sampleLoc( clamp((int)locInSrc.x,(int)0,(int)opInfo.srcImg.res[0]-1), clamp((int)locInSrc.y,(int)0,(int)opInfo.srcImg.res[1]-1) );
+	//GPoint		dstLoc = MakePoint(locInSrc.x, locInSrc.y);
 	//	if the pixel we're populating is outside the bounds of the source image, it's solid black
 	//if (!PixelInRect(dstLoc, opInfo.srcImgFrameInDst))	{
 	//	*normRGB = float4(0., 0., 0., 1.);
@@ -514,47 +484,14 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBA_PK_FP_32:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
-		
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 			//	in this case, the src image is RGB- we already have the normalized RGB vals, so we're basically done!
 			*normRGB = rawVals.rgba * fadeToBlackMultiplier;
 		}
 		break;
 	case SwizzlePF_RGBX_PK_UI_8:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 			
 			float4		tmpVals = rawVals * fadeToBlackMultiplier;
 			tmpVals.a = 1.0;
@@ -569,23 +506,7 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 		break;
 	case SwizzlePF_BGRA_PK_UI_8:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 		
 			//	note: the image data in the src buffer is BGRA!
 		
@@ -596,23 +517,7 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 		break;
 	case SwizzlePF_BGRX_PK_UI_8:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 		
 			//	note: the image data in the src buffer is BGRA!
 		
@@ -629,23 +534,7 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 		break;
 	case SwizzlePF_ARGB_PK_UI_8:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 		
 			//	note: the image data in the src buffer is ARGB!
 		
@@ -661,23 +550,7 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 	case SwizzlePF_UYVY_PKPL_420_UI_8:
 	case SwizzlePF_UYVY_PL_420_UI_8:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 		
 			//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer (and reordered YCbCr into YCbCr) and provided us with all three vals, we just have to convert them to RGB.
 			
@@ -698,23 +571,7 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
-			float4			rawVals;
-			//	if we have to do any flipping...
-			if (opInfo.flipH || opInfo.flipV)	{
-				//	convert the pixel coords to normalized coords within the src img frame
-				GPoint		normSamplePointInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-				if (opInfo.flipH)
-					normSamplePointInSrc.x = 1. - normSamplePointInSrc.x;
-				if (opInfo.flipV)
-					normSamplePointInSrc.y = 1. - normSamplePointInSrc.y;
-				//	convert the normalized coords back to pixel coords within the src img frame- since the src & dst buffers have the same resolution, this is what we're sampling
-				GPoint		samplePointInSrc = PixelForNormCoordsInRect(normSamplePointInSrc, opInfo.srcImgFrameInDst);
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(samplePointInSrc.x, samplePointInSrc.y));
-			}
-			//	else we didn't have to do any flipping- we're sampling the same location in the src that we're populating in the dst
-			else	{
-				rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, uint2(dstLoc.x, dstLoc.y));
-			}
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
 			
 			//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
 			
@@ -748,59 +605,55 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	unsigned int			pixelIndex = 0;
 	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
 		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//	determine the location of the pixel we're populating in the destination
-			uint2		dstLoc = uint2( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
-			
-			ReadNormRGBFromSrcBufferAtLoc(normRGB + pixelIndex, srcBuffer, opInfo, dstLoc);
+			//	calculate the coords of the pixel in the destination buffer we're calculating the color for
+			GPoint		dstPixel = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel );
+			//	if the pixel we're populating is outside the bounds of the source image in the dst image, it's solid black
+			if (!PixelInRect(dstPixel, opInfo.srcImgFrameInDst))	{
+				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
+				++pixelIndex;
+				continue;
+			}
+			//	convert this to the normalized coords of the src img, using the frame the src image draws within for the op
+			GPoint		srcNorm = NormCoordsOfPixelInRect(dstPixel, opInfo.srcImgFrameInDst);
+			//	apply any flippedness
+			if (opInfo.flipH)
+				srcNorm.x = 1. - srcNorm.x;
+			if (opInfo.flipV)
+				srcNorm.y = 1. - srcNorm.y;
+			//	convert the normalized src img coords to pixel src img coords
+			GPoint		srcPixel = MakePoint( srcNorm.x * opInfo.srcImg.res[0], srcNorm.y * opInfo.srcImg.res[1] );
+			ReadNormRGBFromSrcBufferAtLoc(normRGB + pixelIndex, srcBuffer, opInfo, uint2(srcPixel.x, srcPixel.y));
 			
 			++pixelIndex;
 		}
 	}
 }
 void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
-	//constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
-	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
-	GRect					srcImgRect = MakeRect(0, 0, opInfo.srcImg.res[0], opInfo.srcImg.res[1]);
-	GRect					dstImgRect = MakeRect(0, 0, opInfo.dstImg.res[0], opInfo.dstImg.res[1]);
 	
 	unsigned int			pixelIndex = 0;
 	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
 		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//	determine the location of the pixel we're populating in the destination
-			GPoint		dstPixelLoc = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
-			
+			//	calculate the coords of the pixel in the destination buffer we're calculating the color for
+			GPoint		dstPixel = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel );
 			//	if the pixel we're populating is outside the bounds of the source image in the dst image, it's solid black
-			if (!PixelInRect(dstPixelLoc, opInfo.srcImgFrameInDst))	{
+			if (!PixelInRect(dstPixel, opInfo.srcImgFrameInDst))	{
 				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
 				++pixelIndex;
 				continue;
 			}
-			//dstPixelLoc = ClampPixelToRect(dstPixelLoc, opInfo.srcImgFrameInDst);
-			
-			//	...if we're here, the pixel we're populating in the destination is within the source frame, so we have to get the colors from four places in the input buffer and do bilinear interpolation
-			
-			//	convert the pixel coords to the normalized location within the source image's frame
-			GPoint			normSampleInSrc = NormCoordsOfPixelInRect(dstPixelLoc, opInfo.srcImgFrameInDst);
-			//	compensate for horizontal or vertical flippedness
+			//	convert this to the normalized coords of the src img, using the frame the src image draws within for the op
+			GPoint		srcNorm = NormCoordsOfPixelInRect(dstPixel, opInfo.srcImgFrameInDst);
+			//	apply any flippedness
 			if (opInfo.flipH)
-				normSampleInSrc.x = 1. - normSampleInSrc.x;
+				srcNorm.x = 1. - srcNorm.x;
 			if (opInfo.flipV)
-				normSampleInSrc.y = 1. - normSampleInSrc.y;
-			normRGB[pixelIndex] = float4(normSampleInSrc.x, normSampleInSrc.y, 0., 1.);
-			
-			GPoint			samplePixelInSrc = PixelForNormCoordsInRect(normSampleInSrc, srcImgRect);
-			//GPoint			samplePixelInSrc = MakePoint(
-			//	normSampleInSrc.x * float(opInfo.srcImg.res[0]-1),
-			//	normSampleInSrc.y * float(opInfo.srcImg.res[1]-1)
-			//);
-			
-			
-			
-			
+				srcNorm.y = 1. - srcNorm.y;
+			//	convert the normalized src img coords to pixel src img coords
+			GPoint		srcPixel = MakePoint( srcNorm.x * opInfo.srcImg.res[0], srcNorm.y * opInfo.srcImg.res[1] );
 #if BICUBIC
-			uint2			minCoords( floor(samplePixelInSrc.x), floor(samplePixelInSrc.y) );
-			//uint2			maxCoords( ceil(samplePixelInSrc.x), ceil(samplePixelInSrc.y) );
-			float2			mixVals = float2( samplePixelInSrc.x - minCoords.x, samplePixelInSrc.y - minCoords.y );
+			uint2			minCoords( floor(srcPixel.x), floor(srcPixel.y) );
+			//uint2			maxCoords( ceil(srcPixel.x), ceil(srcPixel.y) );
+			float2			mixVals = float2( srcPixel.x - minCoords.x, srcPixel.y - minCoords.y );
 			uint2			startCoords(minCoords.x-1, minCoords.y-1);
 			float4			row0[4];
 			float4			row1[4];
@@ -812,57 +665,30 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 				ReadNormRGBFromSrcBufferAtLoc( &row2[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+2) );
 				ReadNormRGBFromSrcBufferAtLoc( &row3[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+3) );
 			}
-			normRGB[pixelIndex] = fadeToBlackMultiplier * BicubicInterpolation(&row0[0], &row1[0], &row2[0], &row3[0], mixVals);
+			normRGB[pixelIndex] = BicubicInterpolation(&row0[0], &row1[0], &row2[0], &row3[0], mixVals);
 #else
-			
-			uint2			minVals( floor(samplePixelInSrc.x), floor(samplePixelInSrc.y) );
-			uint2			maxVals( ceil(samplePixelInSrc.x), ceil(samplePixelInSrc.y) );
-			float2			mixVals = float2( samplePixelInSrc.x - minVals.x, maxVals.y - samplePixelInSrc.y );
+			uint2			minVals( floor(srcPixel.x), floor(srcPixel.y) );
+			uint2			maxVals( ceil(srcPixel.x), ceil(srcPixel.y) );
+			float2			mixVals = float2( srcPixel.x - minVals.x, maxVals.y - srcPixel.y );
 			
 			float4			topLeft;
 			float4			topRight;
 			float4			botLeft;
 			float4			botRight;
 			
-			//PopulateNormRGBFromSrcBuffer(&topLeft, srcBuffer, opInfo, gid)
-			//void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInDst)
 			ReadNormRGBFromSrcBufferAtLoc(&topLeft, srcBuffer, opInfo, uint2(minVals.x, maxVals.y));
 			ReadNormRGBFromSrcBufferAtLoc(&topRight, srcBuffer, opInfo, uint2(maxVals.x, maxVals.y));
 			ReadNormRGBFromSrcBufferAtLoc(&botLeft, srcBuffer, opInfo, uint2(minVals.x, minVals.y));
 			ReadNormRGBFromSrcBufferAtLoc(&botRight, srcBuffer, opInfo, uint2(maxVals.x, minVals.y));
 			
-			normRGB[pixelIndex] = fadeToBlackMultiplier * BilinearInterpolation(topLeft, topRight, botLeft, botRight, mixVals);
+			normRGB[pixelIndex] = BilinearInterpolation(topLeft, topRight, botLeft, botRight, mixVals);
 #endif
 			
-			
-			
-			
-			//	sample the input texture
-			//float4			srcColor = inTex.sample(sampler, float2(normSampleInSrc.x, normSampleInSrc.y));
-			
-			//	populate the normalized RGB value
-			//normRGB[pixelIndex] = srcColor * fadeToBlackMultiplier;
-			
-			
-			
-			
 			++pixelIndex;
 		}
 	}
 	
 	
-	/*
-	//float4		fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
-	//	INCOMPLETE- let's get the basic pixel format conversions finished before we take this on, hmm?
-	unsigned int			pixelIndex = 0;
-	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
-		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//normRGB[pixelIndex] = float4(1,0,0,1) * fadeToBlackMultiplier;	//	just make everything red for now...
-			normRGB[pixelIndex] = float4(1,0,0,1);
-			++pixelIndex;
-		}
-	}
-	*/
 }
 
 
@@ -876,28 +702,23 @@ void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::
 	unsigned int			pixelIndex = 0;
 	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
 		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//	determine the location of the pixel we're populating in the destination
-			GPoint		dstLoc = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
-			
-			//	if the pixel we're populating is outside the bounds of the source image, it's solid black
-			if (!PixelInRect(dstLoc, opInfo.srcImgFrameInDst))	{
+			//	calculate the coords of the pixel in the destination buffer we're calculating the color for
+			GPoint		dstPixel = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel );
+			//	if the pixel we're populating is outside the bounds of the source image in the dst image, it's solid black
+			if (!PixelInRect(dstPixel, opInfo.srcImgFrameInDst))	{
 				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
 				++pixelIndex;
 				continue;
 			}
-		
-			//	...if we're here, the pixel we're populating in the destination is within the source frame, so we have to sample the input texture
-		
-			//	convert the pixel coords to the normalized location within the source image's frame
-			GPoint			normSamplePixelInSrc = NormCoordsOfPixelInRect(dstLoc, opInfo.srcImgFrameInDst);
-			//	compensate for horizontal or vertical flippedness
+			//	convert this to the normalized coords of the src img, using the frame the src image draws within for the op
+			GPoint		srcNorm = NormCoordsOfPixelInRect(dstPixel, opInfo.srcImgFrameInDst);
+			//	apply any flippedness
 			if (opInfo.flipH)
-				normSamplePixelInSrc.x = 1. - normSamplePixelInSrc.x;
+				srcNorm.x = 1. - srcNorm.x;
 			if (opInfo.flipV)
-				normSamplePixelInSrc.y = 1. - normSamplePixelInSrc.y;
-		
+				srcNorm.y = 1. - srcNorm.y;
 			//	sample the input texture
-			float4			srcColor = inTex.sample(sampler, float2(normSamplePixelInSrc.x, normSamplePixelInSrc.y));
+			float4			srcColor = inTex.sample(sampler, float2(srcNorm.x, srcNorm.y));
 			//	populate the normalized RGB value
 			normRGB[pixelIndex] = srcColor * fadeToBlackMultiplier;
 			
@@ -909,45 +730,34 @@ void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<flo
 	
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
 	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
+#if BICUBIC
 	GRect					srcImgRect = MakeRect(0, 0, opInfo.srcImg.res[0], opInfo.srcImg.res[1]);
+#endif
 	
 	unsigned int			pixelIndex = 0;
 	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
 		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
-			//	determine the location of the pixel we're populating in the destination
-			GPoint		dstPixelLoc = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel);
-			
-			//	if the pixel we're populating is outside the bounds of the source image, it's solid black
-			if (!PixelInRect(dstPixelLoc, opInfo.srcImgFrameInDst))	{
+			//	calculate the coords of the pixel in the destination buffer we're calculating the color for
+			GPoint		dstPixel = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel );
+			//	if the pixel we're populating is outside the bounds of the source image in the dst image, it's solid black
+			if (!PixelInRect(dstPixel, opInfo.srcImgFrameInDst))	{
 				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
 				++pixelIndex;
 				continue;
 			}
-			//	if the location of the pixel we're populating is outside the bounds of the source image, clamp the location so it's within the area (so we only sample colors from within the appropriate area)
-			//dstPixelLoc = ClampPixelToRect(dstPixelLoc, opInfo.srcImgFrameInDst);
-			
-			//	...if we're here, the pixel we're populating in the destination is within the source frame, so we have to sample the input texture
-			
-			//	convert the pixel coords to the normalized location within the source image's frame
-			GPoint			normSampleInDst = NormCoordsOfPixelInRect(dstPixelLoc, opInfo.srcImgFrameInDst);
-			//	compensate for horizontal or vertical flippedness
+			//	convert this to the normalized coords of the src img, using the frame the src image draws within for the op
+			GPoint		srcNorm = NormCoordsOfPixelInRect(dstPixel, opInfo.srcImgFrameInDst);
+			//	apply any flippedness
 			if (opInfo.flipH)
-				normSampleInDst.x = 1. - normSampleInDst.x;
+				srcNorm.x = 1. - srcNorm.x;
 			if (opInfo.flipV)
-				normSampleInDst.y = 1. - normSampleInDst.y;
-			
-			
-			
+				srcNorm.y = 1. - srcNorm.y;
 			
 #if BICUBIC
-			GPoint			samplePixelInSrc = MakePoint(
-				normSampleInDst.x * float(opInfo.srcImg.res[0]-2),
-				normSampleInDst.y * float(opInfo.srcImg.res[1]-2)
-			);
-			
-			uint2			minCoords( floor(samplePixelInSrc.x), floor(samplePixelInSrc.y) );
-			//uint2			maxCoords( ceil(samplePixelInSrc.x), ceil(samplePixelInSrc.y) );
-			float2			mixVals = float2( samplePixelInSrc.x - minCoords.x, samplePixelInSrc.y - minCoords.y );
+			GPoint			srcPixel = MakePoint( srcNorm.x * opInfo.srcImg.res[0], srcNorm.y * opInfo.srcImg.res[1] );
+			uint2			minCoords( floor(srcPixel.x), floor(srcPixel.y) );
+			//uint2			maxCoords( ceil(srcPixel.x), ceil(srcPixel.y) );
+			float2			mixVals = float2( srcPixel.x - minCoords.x, srcPixel.y - minCoords.y );
 			uint2			startCoords(minCoords.x-1, minCoords.y-1);
 			float4			row0[4];
 			float4			row1[4];
@@ -968,26 +778,16 @@ void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<flo
 			normRGB[pixelIndex] = fadeToBlackMultiplier * BicubicInterpolation(&row0[0], &row1[0], &row2[0], &row3[0], mixVals);
 #else
 			//	sample the input texture
-			float4			srcColor = inTex.sample(sampler, float2(normSampleInDst.x, normSampleInDst.y));
+			float4			srcColor = inTex.sample(sampler, float2(srcNorm.x, srcNorm.y));
 			//	populate the normalized RGB value
 			normRGB[pixelIndex] = srcColor * fadeToBlackMultiplier;
 #endif
-			
-			
-			
 			
 			++pixelIndex;
 		}
 	}
 	
 	
-	//constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
-	//for (unsigned int pixelIndex = 0; pixelIndex < opInfo.dstPixelsToProcess; ++pixelIndex)	{
-	//	uint2			dstPixelLoc = uint2( (gid.x * opInfo.dstPixelsToProcess) + pixelIndex, gid.y);
-	//	float2			normDstLoc = float2( float(dstPixelLoc.x)/float(opInfo.dstImg.res[0]-1), float(dstPixelLoc.y)/float(opInfo.dstImg.res[1]-1) );
-	//	float4			srcColor = inTex.sample(sampler, normDstLoc);
-	//	normRGB[pixelIndex] = srcColor;
-	//}
 }
 
 
@@ -1118,13 +918,6 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
-			//	rec709
-			//const float3x3		mat = float3x3(
-			//	float3(0.183, -0.101, 0.439),
-			//	float3(0.614, -0.339, -0.399),
-			//	float3(0.062, 0.439, -0.040)
-			//);
-			//const float3		offsets = float3(16./255., 128./255., 128./255.);
 			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
 			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
 			
@@ -1159,13 +952,6 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
-			//	rec709
-			//const float3x3		mat = float3x3(
-			//	float3(0.183, -0.101, 0.439),
-			//	float3(0.614, -0.339, -0.399),
-			//	float3(0.062, 0.439, -0.040)
-			//);
-			//const float3		offsets = float3(16./255., 128./255., 128./255.);
 			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
 			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
 			
@@ -1200,13 +986,6 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			float4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
-			//	rec709
-			//const float3x3		mat = float3x3(
-			//	float3(0.183, -0.101, 0.439),
-			//	float3(0.614, -0.339, -0.399),
-			//	float3(0.062, 0.439, -0.040)
-			//);
-			//const float3		offsets = float3(16./255., 128./255., 128./255.);
 			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
 			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
 			
@@ -1251,13 +1030,6 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			ushort4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
-			//	rec709
-			//const float3x3		mat = float3x3(
-			//	float3(0.183, -0.101, 0.439),
-			//	float3(0.614, -0.339, -0.399),
-			//	float3(0.062, 0.439, -0.040)
-			//);
-			//const float3		offsets = float3(16./255., 128./255., 128./255.);
 			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
 			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
 			
@@ -1302,13 +1074,6 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
-			//	rec709
-			//const float3x3		mat = float3x3(
-			//	float3(0.183, -0.101, 0.439),
-			//	float3(0.614, -0.339, -0.399),
-			//	float3(0.062, 0.439, -0.040)
-			//);
-			//const float3		offsets = float3(16./255., 128./255., 128./255.);
 			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
 			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
 			
@@ -1355,13 +1120,6 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			ushort4		dstVals[MAX_PIXELS_TO_PROCESS];
 			
-			//	rec709
-			//const float3x3		mat = float3x3(
-			//	float3(0.183, -0.101, 0.439),
-			//	float3(0.614, -0.339, -0.399),
-			//	float3(0.062, 0.439, -0.040)
-			//);
-			//const float3		offsets = float3(16./255., 128./255., 128./255.);
 			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
 			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
 			
