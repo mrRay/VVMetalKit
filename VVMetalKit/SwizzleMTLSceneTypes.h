@@ -105,7 +105,7 @@ typedef struct	{
 	SwizzleShaderImageInfo		srcImg;
 	SwizzleShaderImageInfo		dstImg;
 	
-	GRect			srcImgFrame;	//	the src image is to be drawn within this rect.  may be bigger or smaller than the dst image.
+	GRect			srcImgFrameInDst;	//	the src image is to be drawn within this rect.  may be bigger or smaller than the dst image.  we calculate this on the CPU ahead of time because it makes the math easier in the shader.
 	bool			flipH;	//	if true, this image's contents should be flipped horizontally on retrieval
 	bool			flipV;	//	if true, this image's contents should be flipped vertically on retrieval
 	float			fadeToBlack;	//	if 1.0, this image is faded to black.  if 0.0, the image is unaltered.

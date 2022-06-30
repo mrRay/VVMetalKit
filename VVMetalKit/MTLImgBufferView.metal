@@ -81,6 +81,7 @@ fragment float4 PreviewViewFragShader(
 	//float2			samplerCoord = float2( contentCoordsInImageBounds.x/srcRect.size.width, contentCoordsInImageBounds.y/srcRect.size.height );
 	
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
+	//constexpr sampler		sampler(mag_filter::nearest, min_filter::nearest, address::clamp_to_edge, coord::pixel);
 	float4			color = tex.sample(sampler, samplerCoord);
 	return color;
 	

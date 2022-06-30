@@ -118,6 +118,21 @@ bool PointInRect(GPoint inPoint, GRect inRect)	{
 		return false;
 	return true;
 }
+GPoint ClampPointToRect(GPoint inPoint, GRect inRect)	{
+	return MakePoint( clamp(inPoint.x, MinX(inRect), MaxX(inRect)), clamp(inPoint.y, MinY(inRect), MaxY(inRect)) );
+}
+
+
+bool PixelInRect(GPoint inPixel, GRect inRect)	{
+	if (inPixel.x < MinX(inRect) || inPixel.x > (MaxX(inRect)-1))
+		return false;
+	if (inPixel.y < MinY(inRect) || inPixel.y > (MaxY(inRect)-1))
+		return false;
+	return true;
+}
+GPoint ClampPixelToRect(GPoint inPixel, GRect inRect)	{
+	return MakePoint( clamp(inPixel.x, MinX(inRect), MaxX(inRect)-1), clamp(inPixel.y, MinY(inRect), MaxY(inRect)-1) );
+}
 
 
 float MaxX(thread GRect & inRect)	{

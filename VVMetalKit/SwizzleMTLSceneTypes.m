@@ -178,7 +178,7 @@ SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, Swizzl
 	SwizzleShaderOpInfo		returnMe;
 	returnMe.srcImg = inSrc;
 	returnMe.dstImg = inDst;
-	returnMe.srcImgFrame = MakeRect(0,0,inDst.res[0],inDst.res[1]);
+	returnMe.srcImgFrameInDst = MakeRect(0,0,inDst.res[0],inDst.res[1]);
 	returnMe.flipH = false;
 	returnMe.flipV = false;
 	returnMe.fadeToBlack = 0.0;

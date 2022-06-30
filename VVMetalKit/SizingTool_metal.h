@@ -27,6 +27,9 @@ bool GRectsEqual(GRect inA, GRect inB);
 GRect RectThatFitsRectInRect(GRect inSrcRect, GRect inDstRect, SizingMode mode);
 
 bool PointInRect(GPoint inPoint, GRect inRect);
+GPoint ClampPointToRect(GPoint inPoint, GRect inRect);
+bool PixelInRect(GPoint inPixel, GRect inRect);
+GPoint ClampPixelToRect(GPoint inPixel, GRect inRect);
 
 float MaxX(thread GRect & inRect);
 float MinX(thread GRect & inRect);
