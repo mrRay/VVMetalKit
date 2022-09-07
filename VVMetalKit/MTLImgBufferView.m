@@ -2,8 +2,9 @@
 #import "TargetConditionals.h"
 #import "MTLImgBufferViewShaderTypes.h"
 #import "RenderProperties.h"
-#import "VVSizingTool.h"
+//#import "VVSizingTool.h"
 #import "SizingTool_c.h"
+#import "SizingTool_objc.h"
 
 
 
@@ -130,10 +131,15 @@
 			[localImgBuffer populateStruct:&localGeoStruct];
 			
 			//	calculate where the image will draw in my bounds, apply it to the geometry struct
-			NSRect			imgRect = [VVSizingTool
-				rectThatFitsRect:NSMakeRect(localGeoStruct.srcRect.origin.x, localGeoStruct.srcRect.origin.y, localGeoStruct.srcRect.size.width, localGeoStruct.srcRect.size.height)
-				inRect:viewRect
-				sizingMode:VVSizingModeFit];
+			//NSRect			imgRect = [VVSizingTool
+			//	rectThatFitsRect:NSMakeRect(localGeoStruct.srcRect.origin.x, localGeoStruct.srcRect.origin.y, localGeoStruct.srcRect.size.width, localGeoStruct.srcRect.size.height)
+			//	inRect:viewRect
+			//	sizingMode:VVSizingModeFit];
+			GRect			imgGRect = RectThatFitsRectInRect(
+				localGeoStruct.srcRect,
+				GRectFromCGRect(viewRect),
+				SizingModeFit);
+			NSRect			imgRect = NSRectFromGRect(imgGRect);
 			//localGeoStruct.dstRect.origin.x = imgRect.origin.x;
 			//localGeoStruct.dstRect.origin.y = imgRect.origin.y;
 			//localGeoStruct.dstRect.size.width = imgRect.size.width;

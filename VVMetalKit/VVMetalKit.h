@@ -23,7 +23,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/CustomMetalView.h>
 #import <VVMetalKitTouch/MTLImgBufferView.h>
 #import <VVMetalKitTouch/MTLImgBufferViewShaderTypes.h>
-#import <VVMetalKitTouch/VVSizingTool.h>
+//#import <VVMetalKitTouch/VVSizingTool.h>
 #import <VVMetalKitTouch/SizingTool_c.h>
 #import <VVMetalKitTouch/SizingTool_objc.h>
 #import <VVMetalKitTouch/SizingTool_Metal.h>
@@ -46,7 +46,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/CustomMetalView.h>
 #import <VVMetalKit/MTLImgBufferView.h>
 #import <VVMetalKit/MTLImgBufferViewShaderTypes.h>
-#import <VVMetalKit/VVSizingTool.h>
+//#import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingTool_c.h>
 #import <VVMetalKit/SizingTool_objc.h>
 #import <VVMetalKit/SizingTool_Metal.h>

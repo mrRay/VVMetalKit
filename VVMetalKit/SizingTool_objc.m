@@ -16,10 +16,16 @@ GPoint GPointFromNSPoint(NSPoint inPoint)	{
 	struct GPoint		returnMe = { inPoint.x, inPoint.y };
 	return returnMe;
 }
+NSPoint NSPointFromGPoint(GPoint inPoint)	{
+	return NSMakePoint(inPoint.x, inPoint.y);
+}
 #endif
 GPoint GPointFromCGPoint(CGPoint inPoint)	{
 	struct GPoint		returnMe = { inPoint.x, inPoint.y };
 	return returnMe;
+}
+CGPoint CGPointFromGPoint(GPoint inPoint)	{
+	return CGPointMake(inPoint.x, inPoint.y);
 }
 
 
@@ -34,10 +40,16 @@ GSize GSizeFromNSSize(NSSize inSize)	{
 	struct GSize		returnMe = { inSize.width, inSize.height };
 	return returnMe;
 }
+NSSize NSSizeFromGSize(GSize inSize)	{
+	return NSMakeSize(inSize.width, inSize.height);
+}
 #endif
 GSize GSizeFromCGSize(CGSize inSize)	{
 	struct GSize		returnMe = { inSize.width, inSize.height };
 	return returnMe;
+}
+CGPoint CGSizeFromGSize(GSize inSize)	{
+	return CGPointMake(inSize.width, inSize.height);
 }
 
 
@@ -52,10 +64,16 @@ GRect GRectFromNSRect(NSRect inRect)	{
 	struct GRect		returnMe = { { inRect.origin.x, inRect.origin.y }, { inRect.size.width, inRect.size.height } };
 	return returnMe;
 }
+NSRect NSRectFromGRect(GRect inRect)	{
+	return NSMakeRect(inRect.origin.x, inRect.origin.y, inRect.size.width, inRect.size.height);
+}
 #endif
 GRect GRectFromCGRect(CGRect inRect)	{
 	struct GRect		returnMe = { { inRect.origin.x, inRect.origin.y }, { inRect.size.width, inRect.size.height } };
 	return returnMe;
+}
+CGRect CGRectFromGRect(GRect inRect)	{
+	return CGRectMake(inRect.origin.x, inRect.origin.y, inRect.size.width, inRect.size.height);
 }
 
 
@@ -71,5 +89,15 @@ NSString * NSStringFromGSize(GSize inSize)	{
 }
 NSString * NSStringFromGPoint(GPoint inPoint)	{
 	return [NSString stringWithFormat:@"<GPoint %0.2f, %0.2f>",inPoint.x,inPoint.y];
+}
+
+
+
+
+NSRect NSRectThatFitsRectInRect(NSRect inSrcRect, NSRect inDstRect, SizingMode mode)	{
+	GRect		srcRect = GRectFromNSRect(inSrcRect);
+	GRect		dstRect = GRectFromNSRect(inDstRect);
+	GRect		returnMe = RectThatFitsRectInRect(srcRect, dstRect, mode);
+	return NSRectFromGRect(returnMe);
 }
 

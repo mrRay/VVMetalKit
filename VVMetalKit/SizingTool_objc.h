@@ -29,25 +29,34 @@
 
 #if !TARGET_OS_IOS
 GPoint GPointFromNSPoint(NSPoint inPoint);
+NSPoint NSPointFromGPoint(GPoint inPoint);
 #endif
 GPoint GPointFromCGPoint(CGPoint inPoint);
+CGPoint CGPointFromGPoint(GPoint inPoint);
 
 
 #if !TARGET_OS_IOS
 GSize GSizeFromNSSize(NSSize inSize);
+NSSize NSSizeFromGSize(GSize inSize);
 #endif
 GSize GSizeFromCGSize(CGSize inSize);
+CGPoint CGSizeFromGSize(GSize inSize);
 
 
 #if !TARGET_OS_IOS
 GRect GRectFromNSRect(NSRect inRect);
+NSRect NSRectFromGRect(GRect inRect);
 #endif
 GRect GRectFromCGRect(CGRect inRect);
+CGRect CGRectFromGRect(GRect inRect);
 
 
 NSString * NSStringFromGRect(GRect inRect);
 NSString * NSStringFromGSize(GSize inSize);
 NSString * NSStringFromGPoint(GPoint inPoint);
+
+
+NSRect NSRectThatFitsRectInRect(NSRect inSrcRect, NSRect inDstRect, SizingMode mode);
 
 
 

@@ -22,7 +22,7 @@
 @property (strong) MTLImgBuffer * inputImage;
 //@property (readwrite) BOOL autoCropToSrcRect;
 @property (readwrite) BOOL allowScaling;
-@property (readwrite) VVSizingMode sizingMode;
+@property (readwrite) SizingMode sizingMode;
 @end
 
 
@@ -54,7 +54,7 @@
 }
 
 
-- (void) copyImg:(MTLImgBuffer *)inSrc toImg:(MTLImgBuffer *)inDst allowScaling:(BOOL)inScale sizingMode:(VVSizingMode)inSM inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (void) copyImg:(MTLImgBuffer *)inSrc toImg:(MTLImgBuffer *)inDst allowScaling:(BOOL)inScale sizingMode:(SizingMode)inSM inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	if (inSrc==nil || inDst==nil || inCB==nil)	{
 		NSLog(@"ERR: prereqs not met, %s",__func__);
 		return;
