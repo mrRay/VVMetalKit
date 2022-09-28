@@ -18,8 +18,8 @@
 
 
 typedef enum MTLImgBufferView_VS_Index	{
-	MTLImgBufferView_VS_Index_Verts = 0,
-	MTLImgBufferView_VS_Index_MVPMatrix
+	MTLImgBufferView_VS_Index_Verts = 0,	//	geometry data formatted as 'MTLImgBufferViewVertex'
+	MTLImgBufferView_VS_Index_MVPMatrix		//	a 4x4 matrix describing the (concatenated) model/view/projection matrix
 } MTLImgBufferView_VS_Index;
 
 

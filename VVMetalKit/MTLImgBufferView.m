@@ -156,11 +156,22 @@
 		
 		//	make sure the mvp buffer exists, create it if it doesn't
 		if (self.mvpBuffer == nil)	{
+			double			left = 0.0;
+			double			right = viewportSize.x;
+			double			top = viewportSize.y;
+			double			bottom = 0.0;
+			double			far = 1.0;
+			double			near = -1.0;
+			BOOL		flipped = YES;
+			if (flipped)	{
+				top = 0.0;
+				bottom = viewportSize.y;
+			}
 			matrix_float4x4			mvp = simd_matrix_from_rows(
-				simd_make_float4(2.0/viewportSize.x, 0.0, 0.0, -1.0),
-				simd_make_float4(0.0, 2.0/viewportSize.y, 0.0, -1.0),
-				simd_make_float4(0.0, 0.0, -0.5, 0.5),
-				simd_make_float4(0.0, 0.0, 0.0, 1.0)
+				simd_make_float4( 2.0/(right-left), 0.0, 0.0, -1.0*(right+left)/(right-left) ),
+				simd_make_float4( 0.0, 2.0/(top-bottom), 0.0, -1.0*(top+bottom)/(top-bottom) ),
+				simd_make_float4( 0.0, 0.0, -2.0/(far-near), -1.0*(far+near)/(far-near) ),
+				simd_make_float4( 0.0, 0.0, 0.0, 1.0 )
 			);
 		
 			self.mvpBuffer = [metalLayer.device
