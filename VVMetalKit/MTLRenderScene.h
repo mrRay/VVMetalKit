@@ -6,7 +6,7 @@
 //
 
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #import <VVMetalKitTouch/MTLScene.h>
 #else
 #import <VVMetalKit/MTLScene.h>

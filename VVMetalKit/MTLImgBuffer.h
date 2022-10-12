@@ -1,6 +1,6 @@
 //#import <Cocoa/Cocoa.h>
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #import <UIKit/UIKit.h>
 #else
 #import <Cocoa/Cocoa.h>
@@ -46,13 +46,15 @@ typedef void (^MTLImgBufferAvailableBlock)(MTLImgBuffer *);
 @property (readwrite) CMTime duration;
 
 //	the region of the texture/buffer that contains the image that this instance represents
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 @property (readwrite) CGRect srcRect;
 #else
 @property (readwrite) NSRect srcRect;
 #endif
-//	whether or not the image that this instance represents is flipped vertically
-@property (readwrite) BOOL flipped;
+//	whether or not the image that this instance represents needs to be flipped vertically to be perceived as "right side up"
+@property (readwrite) BOOL flipV;
+//	whether or not the image that this instance represents needs to be flipped horizontally to be perceived as "not flipped horizontally"
+@property (readwrite) BOOL flipH;
 
 @property (strong, nullable) MTLPool * parentPool;
 
@@ -69,6 +71,7 @@ typedef void (^MTLImgBufferAvailableBlock)(MTLImgBuffer *);
 //	RETAINED, NULL by default/on init, only gets set to a non-NULL value if you create an IOSurface-backed texture
 @property (assign,readwrite,nullable) CVPixelBufferRef cvpb;
 
+//	populates the passed struct with the receiver's info.  does NOT populate the 'dstRect' or 'colorMultiplier' members of the struct!
 - (void) populateStruct:(struct MTLImgBufferStruct *)n;
 
 @end

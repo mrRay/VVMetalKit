@@ -77,9 +77,15 @@ kernel void SwizzleMTLSceneFunc(
 	else	{
 		if (resMismatch)	{
 			PopulateAndResampleNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
+			//for (int i=0; i<MAX_PIXELS_TO_PROCESS; ++i)	{
+			//	normRGB[i] = float4(1,0,0,1);
+			//}
 		}
 		else	{
 			PopulateNormRGBFromSrcTex(normRGB, srcRGBTexture, opInfo, gid);
+			//for (int i=0; i<MAX_PIXELS_TO_PROCESS; ++i)	{
+			//	normRGB[i] = float4(0,0,1,1);
+			//}
 		}
 	}
 	
@@ -696,7 +702,7 @@ void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::
 	
 	//	...technically this does a linear interpolation, but since the function is only called in situations where there's no res change, it should result in a direct copy?
 	
-	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
+	//constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
 	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
 	
 	unsigned int			pixelIndex = 0;
@@ -717,8 +723,11 @@ void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::
 				srcNorm.x = 1. - srcNorm.x;
 			if (opInfo.flipV)
 				srcNorm.y = 1. - srcNorm.y;
-			//	sample the input texture
-			float4			srcColor = inTex.sample(sampler, float2(srcNorm.x, srcNorm.y));
+			//	sample/read the input texture
+			//float4			srcColor = inTex.sample(sampler, float2(srcNorm.x, srcNorm.y));
+			GPoint			srcPixel = PixelForNormCoordsInRect(srcNorm, opInfo.srcImgFrameInDst);
+			float4			srcColor = inTex.read(uint2( round(srcPixel.x), round(srcPixel.y) ));
+			
 			//	populate the normalized RGB value
 			normRGB[pixelIndex] = srcColor * fadeToBlackMultiplier;
 			

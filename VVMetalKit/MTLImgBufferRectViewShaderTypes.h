@@ -4,7 +4,7 @@
 //#include <VVMetalKit/SizingToolTypes.h>
 //#include <VVMetalKit/MTLImgBufferShaderTypes.h>
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #include <VVMetalKitTouch/SizingToolTypes.h>
 #include <VVMetalKitTouch/MTLImgBufferShaderTypes.h>
 #else

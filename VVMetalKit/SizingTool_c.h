@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #include <VVMetalKitTouch/SizingToolTypes.h>
 #else
 #include <VVMetalKit/SizingToolTypes.h>

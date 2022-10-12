@@ -1,6 +1,6 @@
 #import <TargetConditionals.h>
 #import <Foundation/Foundation.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #import <VVMetalKitTouch/MTLComputeScene.h>
 #import <VVMetalKitTouch/SwizzleMTLSceneTypes.h>
 #else

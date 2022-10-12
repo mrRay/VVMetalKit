@@ -1,7 +1,7 @@
 //#import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #import <UIKit/UIKit.h>
 #else
 #import <Cocoa/Cocoa.h>
@@ -24,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 @interface CustomMetalView : 
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 UIView
 #else
 NSView
@@ -47,6 +47,9 @@ NSView
 @property (readwrite) MTLPixelFormat pixelFormat;
 @property (readwrite,nullable) CGColorSpaceRef colorspace;
 
+//	set it to nil and any pixels with an alpha < 1 in the layer will be composited as transparent in the window hierarchy
+@property (strong,nullable) NSColor * layerBackgroundColor;
+
 //	isn't used to do anything by the backend, but is set to YES every time reconfigureDrawable is called.  if you want to throttle drawing- as opposed to just drawing every time your proc hits- you should use this property to flag the image as needing redraw and check the flag to determine when to redraw.
 @property (readwrite) BOOL contentNeedsRedraw;
 
@@ -56,6 +59,8 @@ NSView
 //	returns a YES if the dimensions of the drawable have changed
 - (BOOL) reconfigureDrawable;
 - (void) renderToCommandBuffer:(id<MTLCommandBuffer>)n;
+
+@property (readonly) NSSize viewportSize;
 
 @end
 

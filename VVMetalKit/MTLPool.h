@@ -1,6 +1,6 @@
 //#import <Cocoa/Cocoa.h>
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #import <UIKit/UIKit.h>
 #import <VVMetalKitTouch/MTLImgBuffer.h>
 #else

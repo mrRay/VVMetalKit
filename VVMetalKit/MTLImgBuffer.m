@@ -11,7 +11,7 @@
 
 #define TIMEDESC(n) CMTimeCopyDescription(kCFAllocatorDefault,n)
 
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #define NSMakeRect CGRectMake
 #endif
 
@@ -48,7 +48,8 @@
 		_height = 0;
 		_size = CGSizeMake(_width, _height);
 		_srcRect = NSMakeRect(0,0,_width,_height);
-		_flipped = NO;
+		_flipV = NO;
+		_flipH = NO;
 		_preferDeletion = NO;
 		_checkCount = 0;
 		_time = kCMTimeInvalid;
@@ -147,7 +148,8 @@
 	n->srcRect.origin.y = round(self.srcRect.origin.y);
 	n->srcRect.size.width = round(self.srcRect.size.width);
 	n->srcRect.size.height = round(self.srcRect.size.height);
-	n->flipped = self.flipped;
+	n->flipV = self.flipV;
+	n->flipH = self.flipH;
 }
 
 
@@ -165,7 +167,8 @@
 	tmp.width = _width;	//	don't bother manually copying these, 'size' will populate these ivars
 	tmp.height = _height;
 	tmp.size = _size;
-	tmp.flipped = _flipped;
+	tmp.flipV = _flipV;
+	tmp.flipH = _flipH;
 	tmp.preferDeletion = _preferDeletion;
 	tmp.checkCount = 0;
 	tmp.time = _time;
@@ -227,7 +230,8 @@
 		_width = n.width;
 		_height = n.height;
 		_size = n.size;
-		_flipped = n.flipped;
+		_flipV = n.flipV;
+		_flipH = n.flipH;
 		_preferDeletion = NO;	//	if it was 'YES', we would be returning nil here
 		_checkCount = 0;
 		_time = kCMTimeInvalid;	//	do NOT copy any of the timing info!

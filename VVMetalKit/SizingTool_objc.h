@@ -10,7 +10,7 @@
 
 
 #import <TargetConditionals.h>
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #include <VVMetalKitTouch/SizingTool_c.h>
 #else
 #include <VVMetalKit/SizingTool_c.h>
@@ -57,6 +57,14 @@ NSString * NSStringFromGPoint(GPoint inPoint);
 
 
 NSRect NSRectThatFitsRectInRect(NSRect inSrcRect, NSRect inDstRect, SizingMode mode);
+
+
+NSAffineTransform * TransformThatFitsRectInRect(NSRect inSrcRect, NSRect inDstRect, SizingMode mode);
+NSAffineTransform * InverseTransformThatFitsRectInRect(NSRect inSrcRect, NSRect inDstRect, SizingMode mode);
+
+
+NSString * NSStringFromSizingMode(SizingMode inMode);
+SizingMode SizingModeFromNSString(NSString *inString);
 
 
 

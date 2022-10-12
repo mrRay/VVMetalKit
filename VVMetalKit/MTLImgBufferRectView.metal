@@ -1,7 +1,7 @@
 #include <metal_stdlib>
 using namespace metal;
 
-#include "MTLImgBufferViewShaderTypes.h"
+#include "MTLImgBufferRectViewShaderTypes.h"
 #include "SizingTool_metal.h"
 
 
@@ -9,17 +9,17 @@ using namespace metal;
 
 typedef struct	{
 	float4			position [[ position ]];
-} PreviewViewRasterizerData;
+} MTLImgBufferRectViewRasterizerData;
 
 
 
 
-vertex PreviewViewRasterizerData PreviewViewVertShader(
+vertex MTLImgBufferRectViewRasterizerData MTLImgBufferRectViewVertShader(
 	uint vertexID [[ vertex_id ]],
 	constant MTLImgBufferViewVertex * inVerts [[ buffer(MTLImgBufferView_VS_Index_Verts) ]],
 	constant float4x4 * inMVP [[ buffer(MTLImgBufferView_VS_Index_MVPMatrix) ]])
 {
-	PreviewViewRasterizerData		returnMe;
+	MTLImgBufferRectViewRasterizerData		returnMe;
 	
 	float4x4			mvp = float4x4(*inMVP);
 	float4				pos = float4(inVerts[vertexID].position, 0, 1);
@@ -31,8 +31,8 @@ vertex PreviewViewRasterizerData PreviewViewVertShader(
 
 
 
-fragment float4 PreviewViewFragShader(
-	PreviewViewRasterizerData inRasterData [[ stage_in ]],
+fragment float4 MTLImgBufferRectViewFragShader(
+	MTLImgBufferRectViewRasterizerData inRasterData [[ stage_in ]],
 	texture2d<float, access::sample> tex [[ texture(MTLImgBufferView_FS_Index_Color) ]],
 	constant MTLImgBufferStruct * displayInfo [[ buffer(MTLImgBufferView_FS_Index_Geo) ]])
 {
@@ -54,18 +54,37 @@ fragment float4 PreviewViewFragShader(
 	//	get the src rect we're supposed to be drawing
 	GRect			srcRect = displayInfo->srcRect;
 	
+	
+	
+	
 	float2			samplerCoord;
-	if (displayInfo->flipped)	{
-		samplerCoord = float2(
-			(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
-			((1.0-thisTexelNorm.y) * (srcRect.size.height-1)) + srcRect.origin.y
-		);
+	if (displayInfo->flipV)	{
+		if (displayInfo->flipH)	{
+			samplerCoord = float2(
+				((1.0-thisTexelNorm.x) * (srcRect.size.width-1)) + srcRect.origin.x,
+				((1.0-thisTexelNorm.y) * (srcRect.size.height-1)) + srcRect.origin.y
+			);
+		}
+		else	{
+			samplerCoord = float2(
+				(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
+				((1.0-thisTexelNorm.y) * (srcRect.size.height-1)) + srcRect.origin.y
+			);
+		}
 	}
 	else	{
-		samplerCoord = float2(
-			(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
-			(thisTexelNorm.y * (srcRect.size.height-1)) + srcRect.origin.y
-		);
+		if (displayInfo->flipH)	{
+			samplerCoord = float2(
+				((1.0-thisTexelNorm.x) * (srcRect.size.width-1)) + srcRect.origin.x,
+				(thisTexelNorm.y * (srcRect.size.height-1)) + srcRect.origin.y
+			);
+		}
+		else	{
+			samplerCoord = float2(
+				(thisTexelNorm.x * (srcRect.size.width-1)) + srcRect.origin.x,
+				(thisTexelNorm.y * (srcRect.size.height-1)) + srcRect.origin.y
+			);
+		}
 	}
 	
 	
@@ -82,7 +101,7 @@ fragment float4 PreviewViewFragShader(
 	
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
 	//constexpr sampler		sampler(mag_filter::nearest, min_filter::nearest, address::clamp_to_edge, coord::pixel);
-	float4			color = tex.sample(sampler, samplerCoord);
+	float4			color = tex.sample(sampler, samplerCoord) * displayInfo->colorMultiplier;
 	return color;
 	
 }

@@ -13,7 +13,7 @@
 //	simple bitmask check
 #define A_HAS_B(a,b) (((a)&(b))==(b))
 
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #define NSMakeRect CGRectMake
 #endif
 
@@ -210,7 +210,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -234,7 +235,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -286,7 +288,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -310,7 +313,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -362,7 +366,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -386,7 +391,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -455,7 +461,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(s.width),round(s.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -479,7 +486,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = round(s.width);
 	returnMe.height = round(s.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -507,7 +515,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -579,7 +587,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -603,7 +612,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -656,7 +666,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -680,7 +691,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -752,7 +764,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(s.width),round(s.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -777,7 +790,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = round(s.width);
 	returnMe.height = round(s.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -804,7 +818,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -880,7 +894,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -905,7 +920,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -914,7 +930,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -987,7 +1003,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(s.width),round(s.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1011,7 +1028,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = round(s.width);
 	returnMe.height = round(s.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -1039,7 +1057,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -1122,7 +1140,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1146,13 +1165,14 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = round(n.width);
 	returnMe.height = round(n.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -1248,7 +1268,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(s.width),round(s.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1272,7 +1293,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = round(s.width);
 	returnMe.height = round(s.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -1300,7 +1322,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -1372,7 +1394,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1397,7 +1420,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -1406,7 +1430,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -1479,7 +1503,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(s.width),round(s.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1503,7 +1528,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = round(s.width);
 	returnMe.height = round(s.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -1531,7 +1557,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 	MTLResourceOptions		options;
 	MTLStorageMode			storageMode;
-	#if TARGET_OS_IOS
+	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 	options = MTLResourceStorageModeShared;
 	storageMode = MTLStorageModeShared;
 	#else
@@ -1595,7 +1621,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = YES;
 	returnMe.parentPool = self;
 	
@@ -1632,7 +1659,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1655,7 +1683,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	
@@ -1745,7 +1774,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -1768,7 +1798,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = YES;
 	returnMe.parentPool = self;
 	
@@ -1863,7 +1894,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//		returnMe = holder;
 	//		returnMe.preferDeletion = NO;
 	//		returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	//		returnMe.flipped = NO;
+	//		returnMe.flipV = NO;
+	//		returnMe.flipH = NO;
 	//		//	retain the texture in the object we'll be returning, remove it from the pool
 	//		//returnMe.texture = holder.texture;
 	//		//returnMe.iosfc = holder.iosfc;
@@ -1886,7 +1918,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = round(targetSize.height);
 	//returnMe.displaySize = CGSizeMake(targetSize.width, targetSize.height);
 	returnMe.srcRect = NSMakeRect(0,0,returnMe.width,returnMe.height);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = YES;
 	returnMe.parentPool = self;
 	
@@ -1977,7 +2010,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			returnMe = holder;
 			returnMe.preferDeletion = NO;
 			returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-			returnMe.flipped = NO;
+			returnMe.flipV = NO;
+			returnMe.flipH = NO;
 			//	retain the texture in the object we'll be returning, remove it from the pool
 			//returnMe.texture = holder.texture;
 			//returnMe.iosfc = holder.iosfc;
@@ -2000,7 +2034,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = n.height;
 	//returnMe.displaySize = CGSizeMake(n.width, n.height);
 	returnMe.srcRect = NSMakeRect(0,0,round(n.width),round(n.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = YES;
 	returnMe.parentPool = self;
 	
@@ -2092,7 +2127,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.height = inSize.height;
 	//returnMe.displaySize = returnMe.size;
 	returnMe.srcRect = NSMakeRect(0,0,round(inSize.width),round(inSize.height));
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = YES;
 	returnMe.parentPool = self;
 	returnMe.supportingObject = nil;
@@ -2498,7 +2534,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	returnMe.width = 1;
 	returnMe.height = 1;
 	returnMe.srcRect = NSMakeRect(0,0,1,1);
-	returnMe.flipped = NO;
+	returnMe.flipV = NO;
+	returnMe.flipH = NO;
 	returnMe.preferDeletion = NO;
 	returnMe.parentPool = self;
 	

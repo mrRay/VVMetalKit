@@ -101,3 +101,76 @@ NSRect NSRectThatFitsRectInRect(NSRect inSrcRect, NSRect inDstRect, SizingMode m
 	return NSRectFromGRect(returnMe);
 }
 
+
+
+
+NSAffineTransform * TransformThatFitsRectInRect(NSRect a, NSRect b, SizingMode m)	{
+	NSRect				r = NSRectThatFitsRectInRect(a, b, m);
+	NSAffineTransform	*returnMe = [NSAffineTransform transform];
+	NSAffineTransform	*tmp = nil;
+	
+	tmp = [NSAffineTransform transform];
+	[tmp translateXBy:-1*a.origin.x yBy:-1*a.origin.y];
+	[returnMe appendTransform:tmp];
+	
+	tmp = [NSAffineTransform transform];
+	[tmp scaleXBy:r.size.width/a.size.width yBy:r.size.height/a.size.height];
+	[returnMe appendTransform:tmp];
+	
+	tmp = [NSAffineTransform transform];
+	[tmp translateXBy:r.origin.x yBy:r.origin.y];
+	[returnMe appendTransform:tmp];
+	
+	return returnMe;
+}
+NSAffineTransform * InverseTransformThatFitsRectInRect(NSRect a, NSRect b, SizingMode m)	{
+	NSRect				r = NSRectThatFitsRectInRect(a, b, m);
+	NSAffineTransform	*returnMe = [NSAffineTransform transform];
+	NSAffineTransform	*tmp = nil;
+	
+	tmp = [NSAffineTransform transform];
+	[tmp translateXBy:-1*r.origin.x yBy:-1*r.origin.y];
+	[returnMe appendTransform:tmp];
+	
+	tmp = [NSAffineTransform transform];
+	[tmp scaleXBy:a.size.width/r.size.width yBy:a.size.height/r.size.height];
+	[returnMe appendTransform:tmp];
+	
+	tmp = [NSAffineTransform transform];
+	[tmp translateXBy:a.origin.x yBy:a.origin.y];
+	[returnMe appendTransform:tmp];
+	
+	return returnMe;
+}
+
+
+
+
+NSString * NSStringFromSizingMode(SizingMode inMode)	{
+	switch (inMode)	{
+	case SizingModeFit:			return @"Fit";
+	case SizingModeFitWidth:	return @"FitWidth";
+	case SizingModeFill:		return @"Fill";
+	case SizingModeStretch:		return @"Stretch";
+	case SizingModeCopy:		return @"Copy";
+	}
+	return @"???";
+}
+SizingMode SizingModeFromNSString(NSString *inString)	{
+	if (inString == nil)
+		return SizingModeFit;
+	
+	if ([inString isEqualToString:NSStringFromSizingMode(SizingModeFit)])
+		return SizingModeFit;
+	if ([inString isEqualToString:NSStringFromSizingMode(SizingModeFitWidth)])
+		return SizingModeFitWidth;
+	if ([inString isEqualToString:NSStringFromSizingMode(SizingModeFill)])
+		return SizingModeFill;
+	if ([inString isEqualToString:NSStringFromSizingMode(SizingModeStretch)])
+		return SizingModeStretch;
+	if ([inString isEqualToString:NSStringFromSizingMode(SizingModeCopy)])
+		return SizingModeCopy;
+	
+	return SizingModeFit;
+}
+

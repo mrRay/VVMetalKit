@@ -8,7 +8,7 @@
 
 
 
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #define NSSize CGSize
 #define NSMakeSize CGSizeMake
 #define NSEqualSizes CGSizeEqualToSize
@@ -88,6 +88,7 @@
 	MTLImgBufferStruct		geoStruct;
 	[inputImage populateStruct:&geoStruct];
 	geoStruct.dstRect = MakeRect(0.0, 0.0, renderTarget.width, renderTarget.height);
+	geoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
 	
 	//if (self.autoCropToSrcRect)	{
 	//	geoStruct.srcRect = GRectFromNSRect(inputImage.srcRect);

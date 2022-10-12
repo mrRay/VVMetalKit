@@ -10,7 +10,7 @@
 
 
 
-#if TARGET_OS_IOS
+#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #define NSMakeSize CGSizeMake
 #endif
 
