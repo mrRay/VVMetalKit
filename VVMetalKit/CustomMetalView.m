@@ -75,7 +75,7 @@
 	
 	self.layer.delegate = self;
 	
-	_pso = nil;
+	pso = nil;
 	
 	//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 	self.layerBackgroundColor = nil;
@@ -91,11 +91,11 @@
 
 
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
+#else
 + (Class) layerClass	{
 	//return [super layerClass];
 	return [CAMetalLayer class];
 }
-#else
 - (void) viewDidMoveToWindow	{
 	[super viewDidMoveToWindow];
 	[self reconfigureDrawable];
@@ -130,6 +130,9 @@
 	if (self.layerBackgroundColor == nil)
 		return NO;
 	return YES;
+}
+- (CALayer *) makeBackingLayer	{
+	return [CAMetalLayer layer];
 }
 
 

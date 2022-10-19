@@ -32,7 +32,7 @@ NSView
 <CALayerDelegate>	{
 	id<MTLDevice>			device;
 	MTLRenderPassDescriptor			*passDescriptor;
-	id<MTLRenderPipelineState>		_pso;
+	id<MTLRenderPipelineState>		pso;
 	vector_uint2			viewportSize;
 	CAMetalLayer			*metalLayer;
 	id<CAMetalDrawable>		currentDrawable;

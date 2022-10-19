@@ -184,7 +184,7 @@
 		else
 			renderEncoder.label = [NSString stringWithFormat:@"%@ encoder",self.className];
 		[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, viewportSize.x, viewportSize.y, -1.f, 1.f }];
-		[renderEncoder setRenderPipelineState:_pso];
+		[renderEncoder setRenderPipelineState:pso];
 		
 		//	if there's an image buffer...
 		if (localImgBuffer != nil)	{
@@ -263,7 +263,7 @@
 		psDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
 		psDesc.colorAttachments[0].blendingEnabled = YES;
 	
-		_pso = [device newRenderPipelineStateWithDescriptor:psDesc error:&nsErr];
+		pso = [device newRenderPipelineStateWithDescriptor:psDesc error:&nsErr];
 	
 		self.vertBuffer = nil;
 		self.mvpBuffer = nil;
