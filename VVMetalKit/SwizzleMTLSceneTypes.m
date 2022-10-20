@@ -88,12 +88,12 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int i
 	case SwizzlePF_YUYV_PK_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:		bytesPerRow = ((inWidth + 47) / 48) * 128;		break;
 	
-	case SwizzlePF_UYVA_PKPL_422_UI_8:		bytesPerRow = 8 * 3 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVY_PKPL_422_UI_16:		bytesPerRow = 16 * 2 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVA_PKPL_422_UI_16:		bytesPerRow = 16 * 3 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVA_PKPL_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVY_PKPL_422_UI_16:		bytesPerRow = 16 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVA_PKPL_422_UI_16:		bytesPerRow = 16 * widthRoundedUYVY / 8;		break;
 	
-	case SwizzlePF_UYVY_PKPL_420_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVY_PL_420_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVY_PKPL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVY_PL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
 	}
 	
 	return MakeSwizzleShaderImageInfoWithBytesPerRow(inPF, inWidth, inHeight, bytesPerRow);
@@ -130,23 +130,23 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 		returnMe.planeCount = 2;
 		returnMe.planes[0].offset = 0;
 		returnMe.planes[0].bytesPerRow = inBytesPerRow;
-		returnMe.planes[1].offset = returnMe.planes[0].offset + (returnMe.res[1] * returnMe.planes[0].bytesPerRow);
-		returnMe.planes[1].bytesPerRow = inBytesPerRow/2;
+		returnMe.planes[1].offset = returnMe.planes[0].offset + (returnMe.res[1] * inBytesPerRow);
+		returnMe.planes[1].bytesPerRow = inBytesPerRow / 2;
 		break;
 	case SwizzlePF_UYVY_PKPL_422_UI_16:
 		returnMe.planeCount = 2;
 		returnMe.planes[0].offset = 0;
 		returnMe.planes[0].bytesPerRow = inBytesPerRow;
-		returnMe.planes[1].offset = returnMe.planes[0].offset + (returnMe.res[1] * returnMe.planes[0].bytesPerRow);
+		returnMe.planes[1].offset = returnMe.planes[0].offset + (returnMe.res[1] * inBytesPerRow);
 		returnMe.planes[1].bytesPerRow = inBytesPerRow;
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		returnMe.planeCount = 3;
 		returnMe.planes[0].offset = 0;
 		returnMe.planes[0].bytesPerRow = inBytesPerRow;
-		returnMe.planes[1].offset = returnMe.planes[0].offset + (returnMe.res[1] * returnMe.planes[0].bytesPerRow);
+		returnMe.planes[1].offset = returnMe.planes[0].offset + (returnMe.res[1] * inBytesPerRow);
 		returnMe.planes[1].bytesPerRow = inBytesPerRow;
-		returnMe.planes[2].offset = returnMe.planes[1].offset + (returnMe.res[1] * returnMe.planes[1].bytesPerRow);
+		returnMe.planes[2].offset = returnMe.planes[1].offset + (returnMe.res[1] * inBytesPerRow);
 		returnMe.planes[2].bytesPerRow = inBytesPerRow;
 		break;
 	
@@ -154,7 +154,7 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 		returnMe.planeCount = 2;
 		returnMe.planes[0].offset = 0;
 		returnMe.planes[0].bytesPerRow = inBytesPerRow;
-		returnMe.planes[1].offset = (inBytesPerRow * returnMe.res[1]);
+		returnMe.planes[1].offset = returnMe.planes[0].offset + (inBytesPerRow * returnMe.res[1]);
 		returnMe.planes[1].bytesPerRow = inBytesPerRow;
 		break;
 	
