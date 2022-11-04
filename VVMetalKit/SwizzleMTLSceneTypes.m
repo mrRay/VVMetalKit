@@ -172,6 +172,61 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 }
 
 
+BOOL SwizzleShaderImageInfoEquality(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b)	{
+	if (a == nil && b == nil)
+		return YES;
+	if ((a == nil && b != nil) || (a != nil && b == nil))
+		return NO;
+	
+	if (a->pf != b->pf)
+		return NO;
+	
+	for (int i=0; i<2; ++i)	{
+		if (a->res[i] != b->res[i])
+			return NO;
+	}
+	
+	if (a->planeCount != b->planeCount)
+		return NO;
+	
+	for (int i=0; i<a->planeCount; ++i)	{
+		if (a->planes[i].offset != b->planes[i].offset)
+			return NO;
+		if (a->planes[i].bytesPerRow != b->planes[i].bytesPerRow)
+			return NO;
+	}
+	
+	return YES;
+}
+BOOL SwizzleShaderImageInfoFormatMatch(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b)	{
+	if (a == nil && b == nil)
+		return YES;
+	if ((a == nil && b != nil) || (a != nil && b == nil))
+		return NO;
+	
+	if (a->pf != b->pf)
+		return NO;
+	
+	for (int i=0; i<2; ++i)	{
+		if (a->res[i] != b->res[i])
+			return NO;
+	}
+	
+	if (a->planeCount != b->planeCount)
+		return NO;
+	
+	//	don't bother checking offset or bytes per row- we're just checking for pixel format, res, and plane count matches...
+	//for (int i=0; i<a->planeCount; ++i)	{
+	//	if (a->planes[i].offset != b->planes[i].offset)
+	//		return NO;
+	//	if (a->planes[i].bytesPerRow != b->planes[i].bytesPerRow)
+	//		return NO;
+	//}
+	
+	return YES;
+}
+
+
 
 
 SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, SwizzleShaderImageInfo inDst)	{

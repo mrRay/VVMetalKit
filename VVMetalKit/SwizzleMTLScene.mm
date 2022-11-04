@@ -80,11 +80,14 @@
 	//NSLog(@"\t\ttargetLength is %ld",targetLength);
 	
 	id<MTLBuffer>		returnMe = nil;
-	if (b == nil)
+	if (b == nil)	{
 		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
+		//returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeManaged];
+	}
 	else	{
-		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
-		returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeShared deallocator:d];
+		returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
+		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeManaged deallocator:d];
+		//returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeShared deallocator:d];
 	}
 	return returnMe;
 }
@@ -102,10 +105,12 @@
 	id<MTLBuffer>		returnMe = nil;
 	if (b == nil)	{
 		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
+		//returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeManaged];
 	}
 	else	{
 		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
 		returnMe = [self.device newBufferWithBytes:b length:inLength options:MTLResourceStorageModeShared];
+		//returnMe = [self.device newBufferWithBytes:b length:inLength options:MTLResourceStorageModeManaged];
 	}
 	return returnMe;
 }
