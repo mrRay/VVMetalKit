@@ -231,9 +231,9 @@
 
 @synthesize layerBackgroundColor=_layerBackgroundColor;
 - (void) setLayerBackgroundColor:(NSColor *)n	{
-	_layerBackgroundColor = n;
+	_layerBackgroundColor = [n colorUsingColorSpace:[NSColorSpace deviceRGBColorSpace]];
 	
-	if (n == nil)	{
+	if (_layerBackgroundColor == nil)	{
 		//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 		self.layer.opaque = NO;
 		#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
@@ -249,12 +249,13 @@
 	else	{
 		self.layer.opaque = YES;
 		CGFloat			components[8];
-		[n getComponents:components];
+		[_layerBackgroundColor getComponents:components];
+		NSLog(@"\t\tcolor was %@, comps are %0.2f, %0.2f, %0.2f",_layerBackgroundColor,components[0],components[1],components[2]);
 		#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 		//self.layer.backgroundColor = [[UIColor clearColor] CGColor];
 		NSLog(@"ERR ****************** INCOMPLETE %s",__func__);
 		#else
-		self.layer.backgroundColor = [n CGColor];
+		self.layer.backgroundColor = [_layerBackgroundColor CGColor];
 		#endif
 		passDescriptor = [MTLRenderPassDescriptor new];
 		passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
