@@ -104,6 +104,7 @@
 		[self.delegate redrawView:self];
 }
 - (void) viewDidChangeBackingProperties	{
+	//NSLog(@"%s ... %@",__func__,self);
 	[super viewDidChangeBackingProperties];
 	[self reconfigureDrawable];
 	
@@ -170,15 +171,76 @@
 	//self.contentNeedsRedraw = NO;
 }
 - (BOOL) reconfigureDrawable	{
-	//NSLog(@"%s",__func__);
+	//NSLog(@"%s ... %@",__func__,self);
 	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-	CGFloat			scale = self.window.screen.scale;
-	#else
-	CGFloat			scale = self.window.screen.backingScaleFactor;
-	#endif
-	//NSLog(@"\t\tscale is %0.2f",scale);
 	
-	//NSLog(@"\t\tbounds are %@",NSStringFromCGRect(self.bounds));
+	CGFloat			scale = self.window.screen.scale;
+	
+	#else
+	
+	//	we have to find the screen our window is on (so we can get its pixel density)...but there's a catch: 
+	//	if the window isn't open, calling "self.window.screen" returns nil- even though the window has a 
+	//	frame and can figure out what screen it's on.  so: if we can't find the screen, we work around this 
+	//	by comparing the window and screen bounds and locating the screen manually.
+	NSWindow		*tmpWin = self.window;
+	NSScreen		*tmpScreen = tmpWin.screen;
+	if (tmpScreen == nil)	{
+		
+		//	...this was lifted verbatim from VVCore's NSScreenAdditions, i just don't want to add the dependency and it's simple enough...
+		NSScreen* (^ScreenForWindowFrame)(NSRect) = ^(NSRect n)	{
+			//NSLog(@"%s ... %@",__func__,NSStringFromRect(n));
+			if (n.size.width == 0. && n.size.height == 0.)
+				return (NSScreen*)nil;
+			
+			NSMutableArray<NSScreen*>		*overlappedScreens = [NSMutableArray new];
+			NSMutableArray<NSNumber*>		*overlappedScreenAmounts = [NSMutableArray new];
+			
+			for (NSScreen * screen in [NSScreen screens])	{
+				NSRect		screenFrame = screen.frame;
+				//NSLog(@"\t\tscreenFrame is %@",NSStringFromRect(screenFrame));
+				NSRect		overlap = NSIntersectionRect(n, screenFrame);
+				//NSLog(@"\t\toverlap is %@",NSStringFromRect(overlap));
+				if (overlap.size.width==0. && overlap.size.height==0.)
+					continue;
+				[overlappedScreens addObject:screen];
+				[overlappedScreenAmounts addObject:@( (overlap.size.width * overlap.size.height)/(n.size.width * n.size.height) )];
+			}
+			
+			if (overlappedScreens.count < 1)
+				return (NSScreen*)nil;
+			NSScreen			*mainScreen = nil;
+			NSNumber			*mainScreenAmount = nil;
+			NSEnumerator		*screenIt = [overlappedScreens objectEnumerator];
+			NSEnumerator		*screenAmountIt = [overlappedScreenAmounts objectEnumerator];
+			NSScreen			*screenPtr = [screenIt nextObject];
+			NSNumber			*screenAmountPtr = [screenAmountIt nextObject];
+			while (screenPtr != nil && screenAmountPtr != nil)	{
+				if (mainScreen == nil)	{
+					mainScreen = screenPtr;
+					mainScreenAmount = screenAmountPtr;
+				}
+				else	{
+					if (screenAmountPtr.doubleValue > mainScreenAmount.doubleValue)	{
+						mainScreen = screenPtr;
+						mainScreenAmount = screenAmountPtr;
+					}
+				}
+				
+				screenPtr = [screenIt nextObject];
+				screenAmountPtr = [screenAmountIt nextObject];
+			}
+			
+			return mainScreen;
+		};
+		
+		tmpScreen = ScreenForWindowFrame(tmpWin.frame);
+	}
+	CGFloat			scale = tmpScreen.backingScaleFactor;
+	
+	#endif
+	//NSLog(@"\t\tscreen is %@, window is %@, scale is %0.2f", self.window.screen, self.window, scale);
+	
+	//NSLog(@"\t\tbounds are %@",NSStringFromRect(self.bounds));
 	CGSize			newSize = self.bounds.size;
 	newSize.width *= scale;
 	newSize.height *= scale;
@@ -250,7 +312,7 @@
 		self.layer.opaque = YES;
 		CGFloat			components[8];
 		[_layerBackgroundColor getComponents:components];
-		NSLog(@"\t\tcolor was %@, comps are %0.2f, %0.2f, %0.2f",_layerBackgroundColor,components[0],components[1],components[2]);
+		//NSLog(@"\t\tcolor was %@, comps are %0.2f, %0.2f, %0.2f",_layerBackgroundColor,components[0],components[1],components[2]);
 		#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 		//self.layer.backgroundColor = [[UIColor clearColor] CGColor];
 		NSLog(@"ERR ****************** INCOMPLETE %s",__func__);

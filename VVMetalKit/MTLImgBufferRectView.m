@@ -240,7 +240,7 @@
 	@synchronized (self)	{
 		[super setDevice:n];
 		NSError				*nsErr = nil;
-		NSBundle			*myBundle = [NSBundle bundleForClass:[self class]];
+		NSBundle			*myBundle = [NSBundle bundleForClass:[MTLImgBufferRectView class]];
 		id<MTLLibrary>		defaultLibrary = [device newDefaultLibraryWithBundle:myBundle error:&nsErr];
 		id<MTLFunction>		vertFunc = [defaultLibrary newFunctionWithName:@"MTLImgBufferRectViewVertShader"];
 		id<MTLFunction>		fragFunc = [defaultLibrary newFunctionWithName:@"MTLImgBufferRectViewFragShader"];
@@ -283,7 +283,7 @@
 	}
 }
 - (NSString *) description	{
-	return [NSString stringWithFormat:@"<%@ %@>",self.className,self.label];
+	return [NSString stringWithFormat:@"<%@ (%@) %p>",self.className,self.label,self];
 }
 //- (BOOL) isFlipped	{
 //	return YES;
