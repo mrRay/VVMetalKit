@@ -1,5 +1,6 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
+#import <CoreGraphics/CoreGraphics.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -19,6 +20,8 @@ extern NSString * const kRenderPropertiesChangedNotificationName;
 @property (readonly) id<MTLCommandQueue> renderQueue;
 @property (readonly) id<MTLCommandQueue> bgCmdQueue;
 @property (readonly) id<MTLLibrary> defaultLibrary;
+//	STRONG REF (retains the passed colorspace), defaults to kCGColorSpaceSRGB
+@property (readwrite,nullable) CGColorSpaceRef colorSpace;
 
 - (void) configureWithDevice:(id<MTLDevice>)n;
 

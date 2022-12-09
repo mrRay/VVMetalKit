@@ -41,8 +41,15 @@ RenderProperties			*_globalRenderProperties = nil;
 	self = [super init];
 	if (self != nil)	{
 		[self configureWithDevice:MTLCreateSystemDefaultDevice()];
+		
+		CGColorSpaceRef		tmpCS = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+		self.colorSpace = tmpCS;
+		CGColorSpaceRelease(tmpCS);
 	}
 	return self;
+}
+- (void) dealloc	{
+	self.colorSpace = NULL;
 }
 
 
@@ -56,6 +63,21 @@ RenderProperties			*_globalRenderProperties = nil;
 		self.renderQueue = [self.device newCommandQueue];
 		self.bgCmdQueue = [self.device newCommandQueue];
 	//}
+}
+
+
+@synthesize colorSpace=_colorSpace;
+- (void) setColorSpace:(CGColorSpaceRef)n	{
+	if (_colorSpace != NULL)	{
+		CGColorSpaceRelease(_colorSpace);
+	}
+	_colorSpace = n;
+	if (_colorSpace != NULL)	{
+		CGColorSpaceRetain(_colorSpace);
+	}
+}
+- (CGColorSpaceRef) colorSpace	{
+	return _colorSpace;
 }
 
 
