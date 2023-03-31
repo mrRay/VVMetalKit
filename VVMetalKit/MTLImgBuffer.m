@@ -153,6 +153,41 @@
 }
 
 
+#pragma mark - NSObject
+
+
+- (BOOL) isEqual:(id)n	{
+	if (![(NSObject*)n isMTLImgBuffer])
+		return NO;
+	
+	MTLImgBuffer		*recast = (MTLImgBuffer *)n;
+	
+	id<MTLTexture>		recastTex = recast.texture;
+	id<MTLBuffer>		recastBuf = recast.buffer;
+	
+	//	if there's a mismatch on either the tex or the buffer, bail immediately
+	BOOL			texMatch = ((_texture==nil && recastTex==nil) || (_texture!=nil && recastTex!=nil && [_texture isEqual:recastTex]));
+	BOOL			bufferMatch = ((_buffer==nil && recastBuf==nil) || (_buffer!=nil && recastBuf!=nil && [_buffer isEqual:recastBuf]));
+	if (!texMatch || !bufferMatch)
+		return NO;
+	
+	BOOL			otherMatch = ((_bufferBytesPerRow==recast.bufferBytesPerRow)
+		&& (_width==recast.width)
+		&& (_height==recast.height)
+		&& (CGSizeEqualToSize(_size,recast.size))
+		&& (_preferDeletion==recast.preferDeletion)
+		//&& (_checkCount==recast.checkCount)
+		&& (CMTIME_COMPARE_INLINE(_time,==,recast.time))
+		&& (CMTIME_COMPARE_INLINE(_duration,==,recast.duration))
+		&& (NSEqualRects(_srcRect,recast.srcRect))
+		&& (_flipV==recast.flipV)
+		&& (_flipH==recast.flipH)
+	);
+	
+	return otherMatch;
+}
+
+
 #pragma mark - NSCopying
 
 
