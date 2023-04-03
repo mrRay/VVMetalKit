@@ -595,7 +595,7 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
+					"@loader_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -616,7 +616,7 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
+					"@loader_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -637,7 +637,7 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
+					"@loader_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
@@ -659,7 +659,7 @@
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
-					"@loader_path/Frameworks",
+					"@loader_path/../Frameworks",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
