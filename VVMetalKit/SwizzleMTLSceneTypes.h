@@ -92,11 +92,20 @@ typedef struct	{
 
 #ifdef __METAL_VERSION__
 #else
-size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo);
-SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight);
-SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow);
-BOOL SwizzleShaderImageInfoEquality(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b);
-BOOL SwizzleShaderImageInfoFormatMatch(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b);
+
+#if defined __cplusplus
+extern "C" {
+#endif
+	size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo);
+	SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight);
+	SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow);
+	BOOL SwizzleShaderImageInfoEquality(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b);
+	BOOL SwizzleShaderImageInfoFormatMatch(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b);
+#if defined __cplusplus
+};
+#endif
+
+
 #endif
 
 
@@ -118,9 +127,14 @@ typedef struct	{
 	unsigned int	dstPixelsToProcess[2];	//	populated automatically by the backend, but you'll want to read it in shaders.  must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
 } SwizzleShaderOpInfo;
 
-//	returned op info struct automatically attempts to draw 'srcImage' in the bounds of 'dstImg' (if they have different aspect ratios, this will result in distortion)
-SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, SwizzleShaderImageInfo inDst);
-
+#if defined __cplusplus
+extern "C" {
+#endif
+	//	returned op info struct automatically attempts to draw 'srcImage' in the bounds of 'dstImg' (if they have different aspect ratios, this will result in distortion)
+	SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, SwizzleShaderImageInfo inDst);
+#if defined __cplusplus
+};
+#endif
 
 
 
