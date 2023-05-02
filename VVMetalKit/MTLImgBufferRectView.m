@@ -164,10 +164,24 @@
 				left = viewportSize.x;
 			}
 			matrix_float4x4			mvp = simd_matrix_from_rows(
-				simd_make_float4( 2.0/(right-left), 0.0, 0.0, -1.0*(right+left)/(right-left) ),
-				simd_make_float4( 0.0, 2.0/(top-bottom), 0.0, -1.0*(top+bottom)/(top-bottom) ),
-				simd_make_float4( 0.0, 0.0, -2.0/(far-near), -1.0*(far+near)/(far-near) ),
-				simd_make_float4( 0.0, 0.0, 0.0, 1.0 )
+				//	old and busted
+				//simd_make_float4( 2.0/(right-left), 0.0, 0.0, -1.0*(right+left)/(right-left) ),
+				//simd_make_float4( 0.0, 2.0/(top-bottom), 0.0, -1.0*(top+bottom)/(top-bottom) ),
+				//simd_make_float4( 0.0, 0.0, -2.0/(far-near), -1.0*(far+near)/(far-near) ),
+				//simd_make_float4( 0.0, 0.0, 0.0, 1.0 )
+				
+				//	left-handed coordinate ortho!
+				//simd_make_float4(	2.0/(right-left),	0.0,				0.0,				(right+left)/(left-right) ),
+				//simd_make_float4(	0.0,				2.0/(top-bottom),	0.0,				(top+bottom)/(bottom-top) ),
+				//simd_make_float4(	0.0,				0.0,				2.0/(far-near),	(near)/(near-far) ),
+				//simd_make_float4(	0.0,				0.0,				0.0,				1.0 )
+				
+				//	right-handed coordinate ortho!
+				simd_make_float4(	2.0/(right-left),	0.0,				0.0,				(right+left)/(left-right) ),
+				simd_make_float4(	0.0,				2.0/(top-bottom),	0.0,				(top+bottom)/(bottom-top) ),
+				simd_make_float4(	0.0,				0.0,				-2.0/(far-near),	(near)/(near-far) ),
+				simd_make_float4(	0.0,				0.0,				0.0,				1.0 )
+				
 			);
 		
 			self.mvpBuffer = [metalLayer.device
@@ -216,6 +230,9 @@
 			[cmdBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 				MTLImgBuffer		*tmpBuffer = localImgBuffer;
 				tmpBuffer = nil;
+				
+				id<CAMetalDrawable>		tmpDrawable = self->currentDrawable;
+				tmpDrawable = nil;
 			}];
 		}
 		
