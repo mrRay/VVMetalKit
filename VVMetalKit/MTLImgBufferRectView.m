@@ -40,7 +40,7 @@
 	
 	_vertBuffer = nil;
 	_mvpBuffer = nil;
-	_geoBuffer = nil;
+	//_geoBuffer = nil;
 	_imgBuffer = nil;
 	_vertRect = NSZeroRect;
 	_imgTint = nil;
@@ -63,7 +63,9 @@
 	self.contentNeedsRedraw = YES;
 }
 - (MTLImgBuffer *)imgBuffer	{
-	return _imgBuffer;
+	@synchronized (self)	{
+		return _imgBuffer;
+	}
 }
 
 
@@ -71,79 +73,19 @@
 
 
 - (void) drawInCmdBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
-	//NSLog(@"%s ... %@",__func__,self.label);
+	//NSDate			*methodStartDate = [NSDate date];
+	//NSLog(@"%s ... %@, %p",__func__,self.label,cmdBuffer);
 	//NSLog(@"\tmy bounds are %@",NSStringFromRect(self.bounds));
+	MTLImgBuffer		*localImgBuffer = nil;
+	id<MTLBuffer>		localMVPBuffer = nil;
+	id<MTLBuffer>		localVertBuffer = nil;
+	id<MTLBuffer>		localGeoBuffer = nil;
+	id<MTLRenderPipelineState>		localPSO = nil;;
+	
 	@synchronized (self)	{
-		if (metalLayer.device==nil || metalLayer==nil)	{
-			NSLog(@"ERR: bailing, %s",__func__);
-			return;
-		}
-		
-		//	configure the current drawable & render pass descriptor
-		currentDrawable = metalLayer.nextDrawable;
-		if (currentDrawable == nil)	{
-			NSLog(@"ERR: current drawable nil in %s",__func__);
-			return;
-		}
-		if (currentDrawable.texture == nil)	{
-			NSLog(@"ERR: current drawable tex nil in %s",__func__);
-			return;
-		}
-		passDescriptor.colorAttachments[0].texture = currentDrawable.texture;
 		
 		//	always set this to NO as soon as you're pretty sure the frame can/will be drawn!
 		self.contentNeedsRedraw = NO;
-		
-		MTLImgBuffer		*localImgBuffer = self.imgBuffer;
-		//	if there's an image buffer...
-		if (localImgBuffer != nil)	{
-			//NSLog(@"\t\tthere's an image buffer to draw...");
-			
-			CGRect			viewRect = CGRectMake(0,0,viewportSize.x,viewportSize.y);
-			
-			//NSLog(@"\t\timgBuffer is %@",localImgBuffer);
-			//	make sure the vert buffer exists, create it if it doesn't
-			if (self.vertBuffer == nil)	{
-				const MTLImgBufferViewVertex		quadVerts[] = {
-					{ { CGRectGetMinX(viewRect), CGRectGetMinY(viewRect) } },
-					{ { CGRectGetMinX(viewRect), CGRectGetMaxY(viewRect) } },
-					{ { CGRectGetMaxX(viewRect), CGRectGetMinY(viewRect) } },
-					{ { CGRectGetMaxX(viewRect), CGRectGetMaxY(viewRect) } },
-				};
-				
-				self.vertBuffer = [metalLayer.device
-					newBufferWithBytes:quadVerts
-					length:sizeof(quadVerts)
-					options:MTLResourceStorageModeShared];
-			}
-			
-			//	make a geometry struct!
-			MTLImgBufferStruct		localGeoStruct;
-			
-			//	populate it with the contents of the img buffer (src rect of the texture that contains the image)
-			[localImgBuffer populateStruct:&localGeoStruct];
-			
-			//	calculate where the image will draw in my bounds, apply it to the geometry struct
-			localGeoStruct.dstRect = GRectFromNSRect(_vertRect);
-			
-			NSColor		*tintColor = self.imgTint;
-			if (tintColor == nil)	{
-				localGeoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
-			}
-			else	{
-				CGFloat		colorVals[8];
-				[tintColor getComponents:colorVals];
-				localGeoStruct.colorMultiplier = simd_make_float4(colorVals[0], colorVals[1], colorVals[2], 1.);
-			}
-			
-			
-			//	make a geometry buffer from the struct
-			self.geoBuffer = [metalLayer.device
-				newBufferWithBytes:&localGeoStruct
-				length:sizeof(localGeoStruct)
-				options:MTLResourceStorageModeShared];
-			
-		}
 		
 		//	make sure the mvp buffer exists, create it if it doesn't
 		if (self.mvpBuffer == nil)	{
@@ -189,64 +131,148 @@
 				length:sizeof(mvp)
 				options:MTLResourceStorageModeShared];
 		}
+		localMVPBuffer = self.mvpBuffer;
 		
-		
-		//	make a render encoder, configure it
-		id<MTLRenderCommandEncoder>		renderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:passDescriptor];
-		if (self.label != nil)
-			renderEncoder.label = self.label;
-		else
-			renderEncoder.label = [NSString stringWithFormat:@"%@ encoder",self.className];
-		[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, viewportSize.x, viewportSize.y, -1.f, 1.f }];
-		[renderEncoder setRenderPipelineState:pso];
-		
+		localImgBuffer = self.imgBuffer;
 		//	if there's an image buffer...
 		if (localImgBuffer != nil)	{
-			//	pass data to the render encoder
-			[renderEncoder
-				setVertexBuffer:self.vertBuffer
-				offset:0
-				atIndex:MTLImgBufferView_VS_Index_Verts];
-			[renderEncoder
-				setVertexBuffer:self.mvpBuffer
-				offset:0
-				atIndex:MTLImgBufferView_VS_Index_MVPMatrix];
+			//NSLog(@"\t\tthere's an image buffer to draw...");
 			
-			[renderEncoder
-				setFragmentTexture:localImgBuffer.texture
-				atIndex:MTLImgBufferView_FS_Index_Color];
+			CGRect			viewRect = CGRectMake(0,0,viewportSize.x,viewportSize.y);
 			
-			[renderEncoder
-				setFragmentBuffer:self.geoBuffer
-				offset:0
-				atIndex:MTLImgBufferView_FS_Index_Geo];
-			
-			[renderEncoder
-				drawPrimitives:MTLPrimitiveTypeTriangleStrip
-				vertexStart:0
-				vertexCount:4];
-			
-			//	make sure the buffer we're drawing is retained until the command buffer has completed...
-			[cmdBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
-				MTLImgBuffer		*tmpBuffer = localImgBuffer;
-				tmpBuffer = nil;
+			//NSLog(@"\t\timgBuffer is %@",localImgBuffer);
+			//	make sure the vert buffer exists, create it if it doesn't
+			if (self.vertBuffer == nil)	{
+				const MTLImgBufferViewVertex		quadVerts[] = {
+					{ { CGRectGetMinX(viewRect), CGRectGetMinY(viewRect) } },
+					{ { CGRectGetMinX(viewRect), CGRectGetMaxY(viewRect) } },
+					{ { CGRectGetMaxX(viewRect), CGRectGetMinY(viewRect) } },
+					{ { CGRectGetMaxX(viewRect), CGRectGetMaxY(viewRect) } },
+				};
 				
-				id<CAMetalDrawable>		tmpDrawable = self->currentDrawable;
-				tmpDrawable = nil;
-			}];
+				self.vertBuffer = [metalLayer.device
+					newBufferWithBytes:quadVerts
+					length:sizeof(quadVerts)
+					options:MTLResourceStorageModeShared];
+			}
+			localVertBuffer = self.vertBuffer;
+			
+			//	make a geometry struct!
+			MTLImgBufferStruct		localGeoStruct;
+			
+			//	populate it with the contents of the img buffer (src rect of the texture that contains the image)
+			[localImgBuffer populateStruct:&localGeoStruct];
+			
+			//	calculate where the image will draw in my bounds, apply it to the geometry struct
+			localGeoStruct.dstRect = GRectFromNSRect(_vertRect);
+			
+			NSColor		*tintColor = self.imgTint;
+			if (tintColor == nil)	{
+				localGeoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
+			}
+			else	{
+				CGFloat		colorVals[8];
+				[tintColor getComponents:colorVals];
+				localGeoStruct.colorMultiplier = simd_make_float4(colorVals[0], colorVals[1], colorVals[2], 1.);
+			}
+			
+			
+			//	make a geometry buffer from the struct
+			self.geoBuffer = [metalLayer.device
+				newBufferWithBytes:&localGeoStruct
+				length:sizeof(localGeoStruct)
+				options:MTLResourceStorageModeShared];
+			localGeoBuffer = self.geoBuffer;
 		}
 		
-		//	finish up the encoder
-		[renderEncoder endEncoding];
-		
-		//NSLog(@"\t\tcmd buffer should have cmds for %@ in it...",self);
-		//	the buffer needs to draw the drawable!
-		[cmdBuffer presentDrawable:currentDrawable];
-		
-		currentDrawable = nil;
-		
-		localImgBuffer = nil;
+		localPSO = pso;
 	}
+	
+	if (metalLayer.device==nil || metalLayer==nil)	{
+		NSLog(@"ERR: bailing, %s",__func__);
+		return;
+	}
+	
+	//	configure the current drawable & render pass descriptor
+	currentDrawable = metalLayer.nextDrawable;
+	if (currentDrawable == nil)	{
+		NSLog(@"ERR: current drawable nil in %s",__func__);
+		return;
+	}
+	if (currentDrawable.texture == nil)	{
+		NSLog(@"ERR: current drawable tex nil in %s",__func__);
+		return;
+	}
+	passDescriptor.colorAttachments[0].texture = currentDrawable.texture;
+	
+	//	make a render encoder, configure it
+	id<MTLRenderCommandEncoder>		renderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:passDescriptor];
+	if (self.label != nil)
+		renderEncoder.label = self.label;
+	else
+		renderEncoder.label = [NSString stringWithFormat:@"%@ encoder",self.className];
+	[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, viewportSize.x, viewportSize.y, -1.f, 1.f }];
+	[renderEncoder setRenderPipelineState:localPSO];
+	
+	//	if there's an image buffer...
+	if (localImgBuffer != nil)	{
+		//	pass data to the render encoder
+		[renderEncoder
+			setVertexBuffer:localVertBuffer
+			offset:0
+			atIndex:MTLImgBufferView_VS_Index_Verts];
+		[renderEncoder
+			setVertexBuffer:localMVPBuffer
+			offset:0
+			atIndex:MTLImgBufferView_VS_Index_MVPMatrix];
+		
+		[renderEncoder
+			setFragmentTexture:localImgBuffer.texture
+			atIndex:MTLImgBufferView_FS_Index_Color];
+		
+		[renderEncoder
+			setFragmentBuffer:localGeoBuffer
+			offset:0
+			atIndex:MTLImgBufferView_FS_Index_Geo];
+		
+		[renderEncoder
+			drawPrimitives:MTLPrimitiveTypeTriangleStrip
+			vertexStart:0
+			vertexCount:4];
+		
+		//	make sure the buffer we're drawing is retained until the command buffer has completed...
+		[cmdBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
+			MTLImgBuffer		*tmpBuffer = localImgBuffer;
+			id<MTLBuffer>		tmpMVPBuffer = localMVPBuffer;
+			id<MTLBuffer>		tmpVertBuffer = localVertBuffer;
+			id<MTLBuffer>		tmpGeoBuffer = localGeoBuffer;
+			tmpBuffer = nil;
+			
+			id<CAMetalDrawable>		tmpDrawable = self->currentDrawable;
+			tmpDrawable = nil;
+			
+			tmpBuffer = nil;
+			tmpMVPBuffer = nil;
+			tmpVertBuffer = nil;
+			tmpGeoBuffer = nil;
+		}];
+	}
+	
+	//	finish up the encoder
+	[renderEncoder endEncoding];
+	
+	//NSLog(@"\t\tcmd buffer should have cmds for %@ in it...",self);
+	//	the buffer needs to draw the drawable!
+	[cmdBuffer presentDrawable:currentDrawable];
+	
+	currentDrawable = nil;
+	
+	localImgBuffer = nil;
+	
+	//double		methodTime = fabs([methodStartDate timeIntervalSinceNow]);
+	//if (methodTime > 1./60.)	{
+	//	NSLog(@"\t\tTOO LONG- %s ... %@, %p- %0.4f",__func__,self.label,cmdBuffer,methodTime);
+	//}
 }
 
 
