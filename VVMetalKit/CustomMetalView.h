@@ -8,6 +8,7 @@
 #import <Quartz/Quartz.h>
 #endif
 #import <simd/simd.h>
+#import <VVMetalKit/CustomMetalViewShaderTypes.h>
 
 @class CustomMetalView;
 

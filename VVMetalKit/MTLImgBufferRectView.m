@@ -295,7 +295,7 @@
 		psDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
 		
 		//	commented out- this was an attempt to make MTLImgBufferRectView "transparent" (0 alpha would display view behind it)
-		psDesc.alphaToCoverageEnabled = YES;
+		psDesc.alphaToCoverageEnabled = NO;
 		psDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
 		psDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
 		//psDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
