@@ -1,0 +1,3 @@
+[submodule "ISFMSLKit"]
+	path = submodules/ISFMSLKit
+	url = https://github.com/mrRay/ISFMSLKit.git
