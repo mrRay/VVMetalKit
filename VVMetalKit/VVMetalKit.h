@@ -12,6 +12,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 
 #import <VVMetalKitTouch/RenderProperties.h>
+#import <VVMetalKitTouch/MTLEncodedDrawObject.h>
 #import <VVMetalKitTouch/MTLImgBufferShaderTypes.h>
 #import <VVMetalKitTouch/MTLImgBuffer.h>
 #import <VVMetalKitTouch/MTLPool.h>
@@ -36,6 +37,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #else
 
 #import <VVMetalKit/RenderProperties.h>
+#import <VVMetalKit/MTLEncodedDrawObject.h>
 #import <VVMetalKit/MTLImgBufferShaderTypes.h>
 #import <VVMetalKit/MTLImgBuffer.h>
 #import <VVMetalKit/MTLPool.h>
