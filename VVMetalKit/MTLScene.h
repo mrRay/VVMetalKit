@@ -14,9 +14,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-@interface MTLScene : NSObject	{
-	CGSize			renderSize;
-}
+@interface MTLScene : NSObject
 
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice;
 

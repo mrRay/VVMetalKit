@@ -33,7 +33,7 @@
 		self.device = inDevice;
 		self.commandBuffer = nil;
 		self.renderTarget = nil;
-		renderSize = CGSizeMake(40,30);
+		self.renderSize = CGSizeMake(40,30);
 		
 		self.transitiveScheduledHandlers = [[NSMutableArray alloc] init];
 		self.transitiveCompletedHandlers = [[NSMutableArray alloc] init];
@@ -61,7 +61,7 @@
 	return returnMe;
 }
 - (void) renderToBuffer:(MTLImgBuffer *)n inCommandBuffer:(id<MTLCommandBuffer>)cb	{
-	renderSize = (n==nil) ? CGSizeMake(1,1) : CGSizeMake(n.width, n.height);
+	self.renderSize = (n==nil) ? CGSizeMake(1,1) : CGSizeMake(n.width, n.height);
 	
 	self.renderTarget = n;
 	self.commandBuffer = cb;
@@ -109,12 +109,13 @@
 }
 
 
-- (void) setRenderSize:(CGSize)n	{
-	renderSize = n;
-}
-- (CGSize) renderSize	{
-	return renderSize;
-}
+//@synthesize renderSize=_renderSize;
+//- (void) setRenderSize:(CGSize)n	{
+//	_renderSize = n;
+//}
+//- (CGSize) renderSize	{
+//	return renderSize;
+//}
 
 
 - (void) renderCallback	{

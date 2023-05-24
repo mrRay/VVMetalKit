@@ -187,7 +187,7 @@
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
 		//[self renderToBuffer:nil inCommandBuffer:inCB];
 		{
-			renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
+			self.renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
 		
 			self.renderTarget = nil;
 			self.commandBuffer = inCB;
@@ -263,7 +263,7 @@
 		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
 		//[self renderToBuffer:nil inCommandBuffer:inCB];
 		{
-			renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
+			self.renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
 		
 			self.renderTarget = nil;
 			self.commandBuffer = inCB;

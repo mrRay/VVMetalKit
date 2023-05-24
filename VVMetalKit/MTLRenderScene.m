@@ -59,10 +59,12 @@
 	self.renderEncoder = [self.commandBuffer renderCommandEncoderWithDescriptor:self.renderPassDescriptor];
 	
 	//	configure the viewport
-	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, renderSize.width, renderSize.height, -1.f, 1.f }];
+	CGSize			tmpSize = self.renderSize;
+	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -1.f, 1.f }];
 	
 	//	set the pipeline state
-	[self.renderEncoder setRenderPipelineState:self.renderPipelineStateObject];
+	if (self.renderPipelineStateObject != nil)
+		[self.renderEncoder setRenderPipelineState:self.renderPipelineStateObject];
 }
 - (void) _renderTeardown	{
 	//	if there's a color attachment, make sure it's retained through the end of the command buffer
@@ -86,9 +88,8 @@
 }
 
 
-@synthesize renderSize=myRenderSize;
 - (void) setRenderSize:(CGSize)n	{
-	BOOL		changed = (CGSizeEqualToSize(n,myRenderSize)) ? NO : YES;
+	BOOL		changed = (CGSizeEqualToSize(n,self.renderSize)) ? NO : YES;
 	[super setRenderSize:n];
 	if (changed)	{
 		self.vertBuffer = nil;

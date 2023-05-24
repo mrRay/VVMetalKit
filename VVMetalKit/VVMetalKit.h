@@ -53,7 +53,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 //#import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingTool_c.h>
 #import <VVMetalKit/SizingTool_objc.h>
-#import <VVMetalKit/SizingTool_Metal.h>
+#import <VVMetalKit/SizingTool_metal.h>
 #import <VVMetalKit/SwizzleMTLScene.h>
 #import <VVMetalKit/VVColorConversions.h>
 #import <VVMetalKit/BilinearInterpolation.h>
