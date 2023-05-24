@@ -30,8 +30,12 @@
 		self.renderPipelineStateObject = nil;
 		self.renderPassDescriptor = nil;
 		self.renderEncoder = nil;
-		self.vertBuffer = nil;
 		self.mvpBuffer = nil;
+		
+		self.renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
+		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
+		attachDesc.loadAction = MTLLoadActionDontCare;
 	}
 	return self;
 }
@@ -46,13 +50,10 @@
 	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks
 	[super _renderSetup];
 	
-	//	make a render pass descriptor, configure it to use the attachment texture
-	self.renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
+	//	configure the render pass descriptor to use the attachment texture
 	if (self.renderTarget != nil)	{
 		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
-		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
 		attachDesc.texture = self.renderTarget.texture;
-		attachDesc.loadAction = MTLLoadActionDontCare;
 	}
 	
 	//	make a render encoder
@@ -92,7 +93,6 @@
 	BOOL		changed = (CGSizeEqualToSize(n,self.renderSize)) ? NO : YES;
 	[super setRenderSize:n];
 	if (changed)	{
-		self.vertBuffer = nil;
 		self.mvpBuffer = nil;
 	}
 }

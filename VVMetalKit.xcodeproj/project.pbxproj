@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1A061DC32A165E6B00980D41 /* MSLCompModeScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A061DC12A165E6B00980D41 /* MSLCompModeScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A061DC42A165E6B00980D41 /* MSLCompModeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */; };
+		1A061DC82A165E8800980D41 /* MSLCompModeSceneShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A061DCB2A165EDB00980D41 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
 		1A0A57A628F5F49B007F5547 /* MTLImgBufferRectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0A57A428F5F49B007F5547 /* MTLImgBufferRectView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0A57A728F5F49B007F5547 /* MTLImgBufferRectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0A57A528F5F49B007F5547 /* MTLImgBufferRectView.m */; };
 		1A0A57A828F5F4A7007F5547 /* MTLImgBufferRectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0A57A528F5F49B007F5547 /* MTLImgBufferRectView.m */; };
@@ -40,8 +44,9 @@
 		1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
 		1A199DF0279F6A1F00EE9ACB /* VVColorConversions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */; };
-		1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
 		1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A2906652A16CAB700DD24AB /* MSLCompModeControllerResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2906632A16CAB700DD24AB /* MSLCompModeControllerResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A2906662A16CAB700DD24AB /* MSLCompModeControllerResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2906642A16CAB700DD24AB /* MSLCompModeControllerResource.m */; };
 		1A3BB7852A13E94D003CDAE8 /* ISFMSLNSStringAdditions.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1A3BB76D2A13E94C003CDAE8 /* ISFMSLNSStringAdditions.mm */; };
 		1A3BB7862A13E94D003CDAE8 /* ISFMSLCache.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BB76E2A13E94C003CDAE8 /* ISFMSLCache.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A3BB7872A13E94D003CDAE8 /* ISFMSLBinCacheObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BB76F2A13E94C003CDAE8 /* ISFMSLBinCacheObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -116,12 +121,10 @@
 		1AC82CDD27FF2901009A9989 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
 		1AC82CDE27FF2901009A9989 /* MTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE0E0912706340E00F03B4E /* MTLScene_priv.h */; };
 		1AC82CE027FF2901009A9989 /* MTLImgBufferRectView.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAF260E1F5000FF39BB /* MTLImgBufferRectView.metal */; };
-		1AC82CE127FF2901009A9989 /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
 		1AC82CE227FF2901009A9989 /* SwizzleMTLSceneTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */; };
 		1AC82CE327FF2901009A9989 /* CopierMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */; };
 		1AC82CE427FF2901009A9989 /* CopierMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */; };
 		1AC82CE527FF2901009A9989 /* MTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA9260E1F5000FF39BB /* MTLScene.m */; };
-		1AC82CE627FF2901009A9989 /* SizingTool_objc.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2149D3263851A0007AD273 /* SizingTool_objc.m */; };
 		1AC82CE727FF2901009A9989 /* SizingTool_metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */; };
 		1AC82CE927FF2901009A9989 /* SwizzleMTLScene.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBED6260E243500FF39BB /* SwizzleMTLScene.mm */; };
 		1AC82CEA27FF2901009A9989 /* MTLComputeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEA0260E1F4F00FF39BB /* MTLComputeScene.m */; };
@@ -137,11 +140,28 @@
 		1ADBC7512A141CB6008FB1CA /* libISFGLSLGenerator.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1ADBC74F2A141CAB008FB1CA /* libISFGLSLGenerator.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1AE0E0922706340E00F03B4E /* MTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE0E0912706340E00F03B4E /* MTLScene_priv.h */; };
 		1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */ = {isa = PBXBuildFile; fileRef = 1AE5D72426165A470064DC1C /* SizingTool_c.c */; };
+		1AED790E2A1524D6004C0126 /* MSLCompModes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED790D2A1524D6004C0126 /* MSLCompModes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AED79202A152510004C0126 /* MSLCompMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED791E2A152510004C0126 /* MSLCompMode.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AED79212A152510004C0126 /* MSLCompMode.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1AED791F2A152510004C0126 /* MSLCompMode.mm */; };
+		1AED79242A152517004C0126 /* MSLCompModeController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED79222A152517004C0126 /* MSLCompModeController.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AED79252A152517004C0126 /* MSLCompModeController.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1AED79232A152517004C0126 /* MSLCompModeController.mm */; };
+		1AED79282A15252C004C0126 /* MSLCompModeRecipeStep.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED79262A15252C004C0126 /* MSLCompModeRecipeStep.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AED79292A15252C004C0126 /* MSLCompModeRecipeStep.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED79272A15252C004C0126 /* MSLCompModeRecipeStep.m */; };
+		1AED792C2A152539004C0126 /* MSLCompModeRecipe.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED792A2A152539004C0126 /* MSLCompModeRecipe.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AED792D2A152539004C0126 /* MSLCompModeRecipe.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED792B2A152539004C0126 /* MSLCompModeRecipe.m */; };
+		1AED793C2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED793A2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h */; };
+		1AED793D2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED793B2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m */; };
 		1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		1A061DC92A165ED600980D41 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 1A0FBE84260E1C2E00FF39BB /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 1A0FBE8C260E1C2E00FF39BB;
+			remoteInfo = VVMetalKit;
+		};
 		1A276F462A1408A7002E3795 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 1A0FBE84260E1C2E00FF39BB /* Project object */;
@@ -287,6 +307,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		1A061DC12A165E6B00980D41 /* MSLCompModeScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeScene.h; sourceTree = "<group>"; };
+		1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeScene.m; sourceTree = "<group>"; };
+		1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeSceneShaderTypes.h; sourceTree = "<group>"; };
 		1A0A57A428F5F49B007F5547 /* MTLImgBufferRectView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferRectView.h; sourceTree = "<group>"; };
 		1A0A57A528F5F49B007F5547 /* MTLImgBufferRectView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTLImgBufferRectView.m; sourceTree = "<group>"; };
 		1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -320,8 +343,9 @@
 		1A0FBEDE260E257600FF39BB /* RenderProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenderProperties.m; sourceTree = "<group>"; };
 		1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVColorConversions.h; sourceTree = "<group>"; };
 		1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VVColorConversions.metal; sourceTree = "<group>"; };
-		1A2149D3263851A0007AD273 /* SizingTool_objc.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SizingTool_objc.m; sourceTree = "<group>"; };
 		1A2149D7263851BA007AD273 /* SizingTool_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_objc.h; sourceTree = "<group>"; };
+		1A2906632A16CAB700DD24AB /* MSLCompModeControllerResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeControllerResource.h; sourceTree = "<group>"; };
+		1A2906642A16CAB700DD24AB /* MSLCompModeControllerResource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeControllerResource.m; sourceTree = "<group>"; };
 		1A3BB7662A13E783003CDAE8 /* ISFMSLKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = ISFMSLKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A3BB76D2A13E94C003CDAE8 /* ISFMSLNSStringAdditions.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = ISFMSLNSStringAdditions.mm; path = submodules/ISFMSLKit/ISFMSLKit/ISFMSLNSStringAdditions.mm; sourceTree = SOURCE_ROOT; };
 		1A3BB76E2A13E94C003CDAE8 /* ISFMSLCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ISFMSLCache.h; path = submodules/ISFMSLKit/ISFMSLKit/ISFMSLCache.h; sourceTree = SOURCE_ROOT; };
@@ -371,7 +395,18 @@
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
 		1AE0E0912706340E00F03B4E /* MTLScene_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MTLScene_priv.h; sourceTree = "<group>"; };
 		1AE5D72326165A470064DC1C /* SizingTool_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_c.h; sourceTree = "<group>"; };
-		1AE5D72426165A470064DC1C /* SizingTool_c.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = SizingTool_c.c; sourceTree = "<group>"; };
+		1AED790B2A1524D6004C0126 /* MSLCompModes.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MSLCompModes.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1AED790D2A1524D6004C0126 /* MSLCompModes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModes.h; sourceTree = "<group>"; };
+		1AED791E2A152510004C0126 /* MSLCompMode.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompMode.h; sourceTree = "<group>"; };
+		1AED791F2A152510004C0126 /* MSLCompMode.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MSLCompMode.mm; sourceTree = "<group>"; };
+		1AED79222A152517004C0126 /* MSLCompModeController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeController.h; sourceTree = "<group>"; };
+		1AED79232A152517004C0126 /* MSLCompModeController.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MSLCompModeController.mm; sourceTree = "<group>"; };
+		1AED79262A15252C004C0126 /* MSLCompModeRecipeStep.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeRecipeStep.h; sourceTree = "<group>"; };
+		1AED79272A15252C004C0126 /* MSLCompModeRecipeStep.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeRecipeStep.m; sourceTree = "<group>"; };
+		1AED792A2A152539004C0126 /* MSLCompModeRecipe.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeRecipe.h; sourceTree = "<group>"; };
+		1AED792B2A152539004C0126 /* MSLCompModeRecipe.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeRecipe.m; sourceTree = "<group>"; };
+		1AED793A2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeNSStringAdditions.h; sourceTree = "<group>"; };
+		1AED793B2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeNSStringAdditions.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -405,6 +440,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AED79082A1524D6004C0126 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1A061DCB2A165EDB00980D41 /* VVMetalKit.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -413,6 +456,7 @@
 			children = (
 				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
 				1A3BB7672A13E783003CDAE8 /* ISFMSLKit */,
+				1AED790C2A1524D6004C0126 /* MSLCompModes */,
 				1A0FBE8E260E1C2E00FF39BB /* Products */,
 				1A8C0409261631FC00038DC9 /* Frameworks */,
 				1A3BB7BB2A13EACF003CDAE8 /* PINOperation.xcodeproj */,
@@ -426,6 +470,7 @@
 				1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */,
 				1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */,
 				1A3BB7662A13E783003CDAE8 /* ISFMSLKit.framework */,
+				1AED790B2A1524D6004C0126 /* MSLCompModes.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -471,9 +516,7 @@
 				1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */,
 				1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */,
 				1AE5D72326165A470064DC1C /* SizingTool_c.h */,
-				1AE5D72426165A470064DC1C /* SizingTool_c.c */,
 				1A2149D7263851BA007AD273 /* SizingTool_objc.h */,
-				1A2149D3263851A0007AD273 /* SizingTool_objc.m */,
 				1A0FBEA7260E1F5000FF39BB /* SizingToolTypes.h */,
 				1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */,
 				1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */,
@@ -557,6 +600,29 @@
 				1AAF56C82A14237200626430 /* CoreGraphics.framework */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		1AED790C2A1524D6004C0126 /* MSLCompModes */ = {
+			isa = PBXGroup;
+			children = (
+				1AED790D2A1524D6004C0126 /* MSLCompModes.h */,
+				1AED791E2A152510004C0126 /* MSLCompMode.h */,
+				1AED791F2A152510004C0126 /* MSLCompMode.mm */,
+				1AED79222A152517004C0126 /* MSLCompModeController.h */,
+				1AED79232A152517004C0126 /* MSLCompModeController.mm */,
+				1A2906632A16CAB700DD24AB /* MSLCompModeControllerResource.h */,
+				1A2906642A16CAB700DD24AB /* MSLCompModeControllerResource.m */,
+				1AED79262A15252C004C0126 /* MSLCompModeRecipeStep.h */,
+				1AED79272A15252C004C0126 /* MSLCompModeRecipeStep.m */,
+				1AED792A2A152539004C0126 /* MSLCompModeRecipe.h */,
+				1AED792B2A152539004C0126 /* MSLCompModeRecipe.m */,
+				1A061DC12A165E6B00980D41 /* MSLCompModeScene.h */,
+				1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */,
+				1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */,
+				1AED793A2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h */,
+				1AED793B2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m */,
+			);
+			path = MSLCompModes;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -649,6 +715,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AED79062A1524D6004C0126 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AED790E2A1524D6004C0126 /* MSLCompModes.h in Headers */,
+				1AED79202A152510004C0126 /* MSLCompMode.h in Headers */,
+				1AED79242A152517004C0126 /* MSLCompModeController.h in Headers */,
+				1A2906652A16CAB700DD24AB /* MSLCompModeControllerResource.h in Headers */,
+				1A061DC82A165E8800980D41 /* MSLCompModeSceneShaderTypes.h in Headers */,
+				1A061DC32A165E6B00980D41 /* MSLCompModeScene.h in Headers */,
+				1AED793C2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h in Headers */,
+				1AED79282A15252C004C0126 /* MSLCompModeRecipeStep.h in Headers */,
+				1AED792C2A152539004C0126 /* MSLCompModeRecipe.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXHeadersBuildPhase section */
 
 /* Begin PBXLegacyTarget section */
@@ -728,12 +810,32 @@
 			productReference = 1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */;
 			productType = "com.apple.product-type.framework";
 		};
+		1AED790A2A1524D6004C0126 /* MSLCompModes */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1AED791D2A1524D6004C0126 /* Build configuration list for PBXNativeTarget "MSLCompModes" */;
+			buildPhases = (
+				1AED79062A1524D6004C0126 /* Headers */,
+				1AED79072A1524D6004C0126 /* Sources */,
+				1AED79082A1524D6004C0126 /* Frameworks */,
+				1AED79092A1524D6004C0126 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1A061DCA2A165ED600980D41 /* PBXTargetDependency */,
+			);
+			name = MSLCompModes;
+			productName = MSLCompModes;
+			productReference = 1AED790B2A1524D6004C0126 /* MSLCompModes.framework */;
+			productType = "com.apple.product-type.framework";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
 		1A0FBE84260E1C2E00FF39BB /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				DefaultBuildSystemTypeForWorkspace = Original;
 				LastUpgradeCheck = 1240;
 				TargetAttributes = {
 					1A0FBE8C260E1C2E00FF39BB = {
@@ -743,6 +845,9 @@
 						CreatedOnToolsVersion = 13.4.1;
 					};
 					1A3BB7652A13E783003CDAE8 = {
+						CreatedOnToolsVersion = 13.4.1;
+					};
+					1AED790A2A1524D6004C0126 = {
 						CreatedOnToolsVersion = 13.4.1;
 					};
 				};
@@ -774,6 +879,7 @@
 				1AC82CC727FF2901009A9989 /* VVMetalKitTouch */,
 				1A3BB7652A13E783003CDAE8 /* ISFMSLKit */,
 				1A276F422A1407EF002E3795 /* ISFGLSLGenerator */,
+				1AED790A2A1524D6004C0126 /* MSLCompModes */,
 			);
 		};
 /* End PBXProject section */
@@ -901,6 +1007,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AED79092A1524D6004C0126 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -909,12 +1022,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				1A0FBEC6260E1F5000FF39BB /* MTLImgBufferRectView.metal in Sources */,
-				1AE5D72626165A470064DC1C /* SizingTool_c.c in Sources */,
 				1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */,
 				1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */,
 				1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */,
 				1A0FBEC0260E1F5000FF39BB /* MTLScene.m in Sources */,
-				1A2149D4263851A0007AD273 /* SizingTool_objc.m in Sources */,
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A0A57A728F5F49B007F5547 /* MTLImgBufferRectView.m in Sources */,
 				1A9174AD2A12D7D9005274B4 /* MTLEncodedDrawObject.m in Sources */,
@@ -955,12 +1066,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				1AC82CE027FF2901009A9989 /* MTLImgBufferRectView.metal in Sources */,
-				1AC82CE127FF2901009A9989 /* SizingTool_c.c in Sources */,
 				1AC82CE227FF2901009A9989 /* SwizzleMTLSceneTypes.m in Sources */,
 				1AC82CE327FF2901009A9989 /* CopierMTLScene.metal in Sources */,
 				1AC82CE427FF2901009A9989 /* CopierMTLScene.m in Sources */,
 				1AC82CE527FF2901009A9989 /* MTLScene.m in Sources */,
-				1AC82CE627FF2901009A9989 /* SizingTool_objc.m in Sources */,
 				1AC82CE727FF2901009A9989 /* SizingTool_metal.metal in Sources */,
 				1A0A57A828F5F4A7007F5547 /* MTLImgBufferRectView.m in Sources */,
 				1A9174AE2A12D7D9005274B4 /* MTLEncodedDrawObject.m in Sources */,
@@ -979,9 +1088,28 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		1AED79072A1524D6004C0126 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				1AED793D2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m in Sources */,
+				1AED79252A152517004C0126 /* MSLCompModeController.mm in Sources */,
+				1AED79292A15252C004C0126 /* MSLCompModeRecipeStep.m in Sources */,
+				1AED792D2A152539004C0126 /* MSLCompModeRecipe.m in Sources */,
+				1AED79212A152510004C0126 /* MSLCompMode.mm in Sources */,
+				1A2906662A16CAB700DD24AB /* MSLCompModeControllerResource.m in Sources */,
+				1A061DC42A165E6B00980D41 /* MSLCompModeScene.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		1A061DCA2A165ED600980D41 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 1A0FBE8C260E1C2E00FF39BB /* VVMetalKit */;
+			targetProxy = 1A061DC92A165ED600980D41 /* PBXContainerItemProxy */;
+		};
 		1A276F472A1408A7002E3795 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 1A276F422A1407EF002E3795 /* ISFGLSLGenerator */;
@@ -1315,6 +1443,68 @@
 			};
 			name = Release;
 		};
+		1AED790F2A1524D6004C0126 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.MSLCompModes;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		1AED79102A1524D6004C0126 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++17";
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEFINES_MODULE = YES;
+				DEVELOPMENT_TEAM = "";
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				DYLIB_INSTALL_NAME_BASE = "@rpath";
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 12.3;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.MSLCompModes;
+				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1359,6 +1549,15 @@
 			buildConfigurations = (
 				1AC82CF627FF2901009A9989 /* Debug */,
 				1AC82CF727FF2901009A9989 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		1AED791D2A1524D6004C0126 /* Build configuration list for PBXNativeTarget "MSLCompModes" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				1AED790F2A1524D6004C0126 /* Debug */,
+				1AED79102A1524D6004C0126 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
