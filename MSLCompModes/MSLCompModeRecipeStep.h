@@ -26,9 +26,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MSLCompModeRecipeStep : NSObject <NSCopying>	{
 	@public
-	MSLCompModeQuadVertex		verts[4];
+	MSLCompModeQuadVertex		verts[4];	//	coordinate order is BL - TL - BR - TR.  THE ORDER MATTERS, homography matrix is calculated using the position cords (WHICH NEED TO BE IN THIS ORDER) & srcRect/flipH/flipV vals (from which the points are extracted in the expected order)
 }
 @property (strong) MTLImgBuffer * img;
+- (void) calculateProjectionMatrix;	//	calculates the MSLCompModeQuadVertex's 'invHomography' member
 - (void) dumpToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
 @end
 

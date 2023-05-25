@@ -1,5 +1,5 @@
 
-float4 CompositeTopAndBottom(device float4 & bottom, device float4 & top, device float & topAlpha)	{
+float4 CompositeTopAndBottom(thread float4 & bottom, thread float4 & top, thread float & topAlpha)	{
 	float		TA = (topAlpha*top.a);
 	float4		DT = top * float4(TA);
 	//float4		DT = top * float4(topAlpha);
@@ -13,7 +13,7 @@ float4 CompositeTopAndBottom(device float4 & bottom, device float4 & top, device
 	return returnMe;
 }
 
-float4 CompositeBottom(device float4 & bottom, device float & bottomAlpha)	{
+float4 CompositeBottom(thread float4 & bottom, thread float & bottomAlpha)	{
 	//return float4(bottom.r, bottom.g, bottom.b, bottom.a*bottomAlpha);
 	//return float4(bottomAlpha)*bottom;
 	float4		returnMe;

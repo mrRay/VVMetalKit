@@ -30,7 +30,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong,readonly) NSString * name;	//	last filepath component, minus extension, after replacing any nonconforming chars with underscores
 @property (strong,readonly) NSString * functionDeclarations;	//	the function declarations as they'll be added to the shader source code
 @property (strong,readonly) NSString * functions;	//	the function contents as they'll be added to the shader source code
-@property (readwrite) uint16_t uid;	//	uniquely identifies this composition mode numerically, which is necessary when describing which comp mode to use to shaders
+@property (strong,readonly) NSString * compModeSwitchStatementFuncPtrs;	//	this string is meant to be inserted into the shader when generating it
+@property (readwrite) uint16_t compModeIndex;	//	WHATEVER CREATES THE COMP MODE IS RESPONSIBLE FOR SETTING THIS.  uniquely identifies this composition mode numerically, which is necessary when describing which comp mode to use to shaders
 
 @end
 

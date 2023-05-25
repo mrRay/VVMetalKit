@@ -62,6 +62,9 @@
 		for (MTLRenderPipelineDescriptor * passDesc in @[ passDesc_8bit, passDesc_float ])	{
 			passDesc.vertexFunction = _vtxFunc;
 			passDesc.fragmentFunction = _frgFunc;
+			
+			passDesc.fragmentBuffers[0].mutability = MTLMutabilityImmutable;
+			passDesc.fragmentBuffers[1].mutability = MTLMutabilityImmutable;
 		}
 		passDesc_8bit.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
 		passDesc_float.colorAttachments[0].pixelFormat = MTLPixelFormatRGBA32Float;

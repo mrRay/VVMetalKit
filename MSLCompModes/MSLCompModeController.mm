@@ -122,6 +122,12 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 	[localCompModes sortUsingComparator:^(MSLCompMode *a, MSLCompMode *b)	{
 		return [a.name caseInsensitiveCompare:b.name];
 	}];
+	//	give the comp modes indexes so we can associate a vertex's comp mode with a given func ptr
+	int			tmpIndex = 0;
+	for (MSLCompMode * compMode in localCompModes)	{
+		compMode.compModeIndex = tmpIndex;
+		++tmpIndex;
+	}
 	_compModes = [NSArray arrayWithArray:localCompModes];
 	NSLog(@"\t\tcompModes are %@",_compModes);
 	
@@ -130,12 +136,15 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 	//	re-generate the shader source code
 	NSMutableString		*shaderFunctionDeclarations = [[NSMutableString alloc] init];
 	NSMutableString		*shaderFunctionDefinitions = [[NSMutableString alloc] init];
+	NSMutableString		*shaderCompModeSwitchCases = [[NSMutableString alloc] init];
 	
 	for (MSLCompMode * compMode in localCompModes)	{
 		[shaderFunctionDeclarations appendString:compMode.functionDeclarations];
 		[shaderFunctionDeclarations appendString:@"\r"];
 		[shaderFunctionDefinitions appendString:compMode.functions];
 		[shaderFunctionDefinitions appendString:@"\r"];
+		[shaderCompModeSwitchCases appendString:compMode.compModeSwitchStatementFuncPtrs];
+		[shaderCompModeSwitchCases appendString:@"\r"];
 	}
 	
 	
@@ -160,7 +169,7 @@ typedef struct	{
 
 
 typedef struct	{
-	texture2d<float>		texture;	//	has an implicit id of 0
+	texture2d<float, access::sample>		texture;	//	has an implicit id of 0
 } MSLCompModeSceneTexture;
 
 
@@ -205,6 +214,42 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	float4 baseCanvasColor [[ color(0) ]] )
 {
 	//return float4(1,0,0,1);
+	//return baseCanvasColor;
+	
+	device MSLCompModeQuadVertex		*vertexPtr = verts + inRasterData.vertexID;
+	float			layerOpacity = vertexPtr->opacity;
+	
+	//	get the normalized coords of the texel we want to sample, adjusted for any vert/horiz flippedness
+	float2			sampleCoords = float2( (vertexPtr->flipH) ? (1.-inRasterData.texCoord.x) : inRasterData.texCoord.x, (vertexPtr->flipV) ? (1.-inRasterData.texCoord.y) : inRasterData.texCoord.y );
+	//	convert normalized coords to pixel coords within the image region of the texture
+	sampleCoords.x = (sampleCoords.x * vertexPtr->srcRect.size.width) + vertexPtr->srcRect.origin.x;
+	sampleCoords.y = (sampleCoords.y * vertexPtr->srcRect.size.height) + vertexPtr->srcRect.origin.y;
+	//	get a ptr to the texture we're going to sample
+	device MSLCompModeSceneTexture		*texStructPtr = textures + vertexPtr->texIndex;
+	constexpr sampler		sampler( mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel );
+	float4			layerColor = texStructPtr->texture.sample( sampler, sampleCoords );
+	
+	//	populate function pointers for the two different kinds of composition functions based on the comp mode of the vertex we're rendering
+	float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &) = nullptr;
+	float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &) = nullptr;
+	switch (vertexPtr->compModeIndex)	{
+PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
+	}
+	
+	//	if something's wrong, just return opaque green for this fragment
+	if (CompositeTopAndBottomFuncPtr == nullptr || CompositeBottomFuncPtr == nullptr)	{
+		return float4(0,0,1,1);
+	}
+	
+	//	figure out if this is the "bottom" layer or not, and get a ptr to the vertex this fragment is currently rendering
+	bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
+	if (isBottomLayer)	{
+		return CompositeBottomFuncPtr( layerColor, layerOpacity);
+	}
+	else	{
+		return CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity );
+	}
+	
 	return baseCanvasColor;
 }
 
@@ -224,6 +269,11 @@ PUT_FUNCTION_DEFINITIONS_HERE
 	[shaderBaseString
 		replaceOccurrencesOfString:@"PUT_FUNCTION_DEFINITIONS_HERE"
 		withString:shaderFunctionDefinitions
+		options:NSLiteralSearch
+		range:NSMakeRange(0,shaderBaseString.length)];
+	[shaderBaseString
+		replaceOccurrencesOfString:@"PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE"
+		withString:shaderCompModeSwitchCases
 		options:NSLiteralSearch
 		range:NSMakeRange(0,shaderBaseString.length)];
 	//	the shader #includes "MSLCompModeSceneShaderTypes.h", which we have to manually load into a string 
@@ -266,7 +316,9 @@ PUT_FUNCTION_DEFINITIONS_HERE
 		if (resource != nil)
 			[localResources addObject:resource];
 	}
-	_resources = [NSArray arrayWithArray:localResources];
+	@synchronized (self)	{
+		_resources = [NSArray arrayWithArray:localResources];
+	}
 	
 	
 	//	post a notification that we've reloaded the list of comp modes 
@@ -304,6 +356,7 @@ PUT_FUNCTION_DEFINITIONS_HERE
 				return resource;
 		}
 	}
+	NSLog(@"****** ERR: no rsrc found, %s",__func__);
 	return nil;
 }
 

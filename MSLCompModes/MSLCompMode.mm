@@ -12,7 +12,7 @@
 
 @interface MSLCompMode ()
 
-+ (uint16_t) getNewUID;
+//+ (uint16_t) getNewUID;
 
 @property (strong,readwrite) NSURL * url;
 @property (strong,readwrite) NSString * name;
@@ -26,10 +26,10 @@
 
 @implementation MSLCompMode
 
-+ (uint16_t) getNewUID	{
-	static uint16_t		globalUID = 0;
-	return globalUID++;
-}
+//+ (uint16_t) getNewUID	{
+//	static uint16_t		globalUID = 0;
+//	return globalUID++;
+//}
 
 + (instancetype) createWithURL:(NSURL *)n	{
 	return [[MSLCompMode alloc] initWithURL:n];
@@ -79,10 +79,10 @@
 		_name = [n.lastPathComponent stringByDeletingPathExtension];
 		
 		//	assemble the function declarations, they're basically going to be constant strings
-		const char		*funcDecsCStr = R"(float4 AAAA(device float4 & inBottom, device float4 & inTop, device float & inTopAlpha);
-float4 BBBB(device float4 & inTop, device float & inTopAlpha);)";
+		const char		*funcDecsCStr = R"(float4 AAAA(thread float4 & inBottom, thread float4 & inTop, thread float & inTopAlpha);
+float4 BBBB(thread float4 & inTop, thread float & inTopAlpha);)";
 		_functionDeclarations = [NSString stringWithUTF8String:funcDecsCStr];
-		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTandB",_name]];
+		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_name]];
 		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_name]];
 		
 		//	asemble the functions by doing a basic find-and-replace on the raw string.  bail if we can't find anything.
@@ -91,13 +91,34 @@ float4 BBBB(device float4 & inTop, device float & inTopAlpha);)";
 		[tmpMutString replaceOccurrencesOfString:@"float4 CompositeBottom(" withString:[NSString stringWithFormat:@"float4 %@_Bottom(",_name] options:0 range:NSMakeRange(0,tmpMutString.length)];
 		_functions = [NSString stringWithString:tmpMutString];
 		
-		_uid = [MSLCompMode getNewUID];
+		//_compModeIndex = [MSLCompMode getNewUID];
+		
+		_compModeSwitchStatementFuncPtrs = nil;
 	}
 	return self;
 }
 
 - (NSString *) description	{
-	return [NSString stringWithFormat:@"<MSLCompMode %p %d %@>",self,_uid,_name];
+	return [NSString stringWithFormat:@"<MSLCompMode %p %d %@>",self,_compModeIndex,_name];
+}
+
+@synthesize compModeIndex=_compModeIndex;
+- (void) setCompModeIndex:(uint16_t)n	{
+	_compModeIndex = n;
+	
+	const char		*caseCStr = R"(	case CCCC:
+		CompositeBottomFuncPtr = BBBB;
+		CompositeTopAndBottomFuncPtr = AAAA;
+		break;)";
+	NSString		*tmpString = [NSString stringWithUTF8String:caseCStr];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_name]];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_name]];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"CCCC" withString:[NSString stringWithFormat:@"%d",_compModeIndex]];
+	
+	_compModeSwitchStatementFuncPtrs = (tmpString==nil) ? @"" : tmpString;
+}
+- (uint16_t) compModeIndex	{
+	return _compModeIndex;
 }
 
 @end

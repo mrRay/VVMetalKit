@@ -85,7 +85,6 @@
 	
 	//	free my local vars
 	self.renderEncoder = nil;
-	self.renderPassDescriptor = nil;
 }
 
 

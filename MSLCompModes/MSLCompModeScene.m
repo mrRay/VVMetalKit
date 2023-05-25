@@ -28,7 +28,7 @@
 	self = [super initWithDevice:inDevice];
 	if (self != nil)	{
 		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
-		attachDesc.clearColor = MTLClearColorMake(0.0, 1.0, 0.0, 1.0);
+		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
 		//attachDesc.loadAction = MTLLoadActionDontCare;
 		attachDesc.loadAction = MTLLoadActionClear;
 		//attachDesc.loadAction = MTLLoadActionLoad;
@@ -47,11 +47,10 @@
 
 
 - (void) compModeReloadNotification:(NSNotification *)note	{
-	NSLog(@"%s",__func__);
+	//NSLog(@"%s",__func__);
 	//	get the global comp mode controller, ask it for its resources object corresponding to this device
 	MSLCompModeController		*compModeController = [MSLCompModeController global];
 	self.resource = [compModeController resourceForDevice:self.device];
-	NSLog(@"\t\tcomp mode controller is %@, resource is %@, device is %@",compModeController,_resource,self.device);
 	//	we can get our PSO from the resources object
 	self.renderPipelineStateObject = self.resource.pso_8bit;
 	
@@ -63,6 +62,7 @@
 
 - (void) renderCallback	{
 	NSLog(@"%s",__func__);
+	
 	//	get a local copy of the MVP buffer (creating one if it doesn't exist)
 	id<MTLBuffer>		localMVPBuffer = self.mvpBuffer;
 	if (localMVPBuffer == nil)	{
@@ -73,7 +73,7 @@
 		double			bottom = 0.0;
 		double			far = 1.0;
 		double			near = -1.0;
-		BOOL		flipV = YES;
+		BOOL		flipV = NO;
 		BOOL		flipH = NO;
 		if (flipV)	{
 			top = 0.0;
@@ -150,6 +150,11 @@
 	
 	//	make an argument buffer with all of the textures used by the recipe
 	MSLCompModeControllerResource		*localResource = self.resource;
+	if (localResource == nil)	{
+		NSLog(@"ERR: localResources nil, %s",__func__);
+		return;
+	}
+	
 	id<MTLFunction>		localFragFunc = localResource.frgFunc;
 	id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:1];
 	size_t		texStructLength = argEncoder.encodedLength;
@@ -173,41 +178,14 @@
 	//	attach the vertices to both shaders
 	[self.renderEncoder setVertexBuffer:vertexDataBuffer offset:0 atIndex:MSLCompModeScene_VS_Index_Verts];
 	[self.renderEncoder setFragmentBuffer:vertexDataBuffer offset:0 atIndex:0];
+	//	attach the argument buffer to the frag shader
+	[self.renderEncoder setFragmentBuffer:texArrayBuffer offset:0 atIndex:1];
 	//	draw the vertices
 	[self.renderEncoder
 		drawPrimitives:MTLPrimitiveTypeTriangleStrip
 		vertexStart:0
 		vertexCount:4];
 	
-	/*
-	size_t			vertexCount = 4;
-	size_t			vertexDataLength = sizeof(MSLCompModeQuadVertex) * vertexCount;
-	id<MTLBuffer>		vertexData = [self.device
-		newBufferWithLength:vertexDataLength
-		options:MTLResourceStorageModeShared];
-	MSLCompModeQuadVertex	*wPtr = vertexData.contents;
-	wPtr->position = simd_make_float2( XXX, YYY );
-	wPtr->texCoord = simd_make_float2( XXX, YYY );
-	
-	wPtr->invHomography = simd_matrix_from_rows(
-		simd_make_float4( XXX, YYY, ZZZ, WWW ),
-		simd_make_float4( XXX, YYY, ZZZ, WWW ),
-		simd_make_float4( XXX, YYY, ZZZ, WWW ),
-		simd_make_float4( XXX, YYY, ZZZ, WWW )
-	);
-	
-	//wPtr->srcRect.origin.x = 
-	//wPtr->srcRect.origin.y = 
-	//wPtr->srcRect.size.width = 
-	//wPtr->srcRect.size.height = 
-	wPtr->srcRect = simd_make_float4( XXX, YYY, ZZZ, WWW );
-	wPtr->flipH = false;
-	wPtr->flipV = false;
-	
-	wPtr->opacity = XXX;
-	wPtr->texIndex = XXX;
-	wPtr->compModeIndex = XXX;
-	*/
 }
 
 

@@ -50,7 +50,7 @@
 }
 
 - (void) dumpToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
-	NSLog(@"%s ... %d",__func__,inOffset);
+	//NSLog(@"%s ... %d",__func__,inOffset);
 	if (outBuffer == nil)
 		return;
 	if ( (inOffset + self.minBufferLength) > outBuffer.length )	{
