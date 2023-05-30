@@ -5,7 +5,7 @@ float4 CompositeTopAndBottom(thread float4 & bottom, thread float4 & top, thread
 	//	if the top pixel is transparent, something may be visible "through" it
 	float		TTO = top.a*topAlpha;	//	"total top opacity". 1.0 is "fully opaque".
 	//	the less opaque the top, the more the bottom should "show through"- unless the bottom is transparent!
-	float		TBO = bottom.a*bottomAlpha;	//	"total bottom opacity".  1.0 is "fully opaque".
+	float		TBO = bottom.a;	//	"total bottom opacity".  1.0 is "fully opaque".
 	
 	//	...so use TBO to calculate the "real bottom color"...
 	float4		realBottom = mix(bottom,top,(1.0-TBO));

@@ -43,25 +43,46 @@
 	return YES;
 }
 
-- (size_t) minBufferLength	{
-	static size_t	quadSize = sizeof(MSLCompModeQuadVertex) * 4;
-	size_t			localBufferSize = quadSize * self.steps.count;
+- (size_t) minVertexBufferLength	{
+	const size_t	quadSize = sizeof(MSLCompModeQuadVertex) * 4;
+	const size_t	localBufferSize = quadSize * self.steps.count;
 	return localBufferSize;
 }
 
-- (void) dumpToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+- (size_t) minProjectionMatrixBufferLength	{
+	const size_t	matrixSize = sizeof( simd_float4x4 );
+	const size_t	localBufferSize = matrixSize * self.steps.count;
+	return localBufferSize;
+}
+
+- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
 	//NSLog(@"%s ... %d",__func__,inOffset);
 	if (outBuffer == nil)
 		return;
-	if ( (inOffset + self.minBufferLength) > outBuffer.length )	{
+	if ( (inOffset + self.minVertexBufferLength) > outBuffer.length )	{
 		NSLog(@"ERR: attempted out of bounds write, %s",__func__);
 		return;
 	}
-	static size_t	quadSize = sizeof(MSLCompModeQuadVertex) * 4;
+	const size_t	quadSize = sizeof(MSLCompModeQuadVertex) * 4;
 	size_t			localOffset = inOffset;
 	for (MSLCompModeRecipeStep * step in self.steps)	{
-		[step dumpToBuffer:outBuffer atOffset:localOffset];
+		[step dumpVertexDataToBuffer:outBuffer atOffset:localOffset];
 		localOffset += quadSize;
+	}
+}
+
+- (void) dumpProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+	if (outBuffer == nil)
+		return;
+	if ( (inOffset + self.minProjectionMatrixBufferLength) > outBuffer.length )	{
+		NSLog(@"ERR: attempted out of bounds write, %s",__func__);
+		return;
+	}
+	const size_t	matrixSize = sizeof( simd_float4x4 );
+	size_t			localOffset = inOffset;
+	for (MSLCompModeRecipeStep * step in self.steps)	{
+		[step dumpProjectionMatrixToBuffer:outBuffer atOffset:localOffset];
+		localOffset += matrixSize;
 	}
 }
 

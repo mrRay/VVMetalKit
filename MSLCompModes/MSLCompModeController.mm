@@ -85,7 +85,7 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 	}
 }
 - (void) _reload	{
-	NSLog(@"%s",__func__);
+	//NSLog(@"%s",__func__);
 	//	clear the comp modes
 	NSMutableArray<MSLCompMode*>		*localCompModes = [[NSMutableArray alloc] init];
 	
@@ -129,7 +129,7 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 		++tmpIndex;
 	}
 	_compModes = [NSArray arrayWithArray:localCompModes];
-	NSLog(@"\t\tcompModes are %@",_compModes);
+	//NSLog(@"\t\tcompModes are %@",_compModes);
 	
 	
 	
@@ -163,8 +163,8 @@ using namespace metal;
 typedef struct	{
 	float4			position [[ position ]];
 	uint16_t		vertexID [[ flat ]];	//	the index of the buffer corresponding to this fragment
-	//MSLCompModeQuadVertex		vertexData;
-	float2			texCoord;	//	interpolated & normalized
+	uint16_t		layerIndex [[ flat ]];	//	the index of the layer (floor(vertexID/4))
+	float2			texCoord [[ sample_perspective ]];	//	interpolated & normalized
 } MSLCompModeSceneRasterizerData;
 
 
@@ -183,18 +183,18 @@ PUT_FUNCTION_DECLARATIONS_HERE
 vertex MSLCompModeSceneRasterizerData MSLCompModeControllerVtxFunc(
 	uint vertexID [[ vertex_id ]],
 	constant MSLCompModeQuadVertex * inVerts [[ buffer(MSLCompModeScene_VS_Index_Verts) ]],
-	constant float4x4 * inMVP [[ buffer(MSLCompModeScene_VS_Index_MVPMatrix) ]])
+	constant float4x4 * inMVP [[ buffer(MSLCompModeScene_VS_Index_MVPMatrix) ]],
+	constant float4x4 * inHomography [[ buffer(MSLCompModeScene_VS_Index_Homography) ]])
 {
 	MSLCompModeSceneRasterizerData		returnMe;
 	
-	//returnMe.vertexData = inVerts[vertexID];
 	returnMe.vertexID = vertexID;
+	returnMe.layerIndex = vertexID/4;
 	returnMe.texCoord = inVerts[vertexID].texCoord;
 	
-	//float4x4		mvp = float4x4(*inMVP);
-	//float4			pos = float4(inVerts[vertexID].position, 0, 1);
-	//returnMe.position = mvp * pos;
-	returnMe.position = *inMVP * float4(inVerts[vertexID].position,0,1);
+	//	the homography projection matrix we calculated converts tex coords (the 'position' member of the vertex struct isn't actually used except when calculating the homography)
+	constant float4x4		*homographyProjMatrix = (inHomography + returnMe.layerIndex);
+	returnMe.position = *inMVP * *homographyProjMatrix * float4(inVerts[vertexID].texCoord, 0, 1);
 	
 	return returnMe;
 }
@@ -213,21 +213,13 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	
 	float4 baseCanvasColor [[ color(0) ]] )
 {
-	//return float4(1,0,0,1);
-	//return baseCanvasColor;
-	
 	device MSLCompModeQuadVertex		*vertexPtr = verts + inRasterData.vertexID;
 	float			layerOpacity = vertexPtr->opacity;
 	
-	//	get the normalized coords of the texel we want to sample, adjusted for any vert/horiz flippedness
-	float2			sampleCoords = float2( (vertexPtr->flipH) ? (1.-inRasterData.texCoord.x) : inRasterData.texCoord.x, (vertexPtr->flipV) ? (1.-inRasterData.texCoord.y) : inRasterData.texCoord.y );
-	//	convert normalized coords to pixel coords within the image region of the texture
-	sampleCoords.x = (sampleCoords.x * vertexPtr->srcRect.size.width) + vertexPtr->srcRect.origin.x;
-	sampleCoords.y = (sampleCoords.y * vertexPtr->srcRect.size.height) + vertexPtr->srcRect.origin.y;
 	//	get a ptr to the texture we're going to sample
 	device MSLCompModeSceneTexture		*texStructPtr = textures + vertexPtr->texIndex;
 	constexpr sampler		sampler( mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel );
-	float4			layerColor = texStructPtr->texture.sample( sampler, sampleCoords );
+	float4			layerColor = texStructPtr->texture.sample( sampler, inRasterData.texCoord );
 	
 	//	populate function pointers for the two different kinds of composition functions based on the comp mode of the vertex we're rendering
 	float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &) = nullptr;
@@ -343,6 +335,28 @@ PUT_FUNCTION_DEFINITIONS_HERE
 		returnMe = [NSArray arrayWithArray:_compModes];
 	}
 	return returnMe;
+}
+
+
+- (MSLCompMode *) compModeWithName:(NSString *)n	{
+	if (n == nil)
+		return nil;
+	@synchronized (self)	{
+		for (MSLCompMode * compMode in _compModes)	{
+			NSString		*tmpName = compMode.name;
+			if ([tmpName localizedCaseInsensitiveCompare:n] == NSOrderedSame)	{
+				return compMode;
+			}
+		}
+	}
+	return nil;
+}
+- (MSLCompMode *) compModeWithIndex:(uint16_t)n	{
+	@synchronized (self)	{
+		if (n >= _compModes.count)
+			return nil;
+		return _compModes[n];
+	}
 }
 
 

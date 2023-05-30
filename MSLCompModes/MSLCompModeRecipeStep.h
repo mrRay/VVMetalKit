@@ -28,9 +28,23 @@ NS_ASSUME_NONNULL_BEGIN
 	@public
 	MSLCompModeQuadVertex		verts[4];	//	coordinate order is BL - TL - BR - TR.  THE ORDER MATTERS, homography matrix is calculated using the position cords (WHICH NEED TO BE IN THIS ORDER) & srcRect/flipH/flipV vals (from which the points are extracted in the expected order)
 }
+
+//	setting this also populates the 'texCoord' members of the verts automatically using the 'srcRect', 'flipH', and 'flipV' properties of the img
 @property (strong) MTLImgBuffer * img;
-- (void) calculateProjectionMatrix;	//	calculates the MSLCompModeQuadVertex's 'invHomography' member
-- (void) dumpToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+
+//	if you don't use this then you'll need to populate the vertex positions manually
+- (void) populateVertexPositionsWithRect:(NSRect)n;
+//	if you don't use this then the vertex opacities will default to 1.0
+- (void) populateVertexOpacities:(float)n;
+
+- (BOOL) populateCompModeWithName:(NSString *)n;
+- (BOOL) populateCompModeWithIndex:(uint16_t)n;
+
+//	copies the vertex data stored locally to the passed buffer at the passed offset
+- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+//	calculates the projection matrix necessary to display the specified region of the texture as a quad with the supplied coordinates and writes it to the passed buffer at the passed offset
+- (void) dumpProjectionMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+
 @end
 
 

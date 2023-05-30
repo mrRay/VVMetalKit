@@ -36,7 +36,7 @@
 }
 
 - (instancetype) initWithURL:(NSURL *)n	{
-	NSLog(@"%s ... %@",__func__,n);
+	//NSLog(@"%s ... %@",__func__,n);
 	self = [super init];
 	if (n == nil)
 		self = nil;

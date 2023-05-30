@@ -7,6 +7,9 @@
 
 #import "MSLCompModeRecipeStep.h"
 #import "VVMacros.h"
+#import <VVMetalKit/VVMetalKit.h>
+#import "MSLCompModeController.h"
+#import "MSLCompMode.h"
 
 
 
@@ -46,13 +49,7 @@ static inline void GaussianElimination(float *input, int in);
 			if (myVert->texCoord[j] != otherVert->texCoord[j])
 				return NO;
 		}
-		if (myVert->srcRect.origin.x != otherVert->srcRect.origin.x
-		|| myVert->srcRect.origin.y != otherVert->srcRect.origin.y
-		|| myVert->srcRect.size.width != otherVert->srcRect.size.width
-		|| myVert->srcRect.size.height != otherVert->srcRect.size.height
-		|| myVert->flipH != otherVert->flipH
-		|| myVert->flipV != otherVert->flipV
-		|| myVert->opacity != otherVert->opacity
+		if (myVert->opacity != otherVert->opacity
 		|| myVert->texIndex != otherVert->texIndex
 		|| myVert->compModeIndex != otherVert->compModeIndex)
 		{
@@ -68,54 +65,40 @@ static inline void GaussianElimination(float *input, int in);
 - (BOOL) isMSLCompModeRecipeStep	{
 	return YES;
 }
-
-- (void) calculateProjectionMatrix	{
-	static float		geoCoords[8];	//	populate with the coords of the geometry
-	static float		texCoords[8];	//	populate with the texture coords.  order should correspond to points in 'geoCoords'.
-	
-	//	order of vertices are BL - TL - BR - TR, and we need to associate the correct texture coords with these points
-	//	texture coords in metal use the top-left corner as the origin- the srcRect in the vertex also uses the top-left corner as the origin
-	//	we also have to account for horiz & vert flippedness in the image we're drawing in this quad...
-	MSLCompModeQuadVertex		*vertPtr = verts;
-	
-	//	the order of the geometry in the vertices is fixed and known, as is the rect of tex coords to apply to the vertices.
-	const VVRectAnchor		anchors[4] = { VVRectAnchor_TL, VVRectAnchor_BL, VVRectAnchor_TR, VVRectAnchor_BR };	//	geometry uses bottom-left corner as origin, texture sampling uses top-left!
-	const VVRectAnchor		anchors_flipV[4] = { VVRectAnchor_BL, VVRectAnchor_TL, VVRectAnchor_BR, VVRectAnchor_TR };
-	const VVRectAnchor		anchors_flipH[4] = { VVRectAnchor_TR, VVRectAnchor_BR, VVRectAnchor_TL, VVRectAnchor_BL };
-	const VVRectAnchor		anchors_flipHV[4] = { VVRectAnchor_BR, VVRectAnchor_TR, VVRectAnchor_BL, VVRectAnchor_TL };
-	const VVRectAnchor		*srcTexAnchors;	//	point this at the appropriate array above
-	if (vertPtr->flipH && vertPtr->flipV)
-		srcTexAnchors = anchors_flipHV;
-	else if (vertPtr->flipH)
-		srcTexAnchors = anchors_flipH;
-	else if (vertPtr->flipV)
-		srcTexAnchors = anchors_flipV;
-	else
-		srcTexAnchors = anchors;
-	
-	//	run through the four vertices for this step/quad, copying the geometry and texture coords to the arrays of floats
-	float		*texCoordsWPtr = texCoords;
-	float		*geoCoordsWPtr = geoCoords;
+- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+	//NSLog(@"%s ... %d",__func__,inOffset);
+	//[self calculateProjectionMatrix];
+	//	don't check, just dump- the recipe would have already checked...
+	uint8_t			*baseWPtr = outBuffer.contents;
+	uint8_t			*wPtr = baseWPtr + inOffset;
+	size_t			localOffset = inOffset;
+	size_t			vertexSize = sizeof(MSLCompModeQuadVertex);
 	for (int i=0; i<4; ++i)	{
-		*(geoCoordsWPtr) = vertPtr->position[0];
-		*(geoCoordsWPtr + 1) = vertPtr->position[1];
-		
-		//	the vertex's srcRect uses the top-left corner as the origin, which already matches metal.
-		NSRect		srcRect = NSMakeRect( vertPtr->srcRect.origin.x, vertPtr->srcRect.origin.y, vertPtr->srcRect.size.width, vertPtr->srcRect.size.height );
-		NSPoint		srcPoint = VVRectGetAnchorPoint(srcRect, *(srcTexAnchors+i));
-		*(texCoordsWPtr) = srcPoint.x;
-		*(texCoordsWPtr + 1) = srcPoint.y;
-		
-		geoCoordsWPtr += 2;
-		texCoordsWPtr += 2;
-		++vertPtr;
+		memcpy( wPtr, &verts[i], vertexSize );
+		wPtr += vertexSize;
+		localOffset += vertexSize;
 	}
+}
+- (void) dumpProjectionMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+	//NSLog(@"%s",__func__);
+	const float			geoCoords[] = {
+		verts[0].position.x, verts[0].position.y,
+		verts[1].position.x, verts[1].position.y,
+		verts[2].position.x, verts[2].position.y,
+		verts[3].position.x, verts[3].position.y,
+	};
+	const float			texCoords[] = {
+		verts[0].texCoord.x, verts[0].texCoord.y,
+		verts[1].texCoord.x, verts[1].texCoord.y,
+		verts[2].texCoord.x, verts[2].texCoord.y,
+		verts[3].texCoord.x, verts[3].texCoord.y,
+	};
 	
 	//	make sure that none of the geometry coords are "too close" (we get undefined results if the verts are on top of one another)
-	float		*blPtr = geoCoords;
-	float		*tlPtr = geoCoords + 2;
-	float		*brPtr = geoCoords + 4;
-	float		*trPtr = geoCoords + 6;
+	float		*blPtr = (float*)geoCoords;
+	float		*tlPtr = (float*)geoCoords + 2;
+	float		*brPtr = (float*)geoCoords + 4;
+	float		*trPtr = (float*)geoCoords + 6;
 	const float		hTol = 0.5;
 	const float		wTol = 0.5;
 	//	check BL - TL
@@ -135,46 +118,111 @@ static inline void GaussianElimination(float *input, int in);
 		*(blPtr+1) = *(brPtr+1) - wTol;
 	}
 	
+	//	calculate the local projection matrix, writing it to the buffer at the specified location
+	simd_float4x4		*outWPtr = (simd_float4x4 *)((uint8_t*)outBuffer.contents + inOffset);
+	
 	//	calculate the homography- the projection transform necessary to make "texCoords" appear at "geoCoords"
 	float		matrix[16];
-	FindHomography( texCoords, geoCoords, matrix );
-	simd_float4x4		homographyMatrix;
-	homographyMatrix = simd_matrix_from_rows(
+	FindHomography( (float*)texCoords, (float*)geoCoords, matrix );
+	
+	*outWPtr = simd_matrix(
 		simd_make_float4( *(matrix+0), *(matrix+1), *(matrix+2), *(matrix+3) ),
 		simd_make_float4( *(matrix+4), *(matrix+5), *(matrix+6), *(matrix+7) ),
 		simd_make_float4( *(matrix+8), *(matrix+9), *(matrix+10), *(matrix+11) ),
 		simd_make_float4( *(matrix+12), *(matrix+13), *(matrix+14), *(matrix+15) )
 	);
-	//homographyMatrix = simd_matrix(
-	//	simd_make_float4( *(matrix+0), *(matrix+1), *(matrix+2), *(matrix+3) ),
-	//	simd_make_float4( *(matrix+4), *(matrix+5), *(matrix+6), *(matrix+7) ),
-	//	simd_make_float4( *(matrix+8), *(matrix+9), *(matrix+10), *(matrix+11) ),
-	//	simd_make_float4( *(matrix+12), *(matrix+13), *(matrix+14), *(matrix+15) )
-	//);
-	simd_float4x4		invHomographyMatrix = simd_inverse(homographyMatrix);
-	//	dump the homography into the appropriate format...
-	vertPtr = verts;
-	for (int i=0; i<4; ++i)	{
-		vertPtr->invHomography = homographyMatrix;
-		//vertPtr->invHomography = invHomographyMatrix;
-		++vertPtr;
-	}
 }
 
-- (void) dumpToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
-	//NSLog(@"%s ... %d",__func__,inOffset);
-	[self calculateProjectionMatrix];
-	//	don't check, just dump- the recipe would have already checked...
-	uint8_t			*baseWPtr = outBuffer.contents;
-	uint8_t			*wPtr = baseWPtr + inOffset;
-	size_t			localOffset = inOffset;
-	size_t			vertexSize = sizeof(MSLCompModeQuadVertex);
+
+@synthesize img=_img;
+- (void) setImg:(MTLImgBuffer *)n	{
+	_img = n;
+	
+	NSRect		srcRect = n.srcRect;
+	NSRect		tmpRect;
+	NSPoint		tmpPoint;
+	if (n.flipH && n.flipV)	{
+		tmpPoint = VVRectGetAnchorPoint(srcRect, VVRectAnchor_TR);
+		tmpPoint.x = (n.width - tmpPoint.x);
+		tmpPoint.y = (n.height - tmpPoint.y);
+		tmpRect = VVMakeAnchoredRect(tmpPoint, srcRect.size, VVRectAnchor_BL);
+	}
+	else if (n.flipH)	{
+		tmpPoint = VVRectGetAnchorPoint(srcRect, VVRectAnchor_BR);
+		tmpPoint.x = (n.width - tmpPoint.x);
+		tmpRect = VVMakeAnchoredRect(tmpPoint, srcRect.size, VVRectAnchor_BL);
+	}
+	else if (n.flipV)	{
+		tmpPoint = VVRectGetAnchorPoint(srcRect, VVRectAnchor_TL);
+		tmpPoint.y = (n.height - tmpPoint.y);
+		tmpRect = VVMakeAnchoredRect(tmpPoint, srcRect.size, VVRectAnchor_BL);
+	}
+	else	{
+		tmpRect = srcRect;
+	}
+	
+	//	BL
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BL);
+	verts[0].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	TL
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
+	verts[1].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	BR
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BR);
+	verts[2].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	TR
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TR);
+	verts[3].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
+}
+- (MTLImgBuffer *) img	{
+	return _img;
+}
+
+- (void) populateVertexPositionsWithRect:(NSRect)n	{
+	NSRect		tmpRect = n;
+	NSPoint		tmpPoint;
+	
+	//	BL
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BL);
+	verts[0].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	TL
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
+	verts[1].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	BR
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BR);
+	verts[2].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	TR
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TR);
+	verts[3].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+}
+- (void) populateVertexOpacities:(float)n	{
+	float		tmpFloat = fmax(0, fmin(1, n));
 	for (int i=0; i<4; ++i)	{
-		memcpy( wPtr, &verts[i], vertexSize );
-		wPtr += vertexSize;
-		localOffset += vertexSize;
+		verts[i].opacity = tmpFloat;
 	}
 }
+- (BOOL) populateCompModeWithName:(NSString *)n	{
+	if (n == nil)
+		return NO;
+	MSLCompMode		*compMode = [MSLCompModeController.global compModeWithName:n];
+	if (compMode == nil)
+		return NO;
+	uint16_t		compModeIndex = compMode.compModeIndex;
+	for (int i=0; i<4; ++i)	{
+		verts[i].compModeIndex = compModeIndex;
+	}
+	return YES;
+}
+- (BOOL) populateCompModeWithIndex:(uint16_t)n	{
+	MSLCompMode		*compMode = [MSLCompModeController.global compModeWithIndex:n];
+	if (compMode == nil)
+		return NO;
+	for (int i=0; i<4; ++i)	{
+		verts[i].compModeIndex = n;
+	}
+	return YES;
+}
+
 
 @end
 

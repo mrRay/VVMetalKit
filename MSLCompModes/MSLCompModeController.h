@@ -33,6 +33,9 @@ extern NSString * const kMSLCompModeReloadNotificationName;
 //	an array of comp modes, sorted alphabetically by name
 @property (readonly) NSArray<MSLCompMode*> * compModes;
 
+- (MSLCompMode *) compModeWithName:(NSString *)n;
+- (MSLCompMode *) compModeWithIndex:(uint16_t)n;
+
 //	retrieve the MSLCompModeControllerResource object corresponding to the passed device
 - (MSLCompModeControllerResource *) resourceForDevice:(id<MTLDevice>)n;
 

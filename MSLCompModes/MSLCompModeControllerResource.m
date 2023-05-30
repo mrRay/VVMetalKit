@@ -30,14 +30,16 @@
 
 
 - (instancetype) initWithDevice:(id<MTLDevice>)inDevice shaderSrc:(NSString *)inSrc	{
-	NSLog(@"%s",__func__);
+	//NSLog(@"%s",__func__);
 	self = [super init];
 	if (self != nil)	{
 		_device = inDevice;
 		
 		NSError			*nsErr = nil;
 		
-		_lib = [_device newLibraryWithSource:inSrc options:nil error:&nsErr];
+		MTLCompileOptions		*compileOpts = [[MTLCompileOptions alloc] init];
+		compileOpts.fastMathEnabled = YES;
+		_lib = [_device newLibraryWithSource:inSrc options:compileOpts error:&nsErr];
 		if (_lib == nil || nsErr != nil)	{
 			NSLog(@"ERR: unable to make lib from shader src (%@), bailing, %s, %@",nsErr,__func__,inSrc);
 			self = nil;

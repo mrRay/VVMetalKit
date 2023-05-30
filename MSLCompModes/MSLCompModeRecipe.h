@@ -23,8 +23,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MSLCompModeRecipe : NSObject <NSCopying>
 @property (strong,readonly) NSMutableArray<MSLCompModeRecipeStep*> * steps;
-@property (readonly) size_t minBufferLength;
-- (void) dumpToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+@property (readonly) size_t minVertexBufferLength;
+@property (readonly) size_t minProjectionMatrixBufferLength;
+- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+- (void) dumpProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
 @end
 
 
