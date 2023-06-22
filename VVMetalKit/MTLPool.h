@@ -81,6 +81,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (MTLImgBuffer *) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
 
+- (MTLImgBuffer *) createFromNSImage:(NSImage *)n;
+
 @end
 
 

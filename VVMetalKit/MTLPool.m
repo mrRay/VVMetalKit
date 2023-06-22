@@ -2557,4 +2557,39 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 }
 
 
+- (MTLImgBuffer *) createFromNSImage:(NSImage *)n	{
+	if (n == nil)
+		return nil;
+	
+	NSSize			tmpSize = n.size;
+	NSRect			tmpRect = NSMakeRect(0,0,tmpSize.width,tmpSize.height);
+	size_t			bytesPerRow = 8 * 4 * tmpSize.width;	//	bits per component * number of components * width
+	
+	void			*tmpBacking = malloc(bytesPerRow * tmpSize.height);
+	
+	CGColorSpaceRef		tmpSpace = CGColorSpaceCreateWithName( kCGColorSpaceITUR_709 );
+	CGBitmapInfo		tmpBitmapInfo = (CGBitmapInfo)kCGImageAlphaNoneSkipFirst;
+	CGContextRef		tmpCGCtx = CGBitmapContextCreate( tmpBacking, tmpSize.width, tmpSize.height, 8, bytesPerRow, tmpSpace, tmpBitmapInfo);
+	
+	MTKTextureLoader	*tmpLoader = [[MTKTextureLoader alloc] initWithDevice:[RenderProperties global].device];
+	NSGraphicsContext	*tmpNSCtx = [NSGraphicsContext graphicsContextWithCGContext:tmpCGCtx flipped:NO];
+	CGImageRef			tmpCGImg = (tmpNSCtx==nil) ? NULL : [n CGImageForProposedRect:&tmpRect context:tmpNSCtx hints:nil];
+	
+	NSError				*nsErr = nil;
+	id<MTLTexture>		tmpTex = (tmpCGImg==NULL) ? nil : [tmpLoader newTextureWithCGImage:tmpCGImg options:@{ MTKTextureLoaderOptionSRGB: @(NO) } error:&nsErr];
+	MTLImgBuffer		*returnMe = (tmpTex==nil) ? nil : [self bufferForExistingTexture:tmpTex];
+	
+	tmpNSCtx = nil;
+	tmpLoader = nil;
+	if (tmpCGCtx != NULL)
+		CGContextRelease(tmpCGCtx);
+	if (tmpSpace != NULL)
+		CGColorSpaceRelease(tmpSpace);
+	if (tmpBacking != NULL)
+		free(tmpBacking);
+	
+	return returnMe;
+}
+
+
 @end
