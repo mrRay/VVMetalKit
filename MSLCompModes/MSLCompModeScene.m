@@ -127,7 +127,7 @@
 		NSUInteger			matchingIndex = [recipeTextures indexOfObjectIdenticalTo:stepImg];
 		if (matchingIndex == NSNotFound)	{
 			//NSLog(@"\t\t\tdidn't find identical, searching for equal...");
-			matchingIndex = [recipeTextures indexOfObjectIdenticalTo:stepImg];
+			matchingIndex = [recipeTextures indexOfObject:stepImg];
 		}
 		if (matchingIndex == NSNotFound)	{
 			matchingIndex = recipeTextures.count;
