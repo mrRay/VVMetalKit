@@ -1,7 +1,7 @@
 #import "MTLComputeScene.h"
 
 #import "MTLImgBuffer.h"
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 
 
 

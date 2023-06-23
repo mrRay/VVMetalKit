@@ -14,9 +14,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-@interface MTLPool : NSObject
+@interface MTLImgBufferPool : NSObject
 
-+ (MTLPool *) global;
++ (MTLImgBufferPool *) global;
 + (void) createGlobalPoolWithDevice:(id<MTLDevice>)inDevice;
 
 @property (readonly) id<MTLDevice> device;

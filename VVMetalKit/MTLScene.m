@@ -1,7 +1,7 @@
 #import "MTLScene.h"
 
 #import "MTLImgBuffer.h"
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 
 
 
@@ -50,7 +50,7 @@
 
 
 - (MTLImgBuffer *) createAndRenderToBufferSized:(CGSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb	{
-	MTLPool			*pool = [MTLPool global];
+	MTLImgBufferPool			*pool = [MTLImgBufferPool global];
 	if (pool == nil)
 		return nil;
 	

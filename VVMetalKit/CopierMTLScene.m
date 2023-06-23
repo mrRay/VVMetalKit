@@ -1,5 +1,5 @@
 #import "CopierMTLScene.h"
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 #import "MTLImgBufferShaderTypes.h"
 #import "RenderProperties.h"
 #import "SizingTool_objc.h"

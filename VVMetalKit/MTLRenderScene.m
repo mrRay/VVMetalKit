@@ -8,7 +8,7 @@
 #import "MTLRenderScene.h"
 
 #import "MTLImgBuffer.h"
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 
 
 

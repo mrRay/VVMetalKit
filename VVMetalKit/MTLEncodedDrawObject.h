@@ -6,7 +6,7 @@
 //
 
 #import <Metal/Metal.h>
-//#import <VVMetalKit/MTLPool.h>
+//#import <VVMetalKit/MTLImgBufferPool.h>
 
 @class MTLImgBuffer;
 

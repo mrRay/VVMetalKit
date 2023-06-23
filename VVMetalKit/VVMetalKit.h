@@ -15,7 +15,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/MTLEncodedDrawObject.h>
 #import <VVMetalKitTouch/MTLImgBufferShaderTypes.h>
 #import <VVMetalKitTouch/MTLImgBuffer.h>
-#import <VVMetalKitTouch/MTLPool.h>
+#import <VVMetalKitTouch/MTLImgBufferPool.h>
 #import <VVMetalKitTouch/MTLScene.h>
 #import <VVMetalKitTouch/MTLComputeScene.h>
 #import <VVMetalKitTouch/MTLRenderScene.h>
@@ -40,7 +40,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/MTLEncodedDrawObject.h>
 #import <VVMetalKit/MTLImgBufferShaderTypes.h>
 #import <VVMetalKit/MTLImgBuffer.h>
-#import <VVMetalKit/MTLPool.h>
+#import <VVMetalKit/MTLImgBufferPool.h>
 #import <VVMetalKit/MTLScene.h>
 #import <VVMetalKit/MTLComputeScene.h>
 #import <VVMetalKit/MTLRenderScene.h>

@@ -8,7 +8,7 @@
 #import <CoreMedia/CoreMedia.h>
 #import <MetalKit/MetalKit.h>
 
-@class MTLPool;
+@class MTLImgBufferPool;
 @class MTLImgBuffer;
 
 struct MTLImgBufferStruct;
@@ -56,7 +56,7 @@ typedef void (^MTLImgBufferAvailableBlock)(MTLImgBuffer *);
 //	whether or not the image that this instance represents needs to be flipped horizontally to be perceived as "not flipped horizontally"
 @property (readwrite) BOOL flipH;
 
-@property (strong, nullable) MTLPool * parentPool;
+@property (strong, nullable) MTLImgBufferPool * parentPool;
 
 //	arbitrary supporting object that gets freed when this object gets freed
 @property (strong, nullable) id supportingObject;

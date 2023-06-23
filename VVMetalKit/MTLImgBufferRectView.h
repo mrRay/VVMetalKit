@@ -3,11 +3,11 @@
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #import <UIKit/UIKit.h>
 #import <VVMetalKitTouch/CustomMetalView.h>
-#import <VVMetalKitTouch/MTLPool.h>
+#import <VVMetalKitTouch/MTLImgBufferPool.h>
 #else
 #import <Cocoa/Cocoa.h>
 #import <VVMetalKit/CustomMetalView.h>
-#import <VVMetalKit/MTLPool.h>
+#import <VVMetalKit/MTLImgBufferPool.h>
 #endif
 
 NS_ASSUME_NONNULL_BEGIN

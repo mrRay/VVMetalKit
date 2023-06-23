@@ -1,4 +1,4 @@
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 #import <os/lock.h>
 #import "TargetConditionals.h"
 #import "MTLImgBuffer.h"
@@ -20,12 +20,12 @@
 
 
 
-static MTLPool		*_globalPool = nil;
+static MTLImgBufferPool		*_globalPool = nil;
 
 
 
 
-@interface MTLPool ()	{
+@interface MTLImgBufferPool ()	{
 	os_unfair_lock		lock;
 	
 	CVMetalTextureCacheRef		poolTexCache;
@@ -56,17 +56,17 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 
 
 
-@implementation MTLPool
+@implementation MTLImgBufferPool
 
 
 #pragma mark - class methods
 
 
-+ (MTLPool *) global	{
++ (MTLImgBufferPool *) global	{
 	return _globalPool;
 }
 + (void) createGlobalPoolWithDevice:(id<MTLDevice>)inDevice	{
-	_globalPool = [[MTLPool alloc] initWithDevice:inDevice];
+	_globalPool = [[MTLImgBufferPool alloc] initWithDevice:inDevice];
 }
 
 
@@ -2197,7 +2197,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	//	if the pixel format is kCVPixelFormatType_64ARGB
 	if (pbpf == 'b64a')	{
 		//	this pixel format is big-endian, so we have to convert it to little-endian before it'll be recognizable in metal...
-		MTLImgBuffer		*rawTex = [[MTLPool global] bufferForCVMTLTex:metalTexRef sized:baseTexSize];
+		MTLImgBuffer		*rawTex = [[MTLImgBufferPool global] bufferForCVMTLTex:metalTexRef sized:baseTexSize];
 		CFRelease(metalTexRef);
 		if (rawTex == nil)	{
 			NSLog(@"ERR: raw tex nil for YCbCr in %s",__func__);
@@ -2205,8 +2205,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		}
 		
 		if (shotIsAnamorphic)	{
-			MTLImgBuffer		*rgbaTex = [[MTLPool global] rgbaFloatTexSized:baseTexSize];
-			MTLImgBuffer		*fixedTex = [[MTLPool global] rgbaFloatTexSized:actualTexSize];
+			MTLImgBuffer		*rgbaTex = [[MTLImgBufferPool global] rgbaFloatTexSized:baseTexSize];
+			MTLImgBuffer		*fixedTex = [[MTLImgBufferPool global] rgbaFloatTexSized:actualTexSize];
 			if (rgbaTex==nil || fixedTex==nil)	{
 				NSLog(@"ERR: unable to allocate intermed tex for A b64a in %s",__func__);
 				return nil;
@@ -2262,7 +2262,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 			}
 		}
 		else	{
-			MTLImgBuffer		*usefulTex = [[MTLPool global] rgbaFloatTexSized:baseTexSize];
+			MTLImgBuffer		*usefulTex = [[MTLImgBufferPool global] rgbaFloatTexSized:baseTexSize];
 			if (usefulTex == nil)	{
 				NSLog(@"ERR: unable to allocate intermed tex for NA b64a in %s",__func__);
 				return nil;
@@ -2311,7 +2311,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		}
 	}
 	else if (pbpf == '2vuy' || pbpf == 'yuvs' || pbpf == 'yuvf')	{
-		MTLImgBuffer		*rawTex = [[MTLPool global] bufferForCVMTLTex:metalTexRef sized:baseTexSize];
+		MTLImgBuffer		*rawTex = [[MTLImgBufferPool global] bufferForCVMTLTex:metalTexRef sized:baseTexSize];
 		CFRelease(metalTexRef);
 		if (rawTex == nil)	{
 			NSLog(@"ERR: raw tex nil for YCbCr in %s",__func__);
@@ -2320,8 +2320,8 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 	
 		if (shotIsAnamorphic)	{
 			
-			MTLImgBuffer		*rgbaTex = [[MTLPool global] rgbaFloatTexSized:baseTexSize];
-			MTLImgBuffer		*fixedTex = [[MTLPool global] rgbaFloatTexSized:actualTexSize];
+			MTLImgBuffer		*rgbaTex = [[MTLImgBufferPool global] rgbaFloatTexSized:baseTexSize];
+			MTLImgBuffer		*fixedTex = [[MTLImgBufferPool global] rgbaFloatTexSized:actualTexSize];
 			if (rgbaTex==nil || fixedTex==nil)	{
 				NSLog(@"ERR: unable to allocate intermed tex for A YCbCr in %s",__func__);
 				return nil;
@@ -2380,7 +2380,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		}
 		else	{
 			
-			MTLImgBuffer		*usefulTex = [[MTLPool global] rgbaFloatTexSized:baseTexSize];
+			MTLImgBuffer		*usefulTex = [[MTLImgBufferPool global] rgbaFloatTexSized:baseTexSize];
 			if (usefulTex == nil)	{
 				NSLog(@"ERR: unable to allocate intermed tex for NA YCbCr in %s",__func__);
 				return nil;
@@ -2429,7 +2429,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		}
 	}
 	else	{
-		MTLImgBuffer		*rawTex = [[MTLPool global] bufferForCVMTLTex:metalTexRef sized:baseTexSize];
+		MTLImgBuffer		*rawTex = [[MTLImgBufferPool global] bufferForCVMTLTex:metalTexRef sized:baseTexSize];
 		CFRelease(metalTexRef);
 		if (rawTex == nil)	{
 			NSLog(@"ERR: raw tex nil for unspec in %s",__func__);
@@ -2438,7 +2438,7 @@ static os_unfair_lock BUFFERINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 		
 		if (shotIsAnamorphic)	{
 			
-			MTLImgBuffer		*usefulTex = [[MTLPool global] rgbaFloatTexSized:actualTexSize];
+			MTLImgBuffer		*usefulTex = [[MTLImgBufferPool global] rgbaFloatTexSized:actualTexSize];
 			if (usefulTex == nil)	{
 				NSLog(@"ERR: unable to allocate intermed tex for NA YCbCr in %s",__func__);
 				return nil;

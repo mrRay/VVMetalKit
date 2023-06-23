@@ -1,6 +1,6 @@
 #import "SwizzleMTLScene.h"
 #import "TargetConditionals.h"
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 //#import "MTLImgBufferShaderTypes.h"
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
@@ -58,7 +58,7 @@
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 		
 		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeShared];
-		slugTexture = [[MTLPool global] rgbaFloatTexSized:NSMakeSize(16,16)];
+		slugTexture = [[MTLImgBufferPool global] rgbaFloatTexSized:NSMakeSize(16,16)];
 	}
 	return self;
 }

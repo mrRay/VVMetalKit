@@ -2,7 +2,7 @@
 #import <Accelerate/Accelerate.h>
 #import "TargetConditionals.h"
 
-#import "MTLPool.h"
+#import "MTLImgBufferPool.h"
 #import "MTLImgBufferShaderTypes.h"
 #import "MTLImgBufferAdditions_Private.h"
 
