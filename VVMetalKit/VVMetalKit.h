@@ -34,6 +34,17 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/BilinearInterpolation.h>
 #import <VVMetalKitTouch/BicubicInterpolation.h>
 
+#import <VVMetalKitTouch/VVMTLTimestamp.h>
+#import <VVMetalKitTouch/VVMTLImage.h>
+#import <VVMetalKitTouch/VVMTLRecycleable.h>
+#import <VVMetalKitTouch/VVMTLRecycleableDescriptor.h>
+#import <VVMetalKitTouch/VVMTLRecyclingPool.h>
+#import <VVMetalKitTouch/VVMTLBuffer.h>
+#import <VVMetalKitTouch/VVMTLBufferDescriptor.h>
+#import <VVMetalKitTouch/VVMTLTextureImage.h>
+#import <VVMetalKitTouch/VVMTLTextureImageDescriptor.h>
+#import <VVMetalKitTouch/VVMTLPool.h>
+
 #else
 
 #import <VVMetalKit/RenderProperties.h>
@@ -58,6 +69,17 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/VVColorConversions.h>
 #import <VVMetalKit/BilinearInterpolation.h>
 #import <VVMetalKit/BicubicInterpolation.h>
+
+#import <VVMetalKit/VVMTLTimestamp.h>
+#import <VVMetalKit/VVMTLImage.h>
+#import <VVMetalKit/VVMTLRecycleable.h>
+#import <VVMetalKit/VVMTLRecycleableDescriptor.h>
+#import <VVMetalKit/VVMTLRecyclingPool.h>
+#import <VVMetalKit/VVMTLBuffer.h>
+#import <VVMetalKit/VVMTLBufferDescriptor.h>
+#import <VVMetalKit/VVMTLTextureImage.h>
+#import <VVMetalKit/VVMTLTextureImageDescriptor.h>
+#import <VVMetalKit/VVMTLPool.h>
 
 #endif
 
