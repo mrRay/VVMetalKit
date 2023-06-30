@@ -35,6 +35,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	id<MTLDevice>		_device;
 	NSMutableArray<id<VVMTLRecycleable>>		*_texPool;	//	FIFO, objects that are in the pool "too long" get freed
 	NSMutableArray<id<VVMTLRecycleable>>		*_bufferPool;	//	FIFO.
+	CVMetalTextureCacheRef		_cvTexCache;
 }
 //	really returns a VVMTLTextureImage or VVMTLBuffer, because that's what this class creates & vends
 - (id<VVMTLRecycleable>) _recycledObjectMatching:(id<VVMTLRecycleableDescriptor>)n;
@@ -65,9 +66,23 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		_device = n;
 		_texPool = [[NSMutableArray alloc] init];
 		_bufferPool = [[NSMutableArray alloc] init];
+		
+		CVReturn		cvErr = kCVReturnSuccess;
+		cvErr = CVMetalTextureCacheCreate(
+			NULL,
+			NULL,
+			_device,
+			NULL,
+			&_cvTexCache);
+		if (cvErr != kCVReturnSuccess)	{
+			NSLog(@"ERR: unable to create metal texture cache (%d)",cvErr);
+		}
 	}
 	
 	return self;
+}
+- (CVMetalTextureCacheRef) cvTexCache	{
+	return _cvTexCache;
 }
 
 
@@ -750,10 +765,13 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage	{
-	NSLog(@"%s",__func__);
+	//NSLog(@"%s",__func__);
+	if (inLength < 1)
+		return nil;
+	
 	VVMTLBuffer			*returnMe = nil;
 	
-	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:inStorage storage:inStorage];
+	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:inLength storage:inStorage];
 	
 	//MTLResourceOptions			resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
 	@synchronized (self)	{
@@ -762,6 +780,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			return returnMe;
 		
 		returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
+		returnMe.descriptor = desc;
+		
 		NSError			*nsErr = [self _generateMissingGPUAssetsInBuffer:returnMe];
 		if (nsErr != nil)	{
 			NSLog(@"ERR (%@) in %s",nsErr,__func__);
@@ -775,7 +795,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b	{
-	NSLog(@"%s",__func__);
+	//NSLog(@"%s",__func__);
 	size_t			targetLength = 0;
 	if (inLength % 4096 == 0)	{
 		targetLength = inLength;
@@ -804,7 +824,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
-	NSLog(@"%s",__func__);
+	//NSLog(@"%s",__func__);
 	size_t			targetLength = inLength;
 	//size_t			pageSize = getpagesize();	//	if you do these calculations here you may wind up copying more data from the read ptr than you're allowed to.
 	//if (inLength % pageSize == 0)	{

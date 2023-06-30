@@ -25,6 +25,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (instancetype) initWithDevice:(id<MTLDevice>)n;
 
+@property (readonly) id<MTLDevice> device;
+@property (readonly) CVMetalTextureCacheRef cvTexCache;
+
 - (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) rgba8TexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) rgb10a2TexSized:(NSSize)n;
@@ -54,8 +57,6 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b;
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d;
-
-@property (readonly) id<MTLDevice> device;
 
 @end
 
