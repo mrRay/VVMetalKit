@@ -45,6 +45,15 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/VVMTLTextureImageDescriptor.h>
 #import <VVMetalKitTouch/VVMTLPool.h>
 
+#import <VVMetalKitTouch/VVMTLScene.h>
+#import <VVMetalKitTouch/VVMTLComputeScene.h>
+#import <VVMetalKitTouch/VVMTLRenderScene.h>
+
+#import <VVMetalKitTouch/VVMTLTextureImageRectView.h>
+#import <VVMetalKitTouch/VVMTLTextureImageView.h>
+#import <VVMetalKitTouch/VVMTLTextureImageRectViewShaderTypes.h>
+#import <VVMetalKitTouch/VVMTLTextureImageShaderTypes.h>
+
 #else
 
 #import <VVMetalKit/RenderProperties.h>
@@ -80,6 +89,15 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/VVMTLTextureImage.h>
 #import <VVMetalKit/VVMTLTextureImageDescriptor.h>
 #import <VVMetalKit/VVMTLPool.h>
+
+#import <VVMetalKit/VVMTLScene.h>
+#import <VVMetalKit/VVMTLComputeScene.h>
+#import <VVMetalKit/VVMTLRenderScene.h>
+
+#import <VVMetalKit/VVMTLTextureImageRectView.h>
+#import <VVMetalKit/VVMTLTextureImageView.h>
+#import <VVMetalKit/VVMTLTextureImageRectViewShaderTypes.h>
+#import <VVMetalKit/VVMTLTextureImageShaderTypes.h>
 
 #endif
 

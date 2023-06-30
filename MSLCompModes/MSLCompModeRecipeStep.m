@@ -135,7 +135,7 @@ static inline void GaussianElimination(float *input, int in);
 
 
 @synthesize img=_img;
-- (void) setImg:(MTLImgBuffer *)n	{
+- (void) setImg:(id<VVMTLTextureImage>)n	{
 	_img = n;
 	
 	NSRect		srcRect = n.srcRect;
@@ -174,7 +174,7 @@ static inline void GaussianElimination(float *input, int in);
 	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TR);
 	verts[3].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
 }
-- (MTLImgBuffer *) img	{
+- (id<VVMTLTextureImage>) img	{
 	return _img;
 }
 

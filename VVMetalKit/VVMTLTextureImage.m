@@ -70,8 +70,10 @@
 }
 
 - (void) dealloc	{
+	//NSLog(@"%s ... %@",__func__,self);
 	//	if this object wants to be deleted immediately...
 	if (preferDeletion)	{
+		//NSLog(@"\t\tprefers deletion...");
 		//	execute the recycle block immediately- we'll free the underlying resources in a sec
 		if (deletionBlock != nil)	{
 			deletionBlock(self);
@@ -79,15 +81,29 @@
 	}
 	//	else we're NOT deleting the object- we are instead going to recycle it
 	else	{
-		//	make a copy of myself and pass it back to the pool
-		VVMTLTextureImage		*tmpCopy = [self copy];
+		//NSLog(@"\t\trecycling...");
+		//	make a copy of myself- resetting transient properties- and pass it back to the pool
+		//VVMTLTextureImage		*tmpCopy = [self copy];	//	NO, do NOT copy like this (it will try to retain the object being copied)
+		VVMTLTextureImage		*tmpCopy = [[VVMTLTextureImage alloc] initWithDescriptor:(VVMTLTextureImageDescriptor*)descriptor];
+		tmpCopy.texture = texture;
+		tmpCopy.buffer = buffer;
+		tmpCopy.iosfc = _iosfc;
+		tmpCopy.cvpb = _cvpb;
+		tmpCopy.bytesPerRow = 0;
 		
-		//	reset the transient properties before we recycle it!
+		tmpCopy.width = width;
+		tmpCopy.height = height;
 		tmpCopy.srcRect = NSMakeRect(0,0,width,height);
 		tmpCopy.flipH = NO;
 		tmpCopy.flipV = NO;
+		
 		tmpCopy.time = kCMTimeZero;
 		tmpCopy.duration = kCMTimeZero;
+		
+		tmpCopy.pool = pool;
+		tmpCopy.supportingObject = supportingObject;
+		tmpCopy.supportingContext = supportingContext;
+		tmpCopy.deletionBlock = deletionBlock;
 		
 		if (tmpCopy != nil)	{
 			[pool recycleObject:tmpCopy];
@@ -104,6 +120,27 @@
 
 - (BOOL) isVVMTLTextureImage	{
 	return YES;
+}
+
+- (BOOL) isEqual:(id)n	{
+	if (n == nil)
+		return NO;
+	if (![(NSObject*)n isVVMTLTextureImage])
+		return NO;
+	VVMTLTextureImage		*recast = (VVMTLTextureImage *)n;
+	
+	id<MTLTexture>		tex = texture;
+	id<MTLBuffer>		buf = buffer.buffer;
+	
+	id<MTLTexture>		recastTex = recast.texture;
+	id<MTLBuffer>		recastBuf = recast.buffer.buffer;
+	
+	BOOL			texMatch = ((tex==nil && recastTex==nil) || (tex!=nil && recastTex!=nil && [tex isEqual:recastTex]));
+	BOOL			bufferMatch = ((buf==nil && recastBuf==nil) || (buf!=nil && recastBuf!=nil && [buf isEqual:recastBuf]));
+	if (!texMatch || !bufferMatch)
+		return NO;
+	
+	return [self.descriptor matchForRecycling:recast.descriptor];
 }
 
 #pragma mark - VVMTLTextureImage conformance
@@ -144,10 +181,24 @@
 	return _cvpb;
 }
 
+@synthesize bytesPerRow;
+
+- (void) populateStruct:(struct VVMTLTextureImageStruct * __nullable)n	{
+	if (n==nil)
+		return;
+	NSRect		tmpRect = self.srcRect;
+	n->srcRect.origin.x = round(tmpRect.origin.x);
+	n->srcRect.origin.y = round(tmpRect.origin.y);
+	n->srcRect.size.width = round(tmpRect.size.width);
+	n->srcRect.size.height = round(tmpRect.size.height);
+	n->flipV = self.flipV;
+	n->flipH = self.flipH;
+}
+
 #pragma mark - NSCopying conformance
 
 - (id) copyWithZone:(NSZone *)z	{
-	VVMTLTextureImage		*returnMe = [[VVMTLTextureImage alloc] init];
+	VVMTLTextureImage		*returnMe = [[VVMTLTextureImage allocWithZone:z] initWithDescriptor:(VVMTLTextureImageDescriptor*)descriptor];
 	VVMTLTextureImage		*srcTex = (_srcTexImg != nil) ? _srcTexImg : self;
 	
 	//	VVMTLTextureImage conformance
@@ -155,6 +206,7 @@
 	returnMe.buffer = nil;
 	returnMe.iosfc = nil;
 	returnMe.cvpb = nil;
+	returnMe.bytesPerRow = bytesPerRow;
 	returnMe.srcTexImg = srcTex;	//	make sure the copy retains the src!
 	
 	//	VVMTLImage conformance
@@ -184,6 +236,9 @@
 
 @synthesize width;
 @synthesize height;
+- (NSSize) size	{
+	return NSMakeSize(width,height);
+}
 @synthesize srcRect;
 @synthesize flipH;
 @synthesize flipV;

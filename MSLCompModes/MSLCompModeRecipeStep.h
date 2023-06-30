@@ -10,7 +10,7 @@
 
 #import <MSLCompModes/MSLCompModeSceneShaderTypes.h>
 
-@class MTLImgBuffer;
+@protocol VVMTLTextureImage;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -30,7 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 }
 
 //	setting this also populates the 'texCoord' members of the verts automatically using the 'srcRect', 'flipH', and 'flipV' properties of the img
-@property (strong) MTLImgBuffer * img;
+@property (strong) id<VVMTLTextureImage> img;
 
 //	if you don't use this then you'll need to populate the vertex positions manually
 - (void) populateVertexPositionsWithRect:(NSRect)n;

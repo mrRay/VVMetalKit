@@ -1,5 +1,5 @@
 #include <metal_stdlib>
-#include "MTLImgBufferShaderTypes.h"
+#include "VVMTLTextureImageShaderTypes.h"
 #include "SizingTool_metal.h"
 
 using namespace metal;
@@ -8,7 +8,7 @@ using namespace metal;
 kernel void CopierMTLSceneFunc(
 	texture2d<float, access::sample> srcTexture [[ texture(0) ]],
 	texture2d<float, access::write> outTexture [[ texture(1) ]],
-	constant MTLImgBufferStruct * geoBuffer [[ buffer(2) ]],
+	constant VVMTLTextureImageStruct * geoBuffer [[ buffer(2) ]],
 	uint2 gid [[ thread_position_in_grid ]])
 {
 	if (gid.x >= outTexture.get_width() || gid.y >= outTexture.get_height())

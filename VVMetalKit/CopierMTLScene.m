@@ -1,6 +1,6 @@
 #import "CopierMTLScene.h"
-#import "MTLImgBufferPool.h"
-#import "MTLImgBufferShaderTypes.h"
+#import "VVMTLPool.h"
+#import "VVMTLTextureImageShaderTypes.h"
 #import "RenderProperties.h"
 #import "SizingTool_objc.h"
 #import "TargetConditionals.h"
@@ -19,7 +19,7 @@
 
 
 @interface CopierMTLScene ()
-@property (strong) MTLImgBuffer * inputImage;
+@property (strong) id<VVMTLTextureImage> inputImage;
 //@property (readwrite) BOOL autoCropToSrcRect;
 @property (readwrite) BOOL allowScaling;
 @property (readwrite) SizingMode sizingMode;
@@ -54,7 +54,7 @@
 }
 
 
-- (void) copyImg:(MTLImgBuffer *)inSrc toImg:(MTLImgBuffer *)inDst allowScaling:(BOOL)inScale sizingMode:(SizingMode)inSM inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (void) copyImg:(id<VVMTLTextureImage>)inSrc toImg:(id<VVMTLTextureImage>)inDst allowScaling:(BOOL)inScale sizingMode:(SizingMode)inSM inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	if (inSrc==nil || inDst==nil || inCB==nil)	{
 		NSLog(@"ERR: prereqs not met, %s",__func__);
 		return;
@@ -79,13 +79,13 @@
 - (void) renderCallback	{
 	//NSLog(@"%s",__func__);
 	
-	MTLImgBuffer		*inputImage = self.inputImage;
+	id<VVMTLTextureImage>		inputImage = self.inputImage;
 	[self.computeEncoder setTexture:inputImage.texture atIndex:0];
 	
-	MTLImgBuffer		*renderTarget = self.renderTarget;
+	id<VVMTLTextureImage>		renderTarget = self.renderTarget;
 	[self.computeEncoder setTexture:self.renderTarget.texture atIndex:1];
 	
-	MTLImgBufferStruct		geoStruct;
+	VVMTLTextureImageStruct		geoStruct;
 	[inputImage populateStruct:&geoStruct];
 	geoStruct.dstRect = MakeRect(0.0, 0.0, renderTarget.width, renderTarget.height);
 	geoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
@@ -99,16 +99,16 @@
 	
 	id<MTLBuffer>			geoBuffer = [self.device
 		newBufferWithBytes:&geoStruct
-		length:sizeof(MTLImgBufferStruct)
+		length:sizeof(VVMTLTextureImageStruct)
 		options:MTLResourceStorageModeShared];
 	[self.computeEncoder setBuffer:geoBuffer offset:0 atIndex:2];
 	
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 		//	make sure the input image buffer is retained through the end of the command buffer
-		MTLImgBuffer		*tmpBufferA = self.inputImage;
+		id<VVMTLTextureImage>		tmpBufferA = self.inputImage;
 		tmpBufferA = nil;
 		//	make sure the render target is retained through the end of the command buffer
-		MTLImgBuffer		*tmpBufferB = self.renderTarget;
+		id<VVMTLTextureImage>		tmpBufferB = self.renderTarget;
 		tmpBufferB = nil;
 		//	make sure the geo buffer is retained through the end of the command buffer
 		id<MTLBuffer>		tmpBufferC = geoBuffer;

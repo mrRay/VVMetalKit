@@ -2,10 +2,10 @@
 
 #import <TargetConditionals.h>
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#import <VVMetalKitTouch/MTLComputeScene.h>
+#import <VVMetalKitTouch/VVMTLComputeScene.h>
 //#import <VVMetalKitTouch/VVSizingTool.h>
 #else
-#import <VVMetalKit/MTLComputeScene.h>
+#import <VVMetalKit/VVMTLComputeScene.h>
 //#import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingToolTypes.h>
 #endif
@@ -15,9 +15,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-@interface CopierMTLScene : MTLComputeScene
+@interface CopierMTLScene : VVMTLComputeScene
 
-- (void) copyImg:(MTLImgBuffer *)inSrc toImg:(MTLImgBuffer *)inDst allowScaling:(BOOL)inScale sizingMode:(SizingMode)inSM inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+- (void) copyImg:(id<VVMTLTextureImage>)inSrc toImg:(id<VVMTLTextureImage>)inDst allowScaling:(BOOL)inScale sizingMode:(SizingMode)inSM inCommandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end
 

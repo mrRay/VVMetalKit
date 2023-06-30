@@ -114,6 +114,20 @@
 		1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB2702C26486F2300C2E931 /* MTLRenderScene.m */; };
 		1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */; };
 		1ABDF7AE2A214E3D00EE8708 /* VVMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABDF7A12A214E3D00EE8708 /* VVMacros.h */; };
+		1ABE244F2A4DE87400317187 /* VVMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE244D2A4DE87400317187 /* VVMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE24502A4DE87500317187 /* VVMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE244E2A4DE87400317187 /* VVMTLScene.m */; };
+		1ABE24532A4DE88200317187 /* VVMTLComputeScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24512A4DE88200317187 /* VVMTLComputeScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE24542A4DE88200317187 /* VVMTLComputeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE24522A4DE88200317187 /* VVMTLComputeScene.m */; };
+		1ABE24572A4DE88B00317187 /* VVMTLRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24552A4DE88B00317187 /* VVMTLRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE24582A4DE88B00317187 /* VVMTLRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE24562A4DE88B00317187 /* VVMTLRenderScene.m */; };
+		1ABE245B2A4DE8A500317187 /* VVMTLTextureImageRectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24592A4DE8A500317187 /* VVMTLTextureImageRectView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE245C2A4DE8A500317187 /* VVMTLTextureImageRectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE245A2A4DE8A500317187 /* VVMTLTextureImageRectView.m */; };
+		1ABE245F2A4DE8B400317187 /* VVMTLTextureImageView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE245D2A4DE8B400317187 /* VVMTLTextureImageView.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE24602A4DE8B400317187 /* VVMTLTextureImageView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE245E2A4DE8B400317187 /* VVMTLTextureImageView.m */; };
+		1ABE24632A4DE8E600317187 /* VVMTLTextureImageRectView.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */; };
+		1ABE24652A4DE90400317187 /* VVMTLTextureImageShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE24662A4DE90A00317187 /* VVMTLTextureImageRectViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */; };
 		1AC7849B26372A6200594F31 /* MTLImgBufferAdditions_Private.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */; };
 		1AC82CC927FF2901009A9989 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC82CCA27FF2901009A9989 /* CustomMetalView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -421,6 +435,20 @@
 		1AB2702C26486F2300C2E931 /* MTLRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MTLRenderScene.m; sourceTree = "<group>"; };
 		1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SwizzleMTLSceneTypes.m; sourceTree = "<group>"; };
 		1ABDF7A12A214E3D00EE8708 /* VVMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVMacros.h; sourceTree = "<group>"; };
+		1ABE244D2A4DE87400317187 /* VVMTLScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLScene.h; sourceTree = "<group>"; };
+		1ABE244E2A4DE87400317187 /* VVMTLScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLScene.m; sourceTree = "<group>"; };
+		1ABE24512A4DE88200317187 /* VVMTLComputeScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLComputeScene.h; sourceTree = "<group>"; };
+		1ABE24522A4DE88200317187 /* VVMTLComputeScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLComputeScene.m; sourceTree = "<group>"; };
+		1ABE24552A4DE88B00317187 /* VVMTLRenderScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLRenderScene.h; sourceTree = "<group>"; };
+		1ABE24562A4DE88B00317187 /* VVMTLRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLRenderScene.m; sourceTree = "<group>"; };
+		1ABE24592A4DE8A500317187 /* VVMTLTextureImageRectView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageRectView.h; sourceTree = "<group>"; };
+		1ABE245A2A4DE8A500317187 /* VVMTLTextureImageRectView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureImageRectView.m; sourceTree = "<group>"; };
+		1ABE245D2A4DE8B400317187 /* VVMTLTextureImageView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageView.h; sourceTree = "<group>"; };
+		1ABE245E2A4DE8B400317187 /* VVMTLTextureImageView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureImageView.m; sourceTree = "<group>"; };
+		1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageRectViewShaderTypes.h; sourceTree = "<group>"; };
+		1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VVMTLTextureImageRectView.metal; sourceTree = "<group>"; };
+		1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageShaderTypes.h; sourceTree = "<group>"; };
+		1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLScene_priv.h; sourceTree = "<group>"; };
 		1AC7849926372A6200594F31 /* MTLImgBufferAdditions_Private.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MTLImgBufferAdditions_Private.h; sourceTree = "<group>"; };
 		1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKitTouch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1ADBC74F2A141CAB008FB1CA /* libISFGLSLGenerator.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libISFGLSLGenerator.dylib; path = submodules/ISFMSLKit/submodules/ISFGLSLGenerator/build/install/lib/libISFGLSLGenerator.dylib; sourceTree = SOURCE_ROOT; };
@@ -486,13 +514,13 @@
 		1A0FBE83260E1C2E00FF39BB = {
 			isa = PBXGroup;
 			children = (
-				1A3BB7672A13E783003CDAE8 /* ISFMSLKit */,
+				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
 				1AED790C2A1524D6004C0126 /* MSLCompModes */,
+				1A3BB7672A13E783003CDAE8 /* ISFMSLKit */,
 				1A8C0409261631FC00038DC9 /* Frameworks */,
 				1A3BB7A02A13EA78003CDAE8 /* PINCache.xcodeproj */,
 				1A3BB7BB2A13EACF003CDAE8 /* PINOperation.xcodeproj */,
 				1A0FBE8E260E1C2E00FF39BB /* Products */,
-				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
 			);
 			sourceTree = "<group>";
 		};
@@ -526,6 +554,20 @@
 				1A20CF022A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h */,
 				1A976B662A461D4C00C654FA /* VVMTLTimestamp.h */,
 				1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */,
+				1ABE244D2A4DE87400317187 /* VVMTLScene.h */,
+				1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */,
+				1ABE244E2A4DE87400317187 /* VVMTLScene.m */,
+				1ABE24512A4DE88200317187 /* VVMTLComputeScene.h */,
+				1ABE24522A4DE88200317187 /* VVMTLComputeScene.m */,
+				1ABE24552A4DE88B00317187 /* VVMTLRenderScene.h */,
+				1ABE24562A4DE88B00317187 /* VVMTLRenderScene.m */,
+				1ABE24592A4DE8A500317187 /* VVMTLTextureImageRectView.h */,
+				1ABE245A2A4DE8A500317187 /* VVMTLTextureImageRectView.m */,
+				1ABE245D2A4DE8B400317187 /* VVMTLTextureImageView.h */,
+				1ABE245E2A4DE8B400317187 /* VVMTLTextureImageView.m */,
+				1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */,
+				1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */,
+				1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */,
 				1A0FBEDD260E257600FF39BB /* RenderProperties.h */,
 				1A0FBEDE260E257600FF39BB /* RenderProperties.m */,
 				1A9174A92A12D7D9005274B4 /* MTLEncodedDrawObject.h */,
@@ -680,6 +722,13 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1ABE244F2A4DE87400317187 /* VVMTLScene.h in Headers */,
+				1ABE24532A4DE88200317187 /* VVMTLComputeScene.h in Headers */,
+				1ABE24572A4DE88B00317187 /* VVMTLRenderScene.h in Headers */,
+				1ABE245B2A4DE8A500317187 /* VVMTLTextureImageRectView.h in Headers */,
+				1ABE245F2A4DE8B400317187 /* VVMTLTextureImageView.h in Headers */,
+				1ABE24662A4DE90A00317187 /* VVMTLTextureImageRectViewShaderTypes.h in Headers */,
+				1ABE24652A4DE90400317187 /* VVMTLTextureImageShaderTypes.h in Headers */,
 				1A4819792816C7D600CE2D00 /* BicubicInterpolation.h in Headers */,
 				1A4819732816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */,
@@ -714,6 +763,7 @@
 				1A20CF062A499BC300F2EDBB /* VVMTLBufferDescriptor.h in Headers */,
 				1A976B712A461D4C00C654FA /* VVMTLTextureImage.h in Headers */,
 				1A20CF0A2A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.h in Headers */,
+				1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */,
 				1A20CF0E2A4A1A3700F2EDBB /* VVMTLPool.h in Headers */,
 				1AE0E0922706340E00F03B4E /* MTLScene_priv.h in Headers */,
 			);
@@ -1082,12 +1132,16 @@
 			files = (
 				1A9924132A4DA43400F5094D /* VVMTLTextureImage.m in Sources */,
 				1A0FBEC6260E1F5000FF39BB /* MTLImgBufferRectView.metal in Sources */,
+				1ABE24602A4DE8B400317187 /* VVMTLTextureImageView.m in Sources */,
 				1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */,
 				1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */,
 				1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */,
 				1A0FBEC0260E1F5000FF39BB /* MTLScene.m in Sources */,
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A9924052A4DA41F00F5094D /* VVMTLBuffer.m in Sources */,
+				1ABE24502A4DE87500317187 /* VVMTLScene.m in Sources */,
+				1ABE245C2A4DE8A500317187 /* VVMTLTextureImageRectView.m in Sources */,
+				1ABE24542A4DE88200317187 /* VVMTLComputeScene.m in Sources */,
 				1A0A57A728F5F49B007F5547 /* MTLImgBufferRectView.m in Sources */,
 				1A9174AD2A12D7D9005274B4 /* MTLEncodedDrawObject.m in Sources */,
 				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.mm in Sources */,
@@ -1098,10 +1152,12 @@
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
 				1A0FBEB6260E1F5000FF39BB /* MTLImgBufferView.m in Sources */,
 				1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */,
+				1ABE24582A4DE88B00317187 /* VVMTLRenderScene.m in Sources */,
 				1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */,
 				1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */,
 				1A48197C2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */,
 				1AB2702E26486F2300C2E931 /* MTLRenderScene.m in Sources */,
+				1ABE24632A4DE8E600317187 /* VVMTLTextureImageRectView.metal in Sources */,
 				1A0FBEBB260E1F5000FF39BB /* MTLImgBufferPool.m in Sources */,
 				1A20CF0B2A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.m in Sources */,
 				1A0FBEBF260E1F5000FF39BB /* MTLImgBuffer.m in Sources */,

@@ -23,6 +23,7 @@
 
 @property (assign,readwrite) NSUInteger width;	//	width of the GPU asset
 @property (assign,readwrite) NSUInteger height;	//	height of the GPU asset
+@property (readonly) NSSize size;	//	the size of the GPU asset.  read-only, basically just creates an NSSize from 'width' and 'height'
 @property (assign,readwrite) NSRect srcRect;	//	defines a rectangular region of the GPU asset (origin is in bottom left).  the "image" consists of the texture data within this region.  usually the full width/height, but you can do texture atlas stuff, too.  if your texture is flipped vertically, you need to adjust this srcRect to take the flippedness into account.
 @property (assign,readwrite) BOOL flipH;	//	whether or not the image data in 'srcRect' needs to be flipped horizontally when being sampled or displayed
 @property (assign,readwrite) BOOL flipV;	//	whether or not the image data in 'srcRect' needs to be flipped vertically when being sampled or displayed

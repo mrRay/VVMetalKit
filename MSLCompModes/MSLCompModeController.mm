@@ -275,7 +275,7 @@ PUT_FUNCTION_DEFINITIONS_HERE
 	NSString			*shaderTypeData = [NSString stringWithContentsOfFile:shaderTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
 	//NSLog(@"shaderTypeData is %@",shaderTypeData);
 	
-	libBundle = [NSBundle bundleForClass:[MTLPool class]];
+	libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
 	libBundleURL = libBundle.bundleURL;
 	NSURL				*sizingToolTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"SizingToolTypes.h"];
 	NSString			*sizingToolTypeData = [NSString stringWithContentsOfFile:sizingToolTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];

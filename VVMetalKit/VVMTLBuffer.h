@@ -10,12 +10,12 @@
 
 #import <Metal/Metal.h>
 
-#import "VVMTLImage.h"
-#import "VVMTLTimestamp.h"
-#import "VVMTLRecycleable.h"
-#import "VVMTLRecyclingPool.h"
-#import "VVMTLRecycleableDescriptor.h"
-#import "VVMTLBufferDescriptor.h"
+#import <VVMetalKit/VVMTLImage.h>
+#import <VVMetalKit/VVMTLTimestamp.h>
+#import <VVMetalKit/VVMTLRecycleable.h>
+#import <VVMetalKit/VVMTLRecyclingPool.h>
+#import <VVMetalKit/VVMTLRecycleableDescriptor.h>
+#import <VVMetalKit/VVMTLBufferDescriptor.h>
 
 
 

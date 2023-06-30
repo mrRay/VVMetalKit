@@ -8,7 +8,7 @@
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 
-#import "VVMTLRecycleableDescriptor.h"
+#import <VVMetalKit/VVMTLRecycleableDescriptor.h>
 
 NS_ASSUME_NONNULL_BEGIN
 

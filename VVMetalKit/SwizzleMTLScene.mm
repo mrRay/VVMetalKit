@@ -1,10 +1,10 @@
 #import "SwizzleMTLScene.h"
 #import "TargetConditionals.h"
-#import "MTLImgBufferPool.h"
-//#import "MTLImgBufferShaderTypes.h"
+#import "VVMTLPool.h"
+//#import "VVMTLTextureImageShaderTypes.h"
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
-#import "MTLScene_priv.h"
+#import "VVMTLScene_priv.h"
 //#import <VVCore/VVCore.h>
 
 
@@ -19,14 +19,14 @@
 
 @interface SwizzleMTLScene ()	{
 	id<MTLBuffer>		slugBuffer;	//	we can't pass nil buffers to metal because...i don't know why not
-	MTLImgBuffer		*slugTexture;	//	we can't pass nil textures to metal because...if we do, the metal debugger doesn't work.
+	id<VVMTLTextureImage>		slugTexture;	//	we can't pass nil textures to metal because...if we do, the metal debugger doesn't work.
 }
 
 @property (strong) id<MTLBuffer> srcBuffer;
-@property (strong) MTLImgBuffer * srcRGBTexture;
+@property (strong) id<VVMTLTextureImage> srcRGBTexture;
 
 @property (strong) id<MTLBuffer> dstBuffer;
-@property (strong) MTLImgBuffer * dstRGBTexture;
+@property (strong) id<VVMTLTextureImage> dstRGBTexture;
 
 //	contains information describing how the shader should execute (the compute shader needs this)
 @property (readwrite) SwizzleShaderOpInfo info;
@@ -58,7 +58,7 @@
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 		
 		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeShared];
-		slugTexture = [[MTLImgBufferPool global] rgbaFloatTexSized:NSMakeSize(16,16)];
+		slugTexture = [VVMTLPool.global rgbaFloatTexSized:NSMakeSize(16,16)];
 	}
 	return self;
 }
@@ -115,7 +115,7 @@
 	return returnMe;
 }
 
-- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	//NSLog(@"%s",__func__);
 	//NSLog(@"%s ... %@ -> %@",__func__,[NSString stringFromFourCC:inInfo.srcImg.pf],[NSString stringFromFourCC:inInfo.dstImg.pf]);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
@@ -210,7 +210,7 @@
 	//	[blitEncoder endEncoding];
 	//}
 }
-- (void) convertSrcRGBTexture:(MTLImgBuffer *)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable MTLImgBuffer *)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
+- (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
 	//if (inSrc == nil || inDst == nil)
 	if (inSrc==nil && !(inDst!=nil || inRGB != nil))
@@ -289,9 +289,9 @@
 
 - (void) renderCallback	{
 	id<MTLBuffer>		srcBuffer = self.srcBuffer;
-	MTLImgBuffer		*srcRGBTex = self.srcRGBTexture;
+	id<VVMTLTextureImage>		srcRGBTex = self.srcRGBTexture;
 	id<MTLBuffer>		dstBuffer = self.dstBuffer;
-	MTLImgBuffer		*dstRGBTex = self.dstRGBTexture;
+	id<VVMTLTextureImage>		dstRGBTex = self.dstRGBTexture;
 	bool				outputToBuffer = true;
 	
 	if (srcBuffer == nil)
@@ -338,7 +338,7 @@
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 		id<MTLBuffer>		a = srcBuffer;
 		id<MTLBuffer>		b = dstBuffer;
-		MTLImgBuffer		*c = dstRGBTex;
+		id<VVMTLTextureImage>		c = dstRGBTex;
 		id<MTLBuffer>		d = infoBuffer;
 		id<MTLBuffer>		e = writeBufferBuffer;
 		

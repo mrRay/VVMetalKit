@@ -26,6 +26,8 @@
 static NSUInteger TEXINDEX = 0;
 //static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
 
+static VVMTLPool * __nullable _globalVVMTLPool = nil;
+
 
 
 
@@ -47,6 +49,12 @@ static NSUInteger TEXINDEX = 0;
 @implementation VVMTLPool
 
 
++ (void) setGlobal:(VVMTLPool *)n	{
+	_globalVVMTLPool = n;
+}
++ (VVMTLPool *) global	{
+	return _globalVVMTLPool;
+}
 - (instancetype) initWithDevice:(id<MTLDevice>)n	{
 	self = [super init];
 	
@@ -272,6 +280,7 @@ static NSUInteger TEXINDEX = 0;
 	
 	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
 	returnMe.buffer = backingBuffer;
+	returnMe.bytesPerRow = bpr;
 	
 	@synchronized (self)	{
 		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
@@ -344,6 +353,7 @@ static NSUInteger TEXINDEX = 0;
 	
 	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
 	returnMe.buffer = backingBuffer;
+	returnMe.bytesPerRow = bpr;
 	
 	@synchronized (self)	{
 		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
@@ -456,7 +466,10 @@ static NSUInteger TEXINDEX = 0;
 	[cmdBuffer waitUntilCompleted];
 	float		*contents = (float *)[newFrame.buffer contents];
 	*/
-	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
+	size_t				targetLength = bpr * s.height;
+	if (targetLength % 4096 != 0)
+		targetLength = 4096 - (targetLength % 4096) + targetLength;
+	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:targetLength storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
 	if (backingBuffer == nil)	{
 		NSLog(@"ERR: unable to make backing buffer in %s",__func__);
 		return nil;
@@ -474,6 +487,7 @@ static NSUInteger TEXINDEX = 0;
 	
 	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
 	returnMe.buffer = backingBuffer;
+	returnMe.bytesPerRow = bpr;
 	
 	@synchronized (self)	{
 		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
@@ -555,7 +569,7 @@ static NSUInteger TEXINDEX = 0;
 		createWithWidth:round(n.width)
 		height:round(n.height)
 		pixelFormat:MTLPixelFormatBGRA8Unorm
-		storage:MTLStorageModeShared
+		storage:MTLStorageModeManaged
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	desc.iosfcBacking = YES;
 	desc.cvpbBacking = YES;
@@ -574,6 +588,7 @@ static NSUInteger TEXINDEX = 0;
 	}
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8IO"];
+	returnMe.preferDeletion = NO;
 	
 	return returnMe;
 }
@@ -673,11 +688,69 @@ static NSUInteger TEXINDEX = 0;
 	return returnMe;
 }
 
+- (id<VVMTLTextureImage>) textureForIOSurface:(IOSurfaceRef)n	{
+	if (n == NULL)
+		return nil;
+	
+	MTLPixelFormat		targetPF = MTLPixelFormatBGRA8Unorm;
+	OSType				fourCC = IOSurfaceGetPixelFormat(n);
+	switch (fourCC)	{
+	case kCVPixelFormatType_OneComponent8:
+		targetPF = MTLPixelFormatR8Unorm;
+		//targetPF = MTLPixelFormatR8Unorm_sRGB;
+		break;
+	case kCVPixelFormatType_TwoComponent8:
+		targetPF = MTLPixelFormatRG8Unorm;
+		//targetPF = MTLPixelFormatRG8Unorm_sRGB;
+		break;
+	case kCVPixelFormatType_32RGBA:
+		targetPF = MTLPixelFormatRGBA8Unorm;
+		//targetPF = MTLPixelFormatRGBA8Unorm_sRGB;
+		break;
+	case kCVPixelFormatType_32BGRA:
+		targetPF = MTLPixelFormatBGRA8Unorm;
+		//targetPF = MTLPixelFormatBGRA8Unorm_sRGB;
+		break;
+	case kCVPixelFormatType_422YpCbCr8:
+		NSLog(@"ERR: YCbCr fourCC not supported here (%s)",__func__);
+		return nil;
+	//case 0x00:
+	default:
+		NSLog(@"ERR: unrecognized fourCC (%X) in %s",fourCC,__func__);
+		return nil;
+	}
+	
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:IOSurfaceGetWidth(n)
+		height:IOSurfaceGetHeight(n)
+		pixelFormat:targetPF
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	desc.iosfcBacking = YES;
+	
+	VVMTLTextureImage		*returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
+	returnMe.iosfc = n;
+	returnMe.preferDeletion = YES;
+	
+	@synchronized (self)	{
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- iosfc"];
+	
+	return returnMe;
+}
+
 
 #pragma mark - buffer creation
 
 
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage	{
+	NSLog(@"%s",__func__);
 	VVMTLBuffer			*returnMe = nil;
 	
 	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:inStorage storage:inStorage];
@@ -702,6 +775,7 @@ static NSUInteger TEXINDEX = 0;
 }
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b	{
+	NSLog(@"%s",__func__);
 	size_t			targetLength = 0;
 	if (inLength % 4096 == 0)	{
 		targetLength = inLength;
@@ -730,14 +804,15 @@ static NSUInteger TEXINDEX = 0;
 }
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
-	size_t			targetLength = 0;
-	size_t			pageSize = getpagesize();
-	if (inLength % pageSize == 0)	{
-		targetLength = inLength;
-	}
-	else	{
-		targetLength = pageSize - (inLength % pageSize) + inLength;
-	}
+	NSLog(@"%s",__func__);
+	size_t			targetLength = inLength;
+	//size_t			pageSize = getpagesize();	//	if you do these calculations here you may wind up copying more data from the read ptr than you're allowed to.
+	//if (inLength % pageSize == 0)	{
+	//	targetLength = inLength;
+	//}
+	//else	{
+	//	targetLength = pageSize - (inLength % pageSize) + inLength;
+	//}
 	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
 	
 	MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
@@ -777,6 +852,9 @@ static NSUInteger TEXINDEX = 0;
 - (NSError *) _generateMissingGPUAssetsInTexImg:(VVMTLTextureImage *)n	{
 	if (n == nil)
 		return nil;
+	
+	n.pool = self;
+	
 	VVMTLTextureImageDescriptor		*desc = (VVMTLTextureImageDescriptor *)n.descriptor;
 	//	if we couldn't find a pixel format, bail immediately
 	OSType			cvPixelFormat = BestGuessCVPixelFormatTypeForMTLPixelFormat(desc.pfmt);
@@ -795,46 +873,48 @@ static NSUInteger TEXINDEX = 0;
 	BOOL			iosfcBacking = desc.iosfcBacking;
 	BOOL			cvpbBacking = desc.cvpbBacking;
 	
-	size_t			bytesPerRow = 0;
-	switch (desc.pfmt)	{
-	case MTLPixelFormatR8Unorm:	//	??
-		bytesPerRow = size.width * 8 * 1 * size.height / 8;
-		break;
-	
-	case MTLPixelFormatRG8Unorm:
-		bytesPerRow = size.width * 8 * 2 * size.height / 8;
-		break;
-	
-	case MTLPixelFormatBGRG422:	//	BM stuff
-		bytesPerRow = size.width * 8 * 2 * size.height / 8;
-		break;
-	case MTLPixelFormatGBGR422:	//	BM stuff
-		bytesPerRow = size.width * 8 * 2 * size.height / 8;
-		break;
-	case MTLPixelFormatRGBA8Unorm:
-		bytesPerRow = size.width * 8 * 4 * size.height / 8;
-		break;
-	case MTLPixelFormatBGRA8Unorm:
-		bytesPerRow = size.width * 8 * 4 * size.height / 8;
-		break;
-	
-	case MTLPixelFormatRGBA32Float:
-		bytesPerRow = size.width * 32 * 4 * size.height / 8;
-		break;
-	
-	case MTLPixelFormatRGB10A2Uint:	//	BM stuff
-		bytesPerRow = size.width * 32 * size.height / 8;
-		break;
-	case MTLPixelFormatRGB10A2Unorm:	//	not used?
-		bytesPerRow = size.width * 32 * size.height / 8;
-		break;
-	
-	case MTLPixelFormatRGBA16Uint:
-		bytesPerRow = size.width * 16 * 4 * size.height / 8;
-		break;
-	default:
-		//	intentionally blank
-		break;
+	size_t			bytesPerRow = n.bytesPerRow;
+	if (bytesPerRow == 0)	{
+		switch (desc.pfmt)	{
+		case MTLPixelFormatR8Unorm:	//	??
+			bytesPerRow = size.width * 8 * 1 / 8;
+			break;
+		
+		case MTLPixelFormatRG8Unorm:
+			bytesPerRow = size.width * 8 * 2 / 8;
+			break;
+		
+		case MTLPixelFormatBGRG422:	//	BM stuff
+			bytesPerRow = size.width * 8 * 2 / 8;
+			break;
+		case MTLPixelFormatGBGR422:	//	BM stuff
+			bytesPerRow = size.width * 8 * 2 / 8;
+			break;
+		case MTLPixelFormatRGBA8Unorm:
+			bytesPerRow = size.width * 8 * 4 / 8;
+			break;
+		case MTLPixelFormatBGRA8Unorm:
+			bytesPerRow = size.width * 8 * 4 / 8;
+			break;
+		
+		case MTLPixelFormatRGBA32Float:
+			bytesPerRow = size.width * 32 * 4 / 8;
+			break;
+		
+		case MTLPixelFormatRGB10A2Uint:	//	BM stuff
+			bytesPerRow = size.width * 32 / 8;
+			break;
+		case MTLPixelFormatRGB10A2Unorm:	//	not used?
+			bytesPerRow = size.width * 32 / 8;
+			break;
+		
+		case MTLPixelFormatRGBA16Uint:
+			bytesPerRow = size.width * 16 * 4 / 8;
+			break;
+		default:
+			//	intentionally blank
+			break;
+		}
 	}
 	
 	//	if the descriptor indicates that we need a CVPixelBufferRef as a backing, but we don't have one yet...
@@ -860,7 +940,7 @@ static NSUInteger TEXINDEX = 0;
 	//	if the descriptor indicates that we need an IOSurfaceRef as a backing, but we don't have one yet...
 	if (iosfcBacking && iosfc == NULL)	{
 		if (cvpb != NULL)	{
-			iosfc = CVPixelBufferGetIOSurface(cvpb);
+			iosfc = CVPixelBufferGetIOSurface(cvpb);	//	note: the returned IOSurfaceRef is NOT retained!
 			if (iosfc == NULL)	{
 				return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"problem while creating iosfc from cvpb" }];
 			}
@@ -871,8 +951,6 @@ static NSUInteger TEXINDEX = 0;
 		
 		n.iosfc = iosfc;
 		
-		CFRelease(iosfc);
-		
 		bytesPerRow = IOSurfaceGetBytesPerRow(iosfc);
 	}
 	
@@ -880,6 +958,7 @@ static NSUInteger TEXINDEX = 0;
 	if (mtlBufferBacking && buffer == nil)	{
 		size_t			targetBufferLength = bytesPerRow * size.height;
 		buffer = [self bufferWithLength:targetBufferLength storage:desc.storage];
+		n.buffer = buffer;
 	}
 	
 	//	...okay, so at this point if we need a backing, we should have already created it- now we need to create a texture.
@@ -896,9 +975,16 @@ static NSUInteger TEXINDEX = 0;
 	
 	//	if there's an id<VVMTLBuffer> we want to use to back the texture...
 	if (buffer != nil)	{
+		texture = [buffer.buffer newTextureWithDescriptor:texDesc offset:0 bytesPerRow:bytesPerRow];
+		[self _labelTexture:texture];
+		n.texture = texture;
 	}
 	//	else if there's an IOSurface we want to use to back the texture...
 	else if (iosfc != NULL)	{
+		texture = [_device newTextureWithDescriptor:texDesc iosurface:iosfc plane:0];
+		[self _labelTexture:texture];
+		
+		n.texture = texture;
 	}
 	//	else it's just a plain ol' texture
 	else	{

@@ -10,7 +10,7 @@
 #import <CoreVideo/CoreVideo.h>
 #import <AppKit/AppKit.h>
 
-#import "VVMTLRecyclingPool.h"
+#import <VVMetalKit/VVMTLRecyclingPool.h>
 @protocol VVMTLTextureImage;
 @protocol VVMTLBuffer;
 
@@ -20,6 +20,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 @interface VVMTLPool : NSObject <VVMTLRecyclingPool>
+
+@property (class,strong,readwrite) VVMTLPool * global;
 
 - (instancetype) initWithDevice:(id<MTLDevice>)n;
 
@@ -44,6 +46,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) bufferForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;
 - (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
 - (id<VVMTLTextureImage>) createFromNSImage:(NSImage *)n;
+
+- (id<VVMTLTextureImage>) textureForIOSurface:(IOSurfaceRef)n;
 
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage;
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.

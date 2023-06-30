@@ -10,14 +10,14 @@
 
 #import <Metal/Metal.h>
 
-#import "VVMTLImage.h"
-#import "VVMTLTimestamp.h"
-#import "VVMTLRecycleable.h"
-#import "VVMTLRecyclingPool.h"
-#import "VVMTLRecycleableDescriptor.h"
-#import "VVMTLTextureImageDescriptor.h"
-
-#import "VVMTLBuffer.h"
+#import <VVMetalKit/VVMTLImage.h>
+#import <VVMetalKit/VVMTLTimestamp.h>
+#import <VVMetalKit/VVMTLRecycleable.h>
+#import <VVMetalKit/VVMTLRecyclingPool.h>
+#import <VVMetalKit/VVMTLRecycleableDescriptor.h>
+#import <VVMetalKit/VVMTLTextureImageDescriptor.h>
+#import <VVMetalKit/VVMTLTextureImageShaderTypes.h>
+#import <VVMetalKit/VVMTLBuffer.h>
 
 
 
@@ -36,6 +36,11 @@
 @property (assign,readwrite,nullable) IOSurfaceRef iosfc;
 //	If non-null, provides the backing for the texture (and maybe the iosfc). Receiver "retains" the CVPixelBufferRef for its lifetime.
 @property (assign,readwrite,nullable) CVPixelBufferRef cvpb;
+
+//	this is a convenience property- if it's non-zero, the backend will use it when generating texture backings.  if it's 0 (the default value), the backend will automatically calculate an appropriate bytesPerRow.  you should use this if the bytesPerRow of your backing have any padding or alignment requirements.
+@property (assign,readwrite) size_t bytesPerRow;
+
+- (void) populateStruct:(struct VVMTLTextureImageStruct * __nullable)n;
 
 @end
 

@@ -16,7 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-@interface MSLCompModeScene : MTLRenderScene
+@interface MSLCompModeScene : VVMTLRenderScene
 
 @property (strong,readwrite) MSLCompModeRecipe * recipe;
 
