@@ -13,18 +13,9 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
 #import <VVMetalKitTouch/RenderProperties.h>
 #import <VVMetalKitTouch/MTLEncodedDrawObject.h>
-#import <VVMetalKitTouch/MTLImgBufferShaderTypes.h>
-#import <VVMetalKitTouch/MTLImgBuffer.h>
-#import <VVMetalKitTouch/MTLImgBufferPool.h>
-#import <VVMetalKitTouch/MTLScene.h>
-#import <VVMetalKitTouch/MTLComputeScene.h>
-#import <VVMetalKitTouch/MTLRenderScene.h>
 #import <VVMetalKitTouch/SwizzleMTLScene.h>
 #import <VVMetalKitTouch/CopierMTLScene.h>
 #import <VVMetalKitTouch/CustomMetalView.h>
-#import <VVMetalKitTouch/MTLImgBufferRectView.h>
-#import <VVMetalKitTouch/MTLImgBufferView.h>
-#import <VVMetalKitTouch/MTLImgBufferRectViewShaderTypes.h>
 //#import <VVMetalKitTouch/VVSizingTool.h>
 #import <VVMetalKitTouch/SizingTool_c.h>
 #import <VVMetalKitTouch/SizingTool_objc.h>
@@ -58,18 +49,9 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
 #import <VVMetalKit/RenderProperties.h>
 #import <VVMetalKit/MTLEncodedDrawObject.h>
-#import <VVMetalKit/MTLImgBufferShaderTypes.h>
-#import <VVMetalKit/MTLImgBuffer.h>
-#import <VVMetalKit/MTLImgBufferPool.h>
-#import <VVMetalKit/MTLScene.h>
-#import <VVMetalKit/MTLComputeScene.h>
-#import <VVMetalKit/MTLRenderScene.h>
 #import <VVMetalKit/SwizzleMTLScene.h>
 #import <VVMetalKit/CopierMTLScene.h>
 #import <VVMetalKit/CustomMetalView.h>
-#import <VVMetalKit/MTLImgBufferRectView.h>
-#import <VVMetalKit/MTLImgBufferView.h>
-#import <VVMetalKit/MTLImgBufferRectViewShaderTypes.h>
 //#import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingTool_c.h>
 #import <VVMetalKit/SizingTool_objc.h>

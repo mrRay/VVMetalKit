@@ -6,9 +6,9 @@
 //
 
 #import <Metal/Metal.h>
-//#import <VVMetalKit/MTLImgBufferPool.h>
 
-@class MTLImgBuffer;
+//@protocol VVMTLTextureImage;
+@protocol VVMTLBuffer;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,21 +27,21 @@ NS_ASSUME_NONNULL_BEGIN
 @interface MTLEncodedDrawObject : NSObject
 
 + (instancetype) createWithGeometryBufferSize:(uint32_t)inDrawSize indexBufferSize:(uint32_t)inIndexSize;
-+ (instancetype) createWithGeometryBuffer:(MTLImgBuffer*)inGeo indexBufferSize:(uint32_t)inIndexSize;
-+ (instancetype) createWithGeometryBufferSize:(uint32_t)inDrawSize indexBuffer:(MTLImgBuffer *)inIdx;
++ (instancetype) createWithGeometryBuffer:(id<VVMTLBuffer>)inGeo indexBufferSize:(uint32_t)inIndexSize;
++ (instancetype) createWithGeometryBufferSize:(uint32_t)inDrawSize indexBuffer:(id<VVMTLBuffer>)inIdx;
 
 - (instancetype) initWithGeometryBufferSize:(uint32_t)inDrawSize indexBufferSize:(uint32_t)inIndexSize;
-- (instancetype) initWithGeometryBuffer:(MTLImgBuffer*)inGeo indexBufferSize:(uint32_t)inIndexSize;
-- (instancetype) initWithGeometryBufferSize:(uint32_t)inDrawSize indexBuffer:(MTLImgBuffer *)inIdx;
+- (instancetype) initWithGeometryBuffer:(id<VVMTLBuffer>)inGeo indexBufferSize:(uint32_t)inIndexSize;
+- (instancetype) initWithGeometryBufferSize:(uint32_t)inDrawSize indexBuffer:(id<VVMTLBuffer>)inIdx;
 
-//	'primitiveType' and 'indexType' (along with the id<MTLBuffer>s held by our MTLImgBuffers) are all you need for your external class to draw the primitives
+//	'primitiveType' and 'indexType' (along with the id<MTLBuffer>s held by our id<VVMTLBuffer>s) are all you need for your external class to draw the primitives
 @property (assign,readwrite) MTLPrimitiveType primitiveType;
 @property (assign,readwrite) MTLIndexType indexType;
 
 //	data buffer, basically cotains a contiguous array of vertex structs for whatever you want.  the "index" of the vertexes stored here are the indexes referred to in 'indexBuffer'
-@property (strong,readonly) MTLImgBuffer * geometryBuffer;
+@property (strong,readonly) id<VVMTLBuffer> geometryBuffer;
 //	data buffer of vertex indexes- this is basically a buffer of draw commands.  the vertex indexes listed in this buffer are drawn using the associated primitive type.  for more info, check out the various "drawIndexedPrimitives" methods of MTLRenderCommandEncoder
-@property (strong,readonly) MTLImgBuffer * indexBuffer;
+@property (strong,readonly) id<VVMTLBuffer> indexBuffer;
 
 //	convenience method, gets the base ptr for the geometry buffer of vertex data
 @property (readonly) void * geometryBufferPtr;

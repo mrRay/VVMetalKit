@@ -6,15 +6,16 @@
 //
 
 #import "MTLEncodedDrawObject.h"
-#import "MTLImgBufferPool.h"
-#import "MTLImgBuffer.h"
+
+#import "VVMTLPool.h"
+#import "VVMTLBuffer.h"
 
 
 
 
 @interface MTLEncodedDrawObject ()
-@property (strong,readwrite) MTLImgBuffer * geometryBuffer;
-@property (strong,readwrite) MTLImgBuffer * indexBuffer;
+@property (strong,readwrite) id<VVMTLBuffer> geometryBuffer;
+@property (strong,readwrite) id<VVMTLBuffer> indexBuffer;
 @end
 
 
@@ -25,10 +26,10 @@
 + (instancetype) createWithGeometryBufferSize:(uint32_t)inGeoSize indexBufferSize:(uint32_t)inIndexSize	{
 	return [[MTLEncodedDrawObject alloc] initWithGeometryBufferSize:inGeoSize indexBufferSize:inIndexSize];
 }
-+ (instancetype) createWithGeometryBuffer:(MTLImgBuffer*)inGeo indexBufferSize:(uint32_t)inIndexSize	{
++ (instancetype) createWithGeometryBuffer:(id<VVMTLBuffer>)inGeo indexBufferSize:(uint32_t)inIndexSize	{
 	return [[MTLEncodedDrawObject alloc] initWithGeometryBuffer:inGeo indexBufferSize:inIndexSize];
 }
-+ (instancetype) createWithGeometryBufferSize:(uint32_t)inGeoSize indexBuffer:(MTLImgBuffer *)inIdx	{
++ (instancetype) createWithGeometryBufferSize:(uint32_t)inGeoSize indexBuffer:(id<VVMTLBuffer>)inIdx	{
 	return [[MTLEncodedDrawObject alloc] initWithGeometryBufferSize:inGeoSize indexBuffer:inIdx];
 }
 
@@ -39,13 +40,13 @@
 	if (self != nil)	{
 		_primitiveType = MTLPrimitiveTypeTriangleStrip;
 		_indexType = MTLIndexTypeUInt16;
-		_geometryBuffer = [[MTLImgBufferPool global] bufferButNoTexSized:inGeoSize options:MTLResourceStorageModeShared];
-		_indexBuffer = [[MTLImgBufferPool global] bufferButNoTexSized:inIndexSize options:MTLResourceStorageModeShared];
+		_geometryBuffer = [VVMTLPool.global bufferButNoTexSized:inGeoSize options:MTLResourceStorageModeShared];
+		_indexBuffer = [VVMTLPool.global bufferButNoTexSized:inIndexSize options:MTLResourceStorageModeShared];
 		_indexBufferIndexCount = 0;
 	}
 	return self;
 }
-- (instancetype) initWithGeometryBuffer:(MTLImgBuffer*)inGeo indexBufferSize:(uint32_t)inIndexSize	{
+- (instancetype) initWithGeometryBuffer:(id<VVMTLBuffer>)inGeo indexBufferSize:(uint32_t)inIndexSize	{
 	self = [super init];
 	if (inGeo == nil || inIndexSize < 1)
 		self = nil;
@@ -53,19 +54,19 @@
 		_primitiveType = MTLPrimitiveTypeTriangleStrip;
 		_indexType = MTLIndexTypeUInt16;
 		_geometryBuffer = inGeo;
-		_indexBuffer = [[MTLImgBufferPool global] bufferButNoTexSized:inIndexSize options:MTLResourceStorageModeShared];
+		_indexBuffer = [VVMTLPool.global bufferButNoTexSized:inIndexSize options:MTLResourceStorageModeShared];
 		_indexBufferIndexCount = 0;
 	}
 	return self;
 }
-- (instancetype) initWithGeometryBufferSize:(uint32_t)inGeoSize indexBuffer:(MTLImgBuffer *)inIdx	{
+- (instancetype) initWithGeometryBufferSize:(uint32_t)inGeoSize indexBuffer:(id<VVMTLBuffer>)inIdx	{
 	self = [super init];
 	if (inGeoSize < 1 || inIdx == nil)
 		self = nil;
 	if (self != nil)	{
 		_primitiveType = MTLPrimitiveTypeTriangleStrip;
 		_indexType = MTLIndexTypeUInt16;
-		_geometryBuffer = [[MTLImgBufferPool global] bufferButNoTexSized:inGeoSize options:MTLResourceStorageModeShared];
+		_geometryBuffer = [VVMTLPool.global bufferButNoTexSized:inGeoSize options:MTLResourceStorageModeShared];
 		_indexBuffer = inIdx;
 		_indexBufferIndexCount = 0;
 	}
