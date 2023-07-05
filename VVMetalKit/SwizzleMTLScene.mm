@@ -184,8 +184,8 @@
 		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
 		_info.dstPixelsToProcess[1] = (int)self.shaderEvalSize.height;
 		
-		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
-		//[self renderToBuffer:nil inCommandBuffer:inCB];
+		//	don't call 'renderToTexture', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
+		//[self renderToTexture:nil inCommandBuffer:inCB];
 		{
 			self.renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
 		
@@ -260,8 +260,8 @@
 		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
 		_info.dstPixelsToProcess[1] = (int)self.shaderEvalSize.height;
 	
-		//	don't call 'renderToBuffer', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
-		//[self renderToBuffer:nil inCommandBuffer:inCB];
+		//	don't call 'renderToTexture', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
+		//[self renderToTexture:nil inCommandBuffer:inCB];
 		{
 			self.renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
 		

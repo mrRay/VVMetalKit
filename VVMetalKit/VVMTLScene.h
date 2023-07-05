@@ -25,8 +25,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice;
 
-- (id<VVMTLTextureImage>) createAndRenderToBufferSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
-- (void) renderToBuffer:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb;
+- (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
+- (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb;
 
 /*		do all the rendering here.  when this method is called on a subclass, a pass 
 descriptor and render encoder MUST already exist and have been configured.  do NOT end 

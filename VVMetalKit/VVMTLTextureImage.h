@@ -37,9 +37,10 @@
 //	If non-null, provides the backing for the texture (and maybe the iosfc). Receiver "retains" the CVPixelBufferRef for its lifetime.
 @property (assign,readwrite,nullable) CVPixelBufferRef cvpb;
 
-//	this is a convenience property- if it's non-zero, the backend will use it when generating texture backings.  if it's 0 (the default value), the backend will automatically calculate an appropriate bytesPerRow.  you should use this if the bytesPerRow of your backing have any padding or alignment requirements.
+//	this is a convenience property- if it's non-zero, the backend will use it when allocating texture backings.  if it's 0 (the default value), the backend will automatically calculate an appropriate bytesPerRow.  you should use this if the bytesPerRow of your backing have any padding or alignment requirements.
 @property (assign,readwrite) size_t bytesPerRow;
 
+//	populates the pased struct ptr with data that describes how to draw this image, taking into account the src rect and h/v flippedness
 - (void) populateStruct:(struct VVMTLTextureImageStruct * __nullable)n;
 
 @end

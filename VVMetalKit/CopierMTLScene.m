@@ -72,7 +72,7 @@
 	
 	self.inputImage = inSrc;
 	
-	[self renderToBuffer:inDst inCommandBuffer:inCB];
+	[self renderToTexture:inDst inCommandBuffer:inCB];
 }
 
 

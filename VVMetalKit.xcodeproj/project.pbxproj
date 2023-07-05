@@ -11,6 +11,12 @@
 		1A061DC42A165E6B00980D41 /* MSLCompModeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */; };
 		1A061DC82A165E8800980D41 /* MSLCompModeSceneShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A061DCB2A165EDB00980D41 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
+		1A0AEA982A55B6F6003BBFBE /* VVMTLUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0AEA962A55B6F6003BBFBE /* VVMTLUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A0AEA992A55B6F6003BBFBE /* VVMTLUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0AEA972A55B6F6003BBFBE /* VVMTLUtilities.m */; };
+		1A0AEAA82A55D79E003BBFBE /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AAF56CB2A14238400626430 /* Metal.framework */; };
+		1A0AEAB52A55D7A4003BBFBE /* MetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AAF56CA2A14238400626430 /* MetalKit.framework */; };
+		1A0AEAB62A55D7A9003BBFBE /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AAF56C82A14237200626430 /* CoreGraphics.framework */; };
+		1A0AEAB82A55D7BD003BBFBE /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0AEAB72A55D7BD003BBFBE /* Accelerate.framework */; };
 		1A0FBE92260E1C2E00FF39BB /* VVMetalKit.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */; };
 		1A0FBEB5260E1F5000FF39BB /* CopierMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -69,6 +75,10 @@
 		1A3BB7E92A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E82A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib */; };
 		1A3BB7EA2A13EBCC003CDAE8 /* libGLSLangValidatorLib.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E62A13EBC4003CDAE8 /* libGLSLangValidatorLib.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1A3BB7EB2A13EBCE003CDAE8 /* libSPIRVCrossLib.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E82A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		1A47F8452A55E30C0087942C /* CIMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A47F8372A55E30C0087942C /* CIMTLScene.m */; };
+		1A47F8462A55E30C0087942C /* CIMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A47F8372A55E30C0087942C /* CIMTLScene.m */; };
+		1A47F8472A55E30C0087942C /* CIMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A47F8442A55E30C0087942C /* CIMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A47F8482A55E30C0087942C /* CIMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A47F8442A55E30C0087942C /* CIMTLScene.h */; };
 		1A4819732816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */; };
@@ -302,6 +312,9 @@
 		1A061DC12A165E6B00980D41 /* MSLCompModeScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeScene.h; sourceTree = "<group>"; };
 		1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeScene.m; sourceTree = "<group>"; };
 		1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeSceneShaderTypes.h; sourceTree = "<group>"; };
+		1A0AEA962A55B6F6003BBFBE /* VVMTLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLUtilities.h; sourceTree = "<group>"; };
+		1A0AEA972A55B6F6003BBFBE /* VVMTLUtilities.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLUtilities.m; sourceTree = "<group>"; };
+		1A0AEAB72A55D7BD003BBFBE /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKit.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMetalKit.h; sourceTree = "<group>"; };
 		1A0FBE91260E1C2E00FF39BB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -360,6 +373,8 @@
 		1A3BB7BB2A13EACF003CDAE8 /* PINOperation.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = PINOperation.xcodeproj; path = submodules/ISFMSLKit/ISFMSLKit/PINCache/Carthage/Checkouts/PINOperation/PINOperation.xcodeproj; sourceTree = "<group>"; };
 		1A3BB7E62A13EBC4003CDAE8 /* libGLSLangValidatorLib.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libGLSLangValidatorLib.dylib; path = submodules/ISFMSLKit/extern/GLSLangValidatorLib/bin/libGLSLangValidatorLib.dylib; sourceTree = SOURCE_ROOT; };
 		1A3BB7E82A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libSPIRVCrossLib.dylib; path = submodules/ISFMSLKit/extern/SPIRVCrossLib/bin/libSPIRVCrossLib.dylib; sourceTree = SOURCE_ROOT; };
+		1A47F8372A55E30C0087942C /* CIMTLScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIMTLScene.m; sourceTree = "<group>"; };
+		1A47F8442A55E30C0087942C /* CIMTLScene.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CIMTLScene.h; sourceTree = "<group>"; };
 		1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BilinearInterpolation.h; sourceTree = "<group>"; };
 		1A4819752816C7C800CE2D00 /* BilinearInterpolation.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BilinearInterpolation.metal; sourceTree = "<group>"; };
 		1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BicubicInterpolation.h; sourceTree = "<group>"; };
@@ -417,6 +432,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A0AEAB82A55D7BD003BBFBE /* Accelerate.framework in Frameworks */,
+				1A0AEAB62A55D7A9003BBFBE /* CoreGraphics.framework in Frameworks */,
+				1A0AEAB52A55D7A4003BBFBE /* MetalKit.framework in Frameworks */,
+				1A0AEAA82A55D79E003BBFBE /* Metal.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -497,6 +516,8 @@
 				1A20CF022A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h */,
 				1A976B662A461D4C00C654FA /* VVMTLTimestamp.h */,
 				1A0FBE90260E1C2E00FF39BB /* VVMetalKit.h */,
+				1A0AEA962A55B6F6003BBFBE /* VVMTLUtilities.h */,
+				1A0AEA972A55B6F6003BBFBE /* VVMTLUtilities.m */,
 				1ABE244D2A4DE87400317187 /* VVMTLScene.h */,
 				1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */,
 				1ABE244E2A4DE87400317187 /* VVMTLScene.m */,
@@ -520,6 +541,8 @@
 				1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */,
 				1A0FBED6260E243500FF39BB /* SwizzleMTLScene.mm */,
 				1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */,
+				1A47F8442A55E30C0087942C /* CIMTLScene.h */,
+				1A47F8372A55E30C0087942C /* CIMTLScene.m */,
 				1A0FBE9E260E1F4F00FF39BB /* CopierMTLScene.h */,
 				1A0FBEAC260E1F5000FF39BB /* CopierMTLScene.m */,
 				1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */,
@@ -608,6 +631,7 @@
 		1A8C0409261631FC00038DC9 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				1A0AEAB72A55D7BD003BBFBE /* Accelerate.framework */,
 				1AAF56CB2A14238400626430 /* Metal.framework */,
 				1AAF56CA2A14238400626430 /* MetalKit.framework */,
 				1AAF56C82A14237200626430 /* CoreGraphics.framework */,
@@ -646,6 +670,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A47F8472A55E30C0087942C /* CIMTLScene.h in Headers */,
 				1ABE244F2A4DE87400317187 /* VVMTLScene.h in Headers */,
 				1ABE24532A4DE88200317187 /* VVMTLComputeScene.h in Headers */,
 				1ABE24572A4DE88B00317187 /* VVMTLRenderScene.h in Headers */,
@@ -677,8 +702,9 @@
 				1A20CF062A499BC300F2EDBB /* VVMTLBufferDescriptor.h in Headers */,
 				1A976B712A461D4C00C654FA /* VVMTLTextureImage.h in Headers */,
 				1A20CF0A2A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.h in Headers */,
-				1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */,
 				1A20CF0E2A4A1A3700F2EDBB /* VVMTLPool.h in Headers */,
+				1A0AEA982A55B6F6003BBFBE /* VVMTLUtilities.h in Headers */,
+				1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -722,6 +748,7 @@
 				1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AC82CDB27FF2901009A9989 /* VVColorConversions.h in Headers */,
 				1AC82CDC27FF2901009A9989 /* SizingTool_metal.h in Headers */,
+				1A47F8482A55E30C0087942C /* CIMTLScene.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1040,11 +1067,13 @@
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A9924052A4DA41F00F5094D /* VVMTLBuffer.m in Sources */,
 				1ABE24502A4DE87500317187 /* VVMTLScene.m in Sources */,
+				1A0AEA992A55B6F6003BBFBE /* VVMTLUtilities.m in Sources */,
 				1ABE245C2A4DE8A500317187 /* VVMTLTextureImageRectView.m in Sources */,
 				1ABE24542A4DE88200317187 /* VVMTLComputeScene.m in Sources */,
 				1A9174AD2A12D7D9005274B4 /* MTLEncodedDrawObject.m in Sources */,
 				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.mm in Sources */,
 				1A20CF072A499BC300F2EDBB /* VVMTLBufferDescriptor.m in Sources */,
+				1A47F8452A55E30C0087942C /* CIMTLScene.m in Sources */,
 				1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */,
 				1A20CF0F2A4A1A3700F2EDBB /* VVMTLPool.m in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
@@ -1083,6 +1112,7 @@
 				1AC82CE327FF2901009A9989 /* CopierMTLScene.metal in Sources */,
 				1AC82CE427FF2901009A9989 /* CopierMTLScene.m in Sources */,
 				1AC82CE727FF2901009A9989 /* SizingTool_metal.metal in Sources */,
+				1A47F8462A55E30C0087942C /* CIMTLScene.m in Sources */,
 				1A9174AE2A12D7D9005274B4 /* MTLEncodedDrawObject.m in Sources */,
 				1AC82CE927FF2901009A9989 /* SwizzleMTLScene.mm in Sources */,
 				1A4819772816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */,

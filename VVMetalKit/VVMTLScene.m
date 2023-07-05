@@ -56,7 +56,7 @@
 }
 
 
-- (id<VVMTLTextureImage>) createAndRenderToBufferSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+- (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb	{
 	VVMTLPool			*pool = [VVMTLPool global];
 	if (pool == nil)
 		return nil;
@@ -64,10 +64,10 @@
 	id<VVMTLTextureImage>		returnMe = [pool bgra8TexSized:inSize];
 	if (returnMe == nil)
 		return nil;
-	[self renderToBuffer:returnMe inCommandBuffer:cb];
+	[self renderToTexture:returnMe inCommandBuffer:cb];
 	return returnMe;
 }
-- (void) renderToBuffer:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+- (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb	{
 	self.renderSize = (n==nil) ? CGSizeMake(1,1) : CGSizeMake(n.width, n.height);
 	
 	self.renderTarget = n;
