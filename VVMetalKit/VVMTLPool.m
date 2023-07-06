@@ -275,7 +275,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
-	float		*contents = (float *)[newFrame.buffer contents];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
 	if (backingBuffer == nil)	{
@@ -348,7 +348,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
-	float		*contents = (float *)[newFrame.buffer contents];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
 	if (backingBuffer == nil)	{
@@ -449,7 +449,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	[blitEncoder endEncoding];
 //	[cmdBuffer commit];
 //	[cmdBuffer waitUntilCompleted];
-//	float		*contents = (float *)[newFrame.buffer contents];
+//	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
 //	returnMe.preferDeletion = YES;
@@ -464,7 +464,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	[blitEncoder endEncoding];
 //	[cmdBuffer commit];
 //	[cmdBuffer waitUntilCompleted];
-//	float		*contents = (float *)[newFrame.buffer contents];
+//	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
 //	returnMe.preferDeletion = YES;
@@ -479,7 +479,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
-	float		*contents = (float *)[newFrame.buffer contents];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	size_t				targetLength = bpr * s.height;
 	if (targetLength % 4096 != 0)
@@ -516,6 +516,154 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	returnMe.preferDeletion = YES;
 	
 	return returnMe;
+}
+
+- (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
+	/*
+	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
+	[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	*/
+	size_t				targetLength = bpr * s.height;
+	if (targetLength % 4096 != 0)
+		targetLength = 4096 - (targetLength % 4096) + targetLength;
+	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:targetLength storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
+	if (backingBuffer == nil)	{
+		NSLog(@"ERR: unable to make backing buffer in %s",__func__);
+		return nil;
+	}
+	
+	VVMTLTextureImage		*returnMe = nil;
+	
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(s.width)
+		height:round(s.height)
+		pixelFormat:MTLPixelFormatRGBA8Unorm
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	desc.mtlBufferBacking = YES;
+	
+	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
+	returnMe.buffer = backingBuffer;
+	returnMe.bytesPerRow = bpr;
+	
+	@synchronized (self)	{
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
+	returnMe.preferDeletion = YES;
+	
+	return returnMe;
+}
+
+- (id<VVMTLTextureImage>) bgra8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr	{
+	/*
+	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
+	[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	*/
+	size_t			targetLength = bpr * s.height;
+	if (targetLength % 4096 != 0)
+		targetLength = 4096 - (targetLength % 4096) + targetLength;
+	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLength:targetLength storage:MTLStorageModeManaged];
+	if (backingBuffer == nil)	{
+		NSLog(@"ERR: unable to make backing buffer in %s",__func__);
+		return nil;
+	}
+	
+	VVMTLTextureImage		*returnMe = nil;
+	
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(s.width)
+		height:round(s.height)
+		pixelFormat:MTLPixelFormatBGRA8Unorm
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	desc.mtlBufferBacking = YES;
+	
+	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
+	returnMe.buffer = backingBuffer;
+	returnMe.bytesPerRow = bpr;
+	
+	@synchronized (self)	{
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
+	returnMe.preferDeletion = NO;
+	
+	return returnMe;
+}
+- (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr	{
+	/*
+	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
+	[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	*/
+	
+	VVMTLTextureImage			*returnMe = nil;
+	
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(s.width)
+		height:round(s.height)
+		pixelFormat:MTLPixelFormatRGBA8Unorm
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	desc.mtlBufferBacking = YES;
+	
+	@synchronized (self)	{
+		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
+		if (returnMe != nil)
+			return returnMe;
+		
+		size_t			targetLength = bpr * s.height;
+		if (targetLength % 4096 != 0)
+			targetLength = 4096 - (targetLength % 4096) + targetLength;
+		VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLength:targetLength storage:MTLStorageModeManaged];
+		if (backingBuffer == nil)	{
+			NSLog(@"ERR: unable to make backing buffer in %s",__func__);
+			return nil;
+		}
+		
+		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
+		returnMe.buffer = backingBuffer;
+		returnMe.bytesPerRow = bpr;
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
+	returnMe.preferDeletion = NO;
+	
+	return returnMe;
+	
 }
 
 //- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n	{
@@ -555,7 +703,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	[blitEncoder endEncoding];
 //	[cmdBuffer commit];
 //	[cmdBuffer waitUntilCompleted];
-//	float		*contents = (float *)[newFrame.buffer contents];
+//	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
 //	returnMe.preferDeletion = YES;
@@ -769,9 +917,17 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	if (inLength < 1)
 		return nil;
 	
+	size_t			targetLength = inLength;
+	if (inLength % 4096 == 0)	{
+		targetLength = inLength;
+	}
+	else	{
+		targetLength = 4096 - (inLength % 4096) + inLength;
+	}
+	
 	VVMTLBuffer			*returnMe = nil;
 	
-	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:inLength storage:inStorage];
+	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
 	
 	//MTLResourceOptions			resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
 	@synchronized (self)	{
@@ -780,7 +936,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			return returnMe;
 		
 		returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
-		returnMe.descriptor = desc;
 		
 		NSError			*nsErr = [self _generateMissingGPUAssetsInBuffer:returnMe];
 		if (nsErr != nil)	{
@@ -789,6 +944,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
+	returnMe.preferDeletion = NO;
 	//returnMe.buffer.label = [returnMe.buffer.label stringByAppendingString:@"???"];
 	
 	return returnMe;
@@ -796,13 +952,19 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b	{
 	//NSLog(@"%s",__func__);
-	size_t			targetLength = 0;
-	if (inLength % 4096 == 0)	{
-		targetLength = inLength;
-	}
-	else	{
-		targetLength = 4096 - (inLength % 4096) + inLength;
-	}
+	if (inLength < 1)
+		return nil;
+	
+	size_t			targetLength = inLength;
+	//if (inLength % 4096 == 0)	{
+	//	targetLength = inLength;
+	//}
+	//else	{
+	//	targetLength = 4096 - (inLength % 4096) + inLength;
+	//}
+	
+	VVMTLBuffer			*returnMe = nil;
+	
 	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
 	
 	MTLResourceOptions			resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
@@ -814,11 +976,10 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		buffer = [self.device newBufferWithBytes:b length:targetLength options:resourceStorageMode];
 	}
 	
-	VVMTLBuffer		*returnMe = [[VVMTLBuffer alloc] init];
+	returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
 	returnMe.buffer = buffer;
 	returnMe.pool = self;
 	returnMe.preferDeletion = YES;
-	returnMe.descriptor = desc;
 	
 	return returnMe;
 }
@@ -983,36 +1144,38 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	//	...okay, so at this point if we need a backing, we should have already created it- now we need to create a texture.
 	
-	MTLTextureDescriptor		*texDesc = [[MTLTextureDescriptor alloc] init];
-	texDesc.textureType = MTLTextureType2D;
-	texDesc.pixelFormat = desc.pfmt;
-	texDesc.width = size.width;
-	texDesc.height = size.height;
-	texDesc.depth = 1;
-	texDesc.storageMode = desc.storage;
-	texDesc.resourceOptions = MTLResourceStorageModeForMTLStorageMode(desc.storage);
-	texDesc.usage = desc.usage;
-	
-	//	if there's an id<VVMTLBuffer> we want to use to back the texture...
-	if (buffer != nil)	{
-		texture = [buffer.buffer newTextureWithDescriptor:texDesc offset:0 bytesPerRow:bytesPerRow];
-		[self _labelTexture:texture];
-		n.texture = texture;
-	}
-	//	else if there's an IOSurface we want to use to back the texture...
-	else if (iosfc != NULL)	{
-		texture = [_device newTextureWithDescriptor:texDesc iosurface:iosfc plane:0];
-		[self _labelTexture:texture];
+	if (texture == nil)	{
+		MTLTextureDescriptor		*texDesc = [[MTLTextureDescriptor alloc] init];
+		texDesc.textureType = MTLTextureType2D;
+		texDesc.pixelFormat = desc.pfmt;
+		texDesc.width = size.width;
+		texDesc.height = size.height;
+		texDesc.depth = 1;
+		texDesc.storageMode = desc.storage;
+		texDesc.resourceOptions = MTLResourceStorageModeForMTLStorageMode(desc.storage);
+		texDesc.usage = desc.usage;
 		
-		n.texture = texture;
-	}
-	//	else it's just a plain ol' texture
-	else	{
-		
-		texture = [_device newTextureWithDescriptor:texDesc];
-		[self _labelTexture:texture];
-		
-		n.texture = texture;
+		//	if there's an id<VVMTLBuffer> we want to use to back the texture...
+		if (buffer != nil)	{
+			texture = [buffer.buffer newTextureWithDescriptor:texDesc offset:0 bytesPerRow:bytesPerRow];
+			[self _labelTexture:texture];
+			n.texture = texture;
+		}
+		//	else if there's an IOSurface we want to use to back the texture...
+		else if (iosfc != NULL)	{
+			texture = [_device newTextureWithDescriptor:texDesc iosurface:iosfc plane:0];
+			[self _labelTexture:texture];
+			
+			n.texture = texture;
+		}
+		//	else it's just a plain ol' texture
+		else	{
+			
+			texture = [_device newTextureWithDescriptor:texDesc];
+			[self _labelTexture:texture];
+			
+			n.texture = texture;
+		}
 	}
 	
 	

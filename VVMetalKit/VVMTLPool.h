@@ -39,6 +39,9 @@ NS_ASSUME_NONNULL_BEGIN
 //- (id<VVMTLTextureImage>) rgbaFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 //- (id<VVMTLTextureImage>) rgbaBufferBackedFloatTexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) bgra8BufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
+- (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
+- (id<VVMTLTextureImage>) bgra8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr;
+- (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 - (id<VVMTLTextureImage>) bufferForExistingTexture:(id<MTLTexture>)n;

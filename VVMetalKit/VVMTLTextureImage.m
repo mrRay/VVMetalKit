@@ -73,7 +73,7 @@
 	//NSLog(@"%s ... %@",__func__,self);
 	//	if this object wants to be deleted immediately...
 	if (preferDeletion)	{
-		//NSLog(@"\t\tprefers deletion...");
+		//NSLog(@"\t\t%@ prefers deletion...",self);
 		//	execute the recycle block immediately- we'll free the underlying resources in a sec
 		if (deletionBlock != nil)	{
 			deletionBlock(self);
@@ -81,7 +81,7 @@
 	}
 	//	else we're NOT deleting the object- we are instead going to recycle it
 	else	{
-		//NSLog(@"\t\trecycling...");
+		//NSLog(@"\t\t%@ prefers recycling...",self);
 		//	make a copy of myself- resetting transient properties- and pass it back to the pool
 		//VVMTLTextureImage		*tmpCopy = [self copy];	//	NO, do NOT copy like this (it will try to retain the object being copied)
 		VVMTLTextureImage		*tmpCopy = [[VVMTLTextureImage alloc] initWithDescriptor:(VVMTLTextureImageDescriptor*)descriptor];
@@ -116,6 +116,10 @@
 	supportingObject = nil;
 	supportingContext = nil;
 	deletionBlock = nil;
+}
+
+- (NSString *) description	{
+	return [NSString stringWithFormat:@"<%@ %@ %p>", self.className, self.texture.label, self];
 }
 
 - (BOOL) isVVMTLTextureImage	{

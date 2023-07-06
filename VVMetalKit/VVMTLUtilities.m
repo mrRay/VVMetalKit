@@ -15,6 +15,11 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 	if (inTex == nil)
 		return nil;
 	
+	if (inTex.storageMode == MTLStorageModePrivate)	{
+		NSLog(@"ERR: passed texture cannot be accessed by GPU, %s",__func__);
+		return nil;
+	}
+	
 	CGImageRef		returnMe = NULL;
 	
 	NSUInteger		texBytesPerRow = 8 * 4 * inTex.width / 8;
@@ -22,8 +27,8 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 	MTLRegion		texRegion = MTLRegionMake2D(0, 0, inTex.width, inTex.height);
 	void			*texBytes = NULL;
 	
-	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
-	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
+	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
 	
 	size_t			rgbaBytesPerRow = 8 * 4 * inTex.width / 8;
