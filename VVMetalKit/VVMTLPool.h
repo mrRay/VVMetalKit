@@ -13,6 +13,7 @@
 #import <VVMetalKit/VVMTLRecyclingPool.h>
 @protocol VVMTLTextureImage;
 @protocol VVMTLBuffer;
+@class VVMTLTextureImageDescriptor;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -27,6 +28,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (readonly) id<MTLDevice> device;
 @property (readonly) CVMetalTextureCacheRef cvTexCache;
+
+//	a lot of methods use this to recycle or generate a texture (and also an accompanying backing, as specified)
+- (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc;
 
 - (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) rgba8TexSized:(NSSize)n;
@@ -44,13 +48,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
-- (id<VVMTLTextureImage>) bufferForExistingTexture:(id<MTLTexture>)n;
+- (id<VVMTLTextureImage>) textureForExistingTexture:(id<MTLTexture>)n;
 - (id<VVMTLTextureImage>) bgra8IOSurfaceBackedTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaFloat32IOSurfaceBackedTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatIOSurfaceBackedTexFromCVPB:(CVPixelBufferRef)inCVPB;
 //- (id<VVMTLTextureImage>) uyvyIOSurfaceBackedTexSized:(NSSize)n;
-- (id<VVMTLTextureImage>) bufferForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;
-- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
+- (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;
+//- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
 - (id<VVMTLTextureImage>) createFromNSImage:(NSImage *)n;
 
 - (id<VVMTLTextureImage>) textureForIOSurface:(IOSurfaceRef)n;

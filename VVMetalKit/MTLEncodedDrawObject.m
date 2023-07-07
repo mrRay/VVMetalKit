@@ -40,8 +40,8 @@
 	if (self != nil)	{
 		_primitiveType = MTLPrimitiveTypeTriangleStrip;
 		_indexType = MTLIndexTypeUInt16;
-		_geometryBuffer = [VVMTLPool.global bufferButNoTexSized:inGeoSize options:MTLResourceStorageModeShared];
-		_indexBuffer = [VVMTLPool.global bufferButNoTexSized:inIndexSize options:MTLResourceStorageModeShared];
+		_geometryBuffer = [VVMTLPool.global bufferWithLength:inGeoSize storage:MTLStorageModeShared];
+		_indexBuffer = [VVMTLPool.global bufferWithLength:inIndexSize storage:MTLStorageModeShared];
 		_indexBufferIndexCount = 0;
 	}
 	return self;
@@ -54,7 +54,7 @@
 		_primitiveType = MTLPrimitiveTypeTriangleStrip;
 		_indexType = MTLIndexTypeUInt16;
 		_geometryBuffer = inGeo;
-		_indexBuffer = [VVMTLPool.global bufferButNoTexSized:inIndexSize options:MTLResourceStorageModeShared];
+		_indexBuffer = [VVMTLPool.global bufferWithLength:inIndexSize storage:MTLStorageModeShared];
 		_indexBufferIndexCount = 0;
 	}
 	return self;
@@ -66,7 +66,7 @@
 	if (self != nil)	{
 		_primitiveType = MTLPrimitiveTypeTriangleStrip;
 		_indexType = MTLIndexTypeUInt16;
-		_geometryBuffer = [VVMTLPool.global bufferButNoTexSized:inGeoSize options:MTLResourceStorageModeShared];
+		_geometryBuffer = [VVMTLPool.global bufferWithLength:inGeoSize storage:MTLStorageModeShared];
 		_indexBuffer = inIdx;
 		_indexBufferIndexCount = 0;
 	}

@@ -182,9 +182,27 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 #pragma mark - texture creation
 
 
-- (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n	{
+- (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc	{
+	if (inDesc == nil)
+		return nil;
 	VVMTLTextureImage			*returnMe = nil;
-	
+	@synchronized (self)	{
+		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:inDesc];
+		if (returnMe != nil)
+			return returnMe;
+		
+		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:inDesc];
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	return returnMe;
+}
+
+
+- (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n	{
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)
 		height:round(n.height)
@@ -192,18 +210,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		storage:MTLStorageModePrivate
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
-	@synchronized (self)	{
-		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-		if (returnMe != nil)
-			return returnMe;
-		
-		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8"];
 	
@@ -211,8 +218,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 - (id<VVMTLTextureImage>) rgba8TexSized:(NSSize)n	{
-	VVMTLTextureImage			*returnMe = nil;
-	
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)
 		height:round(n.height)
@@ -220,18 +225,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		storage:MTLStorageModePrivate
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
-	@synchronized (self)	{
-		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-		if (returnMe != nil)
-			return returnMe;
-		
-		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgba8"];
 	
@@ -239,8 +233,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 - (id<VVMTLTextureImage>) rgb10a2TexSized:(NSSize)n	{
-	VVMTLTextureImage			*returnMe = nil;
-	
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)
 		height:round(n.height)
@@ -248,18 +240,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		storage:MTLStorageModePrivate
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
-	@synchronized (self)	{
-		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-		if (returnMe != nil)
-			return returnMe;
-		
-		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgb10a2"];
 	
@@ -312,27 +293,13 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 //- (id<VVMTLTextureImage>) rgb10a2NormTexSized:(NSSize)n	{
-//	VVMTLTextureImage			*returnMe = nil;
-//	
 //	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 //		createWithWidth:round(n.width)
 //		height:round(n.height)
 //		pixelFormat:MTLPixelFormatRGB10A2Unorm
 //		storage:MTLStorageModePrivate
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
-//	
-//	@synchronized (self)	{
-//		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-//		if (returnMe != nil)
-//			return returnMe;
-//		
-//		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-//		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-//		if (nsErr != nil)	{
-//			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-//			return nil;
-//		}
-//	}
+//	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
 //	
 //	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgb10a2n"];
 //	
@@ -393,19 +360,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //		pixelFormat:MTLPixelFormatRGBA16Uint
 //		storage:MTLStorageModePrivate
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
-//	
-//	@synchronized (self)	{
-//		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-//		if (returnMe != nil)
-//			return returnMe;
-//		
-//		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-//		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-//		if (nsErr != nil)	{
-//			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-//			return nil;
-//		}
-//	}
+//	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
 //	
 //	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgba16"];
 //	
@@ -413,8 +368,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //}
 
 - (id<VVMTLTextureImage>) rgbaFloatTexSized:(NSSize)n	{
-	VVMTLTextureImage			*returnMe = nil;
-	
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)
 		height:round(n.height)
@@ -422,18 +375,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		storage:MTLStorageModePrivate
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
-	@synchronized (self)	{
-		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-		if (returnMe != nil)
-			return returnMe;
-		
-		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgbaF"];
 	
@@ -675,19 +617,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //		pixelFormat:MTLPixelFormatRGBA16Float
 //		storage:MTLStorageModePrivate
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
-//	
-//	@synchronized (self)	{
-//		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-//		if (returnMe != nil)
-//			return returnMe;
-//		
-//		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-//		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-//		if (nsErr != nil)	{
-//			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-//			return nil;
-//		}
-//	}
+//	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
 //	
 //	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgbaHF"];
 //	
@@ -709,7 +639,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	returnMe.preferDeletion = YES;
 //}
 
-- (id<VVMTLTextureImage>) bufferForExistingTexture:(id<MTLTexture>)n	{
+- (id<VVMTLTextureImage>) textureForExistingTexture:(id<MTLTexture>)n	{
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:n.width
 		height:n.height
@@ -726,8 +656,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 - (id<VVMTLTextureImage>) bgra8IOSurfaceBackedTexSized:(NSSize)n	{
-	VVMTLTextureImage			*returnMe = nil;
-	
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)
 		height:round(n.height)
@@ -737,18 +665,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	desc.iosfcBacking = YES;
 	desc.cvpbBacking = YES;
 	
-	@synchronized (self)	{
-		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-		if (returnMe != nil)
-			return returnMe;
-		
-		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8IO"];
 	returnMe.preferDeletion = NO;
@@ -767,19 +684,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 //	desc.iosfcBacking = YES;
 //	desc.cvpbBacking = YES;
-//	
-//	@synchronized (self)	{
-//		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-//		if (returnMe != nil)
-//			return returnMe;
-//		
-//		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-//		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-//		if (nsErr != nil)	{
-//			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-//			return nil;
-//		}
-//	}
+//	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
 //	
 //	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgbaFIO"];
 //	
@@ -792,7 +697,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //- (id<VVMTLTextureImage>) uyvyIOSurfaceBackedTexSized:(NSSize)n	{
 //}
 
-- (id<VVMTLTextureImage>) bufferForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize	{
+- (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize	{
 	if (inRef == NULL)
 		return nil;
 	
@@ -800,22 +705,32 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	if (tmpTex == nil)
 		return nil;
 	
-	return [self bufferForExistingTexture:tmpTex];
+	id<VVMTLTextureImage>		returnMe = [self textureForExistingTexture:tmpTex];
+	
+	returnMe.preferDeletion = YES;
+	returnMe.supportingContext = inRef;
+	CVBufferRetain(inRef);
+	returnMe.deletionBlock = ^(id<VVMTLRecycleable> recycled)	{
+		CVMetalTextureRef		recast = (CVMetalTextureRef)recycled.supportingContext;
+		CVBufferRelease(recast);
+	};
+	
+	return returnMe;
 }
 
-- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts	{
-	MTLStorageMode		storage = MTLStorageModeShared;
-	if (A_HAS_B(inOpts,MTLStorageModeShared))	{
-		storage = MTLStorageModeShared;
-	}
-	else if (A_HAS_B(inOpts,MTLStorageModeManaged))	{
-		storage = MTLStorageModeManaged;
-	}
-	else if (A_HAS_B(inOpts,MTLStorageModePrivate))	{
-		storage = MTLStorageModePrivate;
-	}
-	return [self bufferWithLength:inBufferSize storage:storage];
-}
+//- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts	{
+//	MTLStorageMode		storage = MTLStorageModeShared;
+//	if (A_HAS_B(inOpts,MTLStorageModeShared))	{
+//		storage = MTLStorageModeShared;
+//	}
+//	else if (A_HAS_B(inOpts,MTLStorageModeManaged))	{
+//		storage = MTLStorageModeManaged;
+//	}
+//	else if (A_HAS_B(inOpts,MTLStorageModePrivate))	{
+//		storage = MTLStorageModePrivate;
+//	}
+//	return [self bufferWithLength:inBufferSize storage:storage];
+//}
 
 - (id<VVMTLTextureImage>) createFromNSImage:(NSImage *)n	{
 	if (n == nil)
@@ -837,7 +752,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	NSError				*nsErr = nil;
 	id<MTLTexture>		tmpTex = (tmpCGImg==NULL) ? nil : [tmpLoader newTextureWithCGImage:tmpCGImg options:@{ MTKTextureLoaderOptionSRGB: @(NO) } error:&nsErr];
-	id<VVMTLTextureImage>		returnMe = (tmpTex==nil) ? nil : [self bufferForExistingTexture:tmpTex];
+	id<VVMTLTextureImage>		returnMe = (tmpTex==nil) ? nil : [self textureForExistingTexture:tmpTex];
 	
 	tmpNSCtx = nil;
 	tmpLoader = nil;

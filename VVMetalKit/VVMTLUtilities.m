@@ -7,43 +7,76 @@
 
 #import "VVMTLUtilities.h"
 #import <Accelerate/Accelerate.h>
+#import "RenderProperties.h"
+#import "VVMTLTextureImageDescriptor.h"
+#import "VVMTLTextureImage.h"
+#import "VVMTLPool.h"
+#import "CopierMTLScene.h"
 
 
 
 
-CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
-	if (inTex == nil)
+CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
+	if (inMTLTex == nil)
 		return nil;
 	
-	if (inTex.storageMode == MTLStorageModePrivate)	{
+	id<VVMTLTextureImage>		texToSample = [VVMTLPool.global textureForExistingTexture:inMTLTex];
+	//	if the storage mode is currently sent to private, we need to copy the texture to a texture that is CPU-accessible
+	if (inMTLTex.storageMode == MTLStorageModePrivate)	{
 		NSLog(@"ERR: passed texture cannot be accessed by GPU, %s",__func__);
-		return nil;
+		//	we want the copy we make to have the same pixel format and stuff, it just needs to be buffer-backed
+		VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+			createWithWidth:inMTLTex.width
+			height:inMTLTex.height
+			pixelFormat:inMTLTex.pixelFormat
+			storage:MTLStorageModeManaged
+			usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+		desc.mtlBufferBacking = YES;
+		
+		id<VVMTLTextureImage>		bufferBackedTex = [VVMTLPool.global textureForDescriptor:desc];
+		
+		CopierMTLScene		*copier = [[CopierMTLScene alloc] initWithDevice:RenderProperties.global.device];
+		id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+		[copier
+			copyImg:texToSample
+			toImg:bufferBackedTex
+			allowScaling:NO
+			sizingMode:SizingModeCopy
+			inCommandBuffer:cmdBuffer];
+		//id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+		//[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
+		//[blitEncoder endEncoding];
+		[cmdBuffer commit];
+		[cmdBuffer waitUntilCompleted];
+		
+		texToSample = bufferBackedTex;
 	}
+	VVMTLTextureImageDescriptor		*texDesc = (VVMTLTextureImageDescriptor*)texToSample.descriptor;
 	
 	CGImageRef		returnMe = NULL;
 	
-	NSUInteger		texBytesPerRow = 8 * 4 * inTex.width / 8;
-	NSUInteger		texBytesLength = texBytesPerRow * inTex.height;
-	MTLRegion		texRegion = MTLRegionMake2D(0, 0, inTex.width, inTex.height);
+	NSUInteger		texBytesPerRow = 8 * 4 * texDesc.width / 8;
+	NSUInteger		texBytesLength = texBytesPerRow * texDesc.height;
+	MTLRegion		texRegion = MTLRegionMake2D(0, 0, texDesc.width, texDesc.height);
 	void			*texBytes = NULL;
 	
 	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
 	
-	size_t			rgbaBytesPerRow = 8 * 4 * inTex.width / 8;
-	size_t			rgbaBytesLength = rgbaBytesPerRow * inTex.height;
+	size_t			rgbaBytesPerRow = 8 * 4 * texDesc.width / 8;
+	size_t			rgbaBytesLength = rgbaBytesPerRow * texDesc.height;
 	CFMutableDataRef		rgbaDataRef = NULL;
 	CGDataProviderRef		rgbaDataProvider = NULL;
 	void			*rgbaBytes = NULL;
 	
-	switch (inTex.pixelFormat)	{
+	switch (texDesc.pfmt)	{
 	case MTLPixelFormatBGRA8Unorm:
 	case MTLPixelFormatBGRA8Unorm_sRGB:
 		{
 			texBytes = malloc(texBytesLength);
 			
-			[inTex getBytes:rgbaBytes bytesPerRow:texBytesPerRow fromRegion:texRegion mipmapLevel:0];
+			[texToSample.texture getBytes:texBytes bytesPerRow:texBytesPerRow fromRegion:texRegion mipmapLevel:0];
 			
 			rgbaDataRef = CFDataCreateMutable(kCFAllocatorDefault, 0);
 			CFDataSetLength(rgbaDataRef, rgbaBytesLength);
@@ -53,20 +86,20 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 			//	use VImage to remap the channels (BGRA to RGBA)
 			vImage_Buffer		texBuffer;
 			texBuffer.data = texBytes;
-			texBuffer.width = inTex.width;
-			texBuffer.height = inTex.height;
+			texBuffer.width = texDesc.width;
+			texBuffer.height = texDesc.height;
 			texBuffer.rowBytes = texBytesPerRow;
 			vImage_Buffer		rgbaBuffer;
 			rgbaBuffer.data = rgbaBytes;
-			rgbaBuffer.width = inTex.width;
-			rgbaBuffer.height = inTex.height;
+			rgbaBuffer.width = texDesc.width;
+			rgbaBuffer.height = texDesc.height;
 			rgbaBuffer.rowBytes = rgbaBytesPerRow;
 			uint8_t			channelRemap[] = { 2, 1, 0, 3 };
 			vImagePermuteChannels_ARGB8888(&texBuffer, &rgbaBuffer, channelRemap, 0);
 			
 			returnMe = CGImageCreate(
-				inTex.width,
-				inTex.height,
+				texDesc.width,
+				texDesc.height,
 				8,
 				32,
 				rgbaBytesPerRow,
@@ -77,7 +110,6 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 				YES,
 				kCGRenderingIntentDefault);
 			
-			free(texBytes);
 		}
 		break;
 	case MTLPixelFormatRGBA8Unorm:
@@ -87,13 +119,13 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 			CFDataSetLength(rgbaDataRef, rgbaBytesLength);
 			rgbaBytes = CFDataGetMutableBytePtr(rgbaDataRef);
 			
-			[inTex getBytes:rgbaBytes bytesPerRow:rgbaBytesPerRow fromRegion:texRegion mipmapLevel:0];
+			[texToSample.texture getBytes:rgbaBytes bytesPerRow:rgbaBytesPerRow fromRegion:texRegion mipmapLevel:0];
 			
 			rgbaDataProvider = CGDataProviderCreateWithCFData(rgbaDataRef);
 			
 			returnMe = CGImageCreate(
-				inTex.width,
-				inTex.height,
+				texDesc.width,
+				texDesc.height,
 				8,
 				32,
 				rgbaBytesPerRow,
@@ -110,11 +142,11 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 	case MTLPixelFormatRGBA16Uint:
 		{
 			//	copy the (16-bit, unsigned int) texture to a CPU buffer with the raw values
-			texBytesPerRow = 16 * 4 * inTex.width / 8;
-			texBytesLength = texBytesPerRow * inTex.height;
+			texBytesPerRow = 16 * 4 * texDesc.width / 8;
+			texBytesLength = texBytesPerRow * texDesc.height;
 			texBytes = malloc(texBytesLength);
 			
-			[inTex getBytes:texBytes bytesPerRow:texBytesPerRow fromRegion:texRegion mipmapLevel:0];
+			[texToSample.texture getBytes:texBytes bytesPerRow:texBytesPerRow fromRegion:texRegion mipmapLevel:0];
 			
 			//	make the (8-bit, unsigned int) RGBA buffer we'll be making the CGImageRef out of
 			rgbaDataRef = CFDataCreateMutable(kCFAllocatorDefault, 0);
@@ -124,7 +156,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 			//	copy the 16-bit data to the 8-bit data buffer, converting the data as we do so
 			uint16_t		*rPtr = (uint16_t*)texBytes;
 			uint8_t			*wPtr = (uint8_t*)rgbaBytes;
-			for (int i=0; i<inTex.width * 4 * inTex.height; ++i)	{
+			for (int i=0; i<texDesc.width * 4 * texDesc.height; ++i)	{
 				*wPtr = round( ((double)(*rPtr)) / ((double)(0xFFFF)) * 255.0 );
 				++rPtr;
 				++wPtr;
@@ -133,8 +165,8 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 			rgbaDataProvider = CGDataProviderCreateWithCFData(rgbaDataRef);
 			
 			returnMe = CGImageCreate(
-				inTex.width,
-				inTex.height,
+				texDesc.width,
+				texDesc.height,
 				16,
 				64,
 				rgbaBytesPerRow,
@@ -152,20 +184,20 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 	
 	case MTLPixelFormatRGBA32Float:
 		{
-			rgbaBytesPerRow = 32 * 4 * inTex.width / 8;
-			rgbaBytesLength = rgbaBytesPerRow * inTex.height;
+			rgbaBytesPerRow = 32 * 4 * texDesc.width / 8;
+			rgbaBytesLength = rgbaBytesPerRow * texDesc.height;
 			
 			rgbaDataRef = CFDataCreateMutable(kCFAllocatorDefault, 0);
 			CFDataSetLength(rgbaDataRef, rgbaBytesLength);
 			rgbaBytes = CFDataGetMutableBytePtr(rgbaDataRef);
 			
-			[inTex getBytes:rgbaBytes bytesPerRow:rgbaBytesPerRow fromRegion:texRegion mipmapLevel:0];
+			[texToSample.texture getBytes:rgbaBytes bytesPerRow:rgbaBytesPerRow fromRegion:texRegion mipmapLevel:0];
 			
 			rgbaDataProvider = CGDataProviderCreateWithCFData(rgbaDataRef);
 			
 			returnMe = CGImageCreate(
-				inTex.width,
-				inTex.height,
+				texDesc.width,
+				texDesc.height,
 				32,
 				128,
 				rgbaBytesPerRow,
@@ -179,20 +211,20 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 		break;
 	case MTLPixelFormatRGBA16Float:
 		{
-			rgbaBytesPerRow = 16 * 4 * inTex.width / 8;
-			rgbaBytesLength = rgbaBytesPerRow * inTex.height;
+			rgbaBytesPerRow = 16 * 4 * texDesc.width / 8;
+			rgbaBytesLength = rgbaBytesPerRow * texDesc.height;
 			
 			rgbaDataRef = CFDataCreateMutable(kCFAllocatorDefault, 0);
 			CFDataSetLength(rgbaDataRef, rgbaBytesLength);
 			rgbaBytes = CFDataGetMutableBytePtr(rgbaDataRef);
 			
-			[inTex getBytes:rgbaBytes bytesPerRow:rgbaBytesPerRow fromRegion:texRegion mipmapLevel:0];
+			[texToSample.texture getBytes:rgbaBytes bytesPerRow:rgbaBytesPerRow fromRegion:texRegion mipmapLevel:0];
 			
 			rgbaDataProvider = CGDataProviderCreateWithCFData(rgbaDataRef);
 			
 			returnMe = CGImageCreate(
-				inTex.width,
-				inTex.height,
+				texDesc.width,
+				texDesc.height,
 				16,
 				64,
 				rgbaBytesPerRow,
@@ -214,12 +246,12 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 	case MTLPixelFormatR8Unorm_sRGB:
 	case MTLPixelFormatRG8Unorm:
 	case MTLPixelFormatRG8Unorm_sRGB:
-		NSLog(@"ERR: unhandled pixel format (%@) in %s", NSStringFromOSType((OSType)inTex.pixelFormat), __func__);
+		NSLog(@"ERR: unhandled pixel format (%@) in %s", NSStringFromOSType((OSType)texDesc.pfmt), __func__);
 		break;
 	
 	
 	default:
-		NSLog(@"ERR: unhandled pixel format B (%@) in %s", NSStringFromOSType((OSType)inTex.pixelFormat), __func__);
+		NSLog(@"ERR: unhandled pixel format B (%@) in %s", NSStringFromOSType((OSType)texDesc.pfmt), __func__);
 		break;
 	}
 	
@@ -241,7 +273,79 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex)	{
 }
 
 
+CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize imgSize)	{
+	NSSize			texSize = NSMakeSize(inMTLTex.width, inMTLTex.height);
+	//	if the texture size we were passed matches the size of the passed texture, we can just call the parent function and bail
+	if (NSEqualSizes(imgSize, texSize))	{
+		return CreateCGImageRefFromMTLTexture(inMTLTex);
+	}
+	
+	//	...if we're here, we need to resize the passed texture- so make a buffer-backed texture, copy the src texture to it, and then call the parent function
+	
+	id<VVMTLTextureImage>		inTex = [VVMTLPool.global textureForExistingTexture:inMTLTex];
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:texSize.width
+		height:texSize.height
+		pixelFormat:inMTLTex.pixelFormat
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	desc.mtlBufferBacking = YES;
+	
+	id<VVMTLTextureImage>		bufferBackedTex = [VVMTLPool.global textureForDescriptor:desc];
+	
+	CopierMTLScene		*copier = [[CopierMTLScene alloc] initWithDevice:RenderProperties.global.device];
+	id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+	[copier
+		copyImg:inTex
+		toImg:bufferBackedTex
+		allowScaling:NO
+		sizingMode:SizingModeFit
+		inCommandBuffer:cmdBuffer];
+	//id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	//[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
+	//[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	
+	CGImageRef		returnMe = CreateCGImageRefFromMTLTexture(bufferBackedTex.texture);
+	
+	bufferBackedTex = nil;
+	inTex = nil;
+	copier = nil;
+	
+	return returnMe;
+}
+
+
 NSString * NSStringFromOSType(OSType n)	{
 	return [NSString stringWithFormat:@"%c%c%c%c", (int)((n>>24)&0xFF), (int)((n>>16)&0xFF), (int)((n>>8)&0xFF), (int)((n>>0)&0xFF)];
 }
+
+
+
+
+
+@implementation NSImage (NSImageVVMTLUtilities)
+
++ (NSImage *) createFromMTLTexture:(id<MTLTexture>)n	{
+	if (n == nil)
+		return nil;
+	CGImageRef		tmpImg = CreateCGImageRefFromMTLTexture(n);
+	NSImage			*returnMe = [[NSImage alloc] initWithCGImage:tmpImg size:NSMakeSize(CGImageGetWidth(tmpImg), CGImageGetHeight(tmpImg))];
+	CGImageRelease(tmpImg);
+	return returnMe;
+}
+
++ (NSImage *) createFromMTLTexture:(id<MTLTexture>)n sized:(NSSize)inSize	{
+	if (n == nil)
+		return nil;
+	CGImageRef		tmpImg = CreateCGImageRefFromResizedMTLTexture(n, inSize);
+	NSImage			*returnMe = [[NSImage alloc] initWithCGImage:tmpImg size:inSize];
+	CGImageRelease(tmpImg);
+	return returnMe;
+}
+
+@end
+
+
 
