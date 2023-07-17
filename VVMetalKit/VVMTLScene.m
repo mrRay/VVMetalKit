@@ -9,6 +9,7 @@
 
 //#import "VVMTLTextureImage.h"
 #import "VVMTLPool.h"
+#import "RenderProperties.h"
 
 
 
@@ -41,6 +42,7 @@
 		self.commandBuffer = nil;
 		self.renderTarget = nil;
 		self.renderSize = CGSizeMake(40,30);
+		self.colorSpace = RenderProperties.global.colorSpace;
 		
 		self.transitiveScheduledHandlers = [[NSMutableArray alloc] init];
 		self.transitiveCompletedHandlers = [[NSMutableArray alloc] init];
@@ -127,6 +129,20 @@
 
 - (void) renderCallback	{
 	//	intentionally blank- subclasses must implement their own render callbacks
+}
+
+
+- (void) setColorSpace:(CGColorSpaceRef)n	{
+	if (self.colorSpace != NULL)	{
+		CGColorSpaceRelease(self.colorSpace);
+	}
+	self.colorSpace = n;
+	if (self.colorSpace != NULL)	{
+		CGColorSpaceRetain(self.colorSpace);
+	}
+}
+- (CGColorSpaceRef) colorSpace	{
+	return self.colorSpace;
 }
 
 

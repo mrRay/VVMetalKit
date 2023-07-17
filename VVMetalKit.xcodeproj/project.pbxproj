@@ -119,6 +119,12 @@
 		1ABE24652A4DE90400317187 /* VVMTLTextureImageShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ABE24662A4DE90A00317187 /* VVMTLTextureImageRectViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */; };
+		1AC4AC132A5EFB9D00119888 /* VVMTLLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */; };
+		1AC4AC142A5EFB9D00119888 /* VVMTLLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */; };
+		1AC4AC232A5EFED900119888 /* VVMTLTextureLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC212A5EFED900119888 /* VVMTLTextureLUT.h */; };
+		1AC4AC242A5EFED900119888 /* VVMTLTextureLUT.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */; };
+		1AC4AC272A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */; };
+		1AC4AC282A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */; };
 		1AC82CC927FF2901009A9989 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC82CCA27FF2901009A9989 /* CustomMetalView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC82CCB27FF2901009A9989 /* SwizzleMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBED5260E243500FF39BB /* SwizzleMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -409,6 +415,11 @@
 		1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VVMTLTextureImageRectView.metal; sourceTree = "<group>"; };
 		1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageShaderTypes.h; sourceTree = "<group>"; };
 		1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLScene_priv.h; sourceTree = "<group>"; };
+		1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLLUT.h; sourceTree = "<group>"; };
+		1AC4AC212A5EFED900119888 /* VVMTLTextureLUT.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureLUT.h; sourceTree = "<group>"; };
+		1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureLUT.m; sourceTree = "<group>"; };
+		1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureLUTDescriptor.h; sourceTree = "<group>"; };
+		1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureLUTDescriptor.m; sourceTree = "<group>"; };
 		1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKitTouch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		1ADBC74F2A141CAB008FB1CA /* libISFGLSLGenerator.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libISFGLSLGenerator.dylib; path = submodules/ISFMSLKit/submodules/ISFGLSLGenerator/build/install/lib/libISFGLSLGenerator.dylib; sourceTree = SOURCE_ROOT; };
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
@@ -508,9 +519,14 @@
 				1A9924122A4DA43400F5094D /* VVMTLTextureImage.m */,
 				1A20CF082A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.h */,
 				1A20CF092A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.m */,
+				1AC4AC212A5EFED900119888 /* VVMTLTextureLUT.h */,
+				1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */,
+				1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */,
+				1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */,
 				1A20CF0C2A4A1A3700F2EDBB /* VVMTLPool.h */,
 				1A20CF0D2A4A1A3700F2EDBB /* VVMTLPool.m */,
 				1A20CF002A46213B00F2EDBB /* VVMTLRecyclingPool.h */,
+				1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */,
 				1A976B612A461D4C00C654FA /* VVMTLImage.h */,
 				1A976B642A461D4C00C654FA /* VVMTLRecycleable.h */,
 				1A20CF022A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h */,
@@ -672,6 +688,8 @@
 			files = (
 				1A47F8472A55E30C0087942C /* CIMTLScene.h in Headers */,
 				1ABE244F2A4DE87400317187 /* VVMTLScene.h in Headers */,
+				1AC4AC232A5EFED900119888 /* VVMTLTextureLUT.h in Headers */,
+				1AC4AC272A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h in Headers */,
 				1ABE24532A4DE88200317187 /* VVMTLComputeScene.h in Headers */,
 				1ABE24572A4DE88B00317187 /* VVMTLRenderScene.h in Headers */,
 				1ABE245B2A4DE8A500317187 /* VVMTLTextureImageRectView.h in Headers */,
@@ -696,6 +714,7 @@
 				1A976B6F2A461D4C00C654FA /* VVMTLTimestamp.h in Headers */,
 				1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */,
 				1A976B6E2A461D4C00C654FA /* VVMTLBuffer.h in Headers */,
+				1AC4AC132A5EFB9D00119888 /* VVMTLLUT.h in Headers */,
 				1A976B6D2A461D4C00C654FA /* VVMTLRecycleable.h in Headers */,
 				1A20CF012A46213B00F2EDBB /* VVMTLRecyclingPool.h in Headers */,
 				1A20CF032A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h in Headers */,
@@ -748,6 +767,7 @@
 				1A4819742816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AC82CDB27FF2901009A9989 /* VVColorConversions.h in Headers */,
 				1AC82CDC27FF2901009A9989 /* SizingTool_metal.h in Headers */,
+				1AC4AC142A5EFB9D00119888 /* VVMTLLUT.h in Headers */,
 				1A47F8482A55E30C0087942C /* CIMTLScene.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1074,6 +1094,7 @@
 				1A0FBED8260E243500FF39BB /* SwizzleMTLScene.mm in Sources */,
 				1A20CF072A499BC300F2EDBB /* VVMTLBufferDescriptor.m in Sources */,
 				1A47F8452A55E30C0087942C /* CIMTLScene.m in Sources */,
+				1AC4AC242A5EFED900119888 /* VVMTLTextureLUT.m in Sources */,
 				1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */,
 				1A20CF0F2A4A1A3700F2EDBB /* VVMTLPool.m in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
@@ -1081,6 +1102,7 @@
 				1ABE24582A4DE88B00317187 /* VVMTLRenderScene.m in Sources */,
 				1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */,
 				1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */,
+				1AC4AC282A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m in Sources */,
 				1A48197C2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */,
 				1ABE24632A4DE8E600317187 /* VVMTLTextureImageRectView.metal in Sources */,
 				1A20CF0B2A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.m in Sources */,

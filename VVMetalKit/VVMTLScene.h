@@ -43,6 +43,7 @@ encoding or commit the cmd buffer in this method.			*/
 
 @property (readonly,nonatomic) id<VVMTLTextureImage> renderTarget;
 @property (readwrite,nonatomic) NSSize renderSize;
+@property (readwrite,nonatomic) CGColorSpaceRef colorSpace;
 
 - (void) addScheduledHandler:(MTLCommandBufferHandler)n;
 - (void) addCompletedHandler:(MTLCommandBufferHandler)n;

@@ -4,6 +4,8 @@
 #import <UIKit/UIKit.h>
 #endif
 
+#import "RenderProperties.h"
+
 
 
 
@@ -60,10 +62,7 @@
 	self.pixelFormat = MTLPixelFormatBGRA8Unorm;
 	//self.pixelFormat = MTLPixelFormatRGB10A2Unorm;	//	used this for a long time
 	
-	CGColorSpaceRef		tmpSpace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
-	self.colorspace = tmpSpace;
-	if (tmpSpace != NULL)
-		CGColorSpaceRelease(tmpSpace);
+	self.colorspace = RenderProperties.global.colorSpace;
 	
 	#if !TARGET_OS_IOS
 	self.wantsLayer = YES;

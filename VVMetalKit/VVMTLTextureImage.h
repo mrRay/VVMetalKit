@@ -9,6 +9,7 @@
 #define MTLTextureImage_h
 
 #import <Metal/Metal.h>
+#import <CoreImage/CoreImage.h>
 
 #import <VVMetalKit/VVMTLImage.h>
 #import <VVMetalKit/VVMTLTimestamp.h>
@@ -42,6 +43,9 @@
 
 //	populates the pased struct ptr with data that describes how to draw this image, taking into account the src rect and h/v flippedness
 - (void) populateStruct:(struct VVMTLTextureImageStruct * __nullable)n;
+
+//	returns a CIImage backed by the receiver's id<MTLTexture>, taking into account cropping and flippedness
+- (CIImage * __nonnull) createCIImageWithColorSpace:(CGColorSpaceRef __nonnull)cs;
 
 @end
 

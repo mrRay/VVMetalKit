@@ -31,7 +31,7 @@ typedef void (^VVMTLRecycleableRecycleBlock)(__nonnull id<VVMTLRecycleable>);
 @property (readwrite) int recycleCount;
 
 //	the descriptor that was likely used to help generate the receiver, and is used to check to see if other recycleables are compatible for re-use
-@property (strong,readwrite,nonnull) id<VVMTLRecycleableDescriptor> descriptor;
+@property (copy,readwrite,nonnull) id<VVMTLRecycleableDescriptor> descriptor;
 
 //	arbitrary supporting object that gets freed when this object gets freed
 @property (strong,nullable) id supportingObject;

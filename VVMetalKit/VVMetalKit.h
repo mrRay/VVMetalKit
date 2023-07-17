@@ -27,6 +27,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
 #import <VVMetalKitTouch/VVMTLTimestamp.h>
 #import <VVMetalKitTouch/VVMTLImage.h>
+#import <VVMetalKitTouch/VVMTLLUT.h>
 #import <VVMetalKitTouch/VVMTLRecycleable.h>
 #import <VVMetalKitTouch/VVMTLRecycleableDescriptor.h>
 #import <VVMetalKitTouch/VVMTLRecyclingPool.h>
@@ -66,6 +67,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
 #import <VVMetalKit/VVMTLTimestamp.h>
 #import <VVMetalKit/VVMTLImage.h>
+#import <VVMetalKit/VVMTLLUT.h>
 #import <VVMetalKit/VVMTLRecycleable.h>
 #import <VVMetalKit/VVMTLRecycleableDescriptor.h>
 #import <VVMetalKit/VVMTLRecyclingPool.h>

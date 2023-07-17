@@ -17,6 +17,9 @@
 #import "VVMTLBuffer.h"
 #import "VVMTLBufferDescriptor.h"
 
+#import "VVMTLTextureLUT.h"
+#import "VVMTLTextureLUTDescriptor.h"
+
 
 
 
@@ -35,6 +38,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	id<MTLDevice>		_device;
 	NSMutableArray<id<VVMTLRecycleable>>		*_texPool;	//	FIFO, objects that are in the pool "too long" get freed
 	NSMutableArray<id<VVMTLRecycleable>>		*_bufferPool;	//	FIFO.
+	NSMutableArray<id<VVMTLRecycleable>>		*_lutPool;	//	FIFO
 	CVMetalTextureCacheRef		_cvTexCache;
 }
 //	really returns a VVMTLTextureImage or VVMTLBuffer, because that's what this class creates & vends
@@ -42,6 +46,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 - (void) _labelTexture:(id<MTLTexture>)n;
 - (NSError *) _generateMissingGPUAssetsInTexImg:(VVMTLTextureImage *)n;
 - (NSError *) _generateMissingGPUAssetsInBuffer:(VVMTLBuffer *)n;
+- (NSError *) _generateMissingGPUAssetsInTexLUT:(VVMTLTextureLUT *)n;
 @end
 
 
@@ -66,6 +71,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		_device = n;
 		_texPool = [[NSMutableArray alloc] init];
 		_bufferPool = [[NSMutableArray alloc] init];
+		_lutPool = [[NSMutableArray alloc] init];
 		
 		CVReturn		cvErr = kCVReturnSuccess;
 		cvErr = CVMetalTextureCacheCreate(
@@ -93,11 +99,14 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	if (n == nil)
 		return;
 	@synchronized (self)	{
-		if ([(NSObject*)n isVVMTLBuffer])	{
+		if ([(NSObject*)n isVVMTLTextureImage])	{
+			[_texPool insertObject:n atIndex:0];
+		}
+		else if ([(NSObject*)n isVVMTLBuffer])	{
 			[_bufferPool insertObject:n atIndex:0];
 		}
-		else if ([(NSObject*)n isVVMTLTextureImage])	{
-			[_texPool insertObject:n atIndex:0];
+		else if ([(NSObject*)n isVVMTLTextureLUT])	{
+			[_lutPool insertObject:n atIndex:0];
 		}
 	}
 }
@@ -113,7 +122,17 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	id<VVMTLRecycleable>		returnMe = nil;
 	int			tmpIndex = 0;
 	
-	if ([(NSObject*)n isVVMTLBufferDescriptor])	{
+	if ([(NSObject*)n isVVMTLTextureImageDescriptor])	{
+		for (id<VVMTLRecycleable> pooledObject in _texPool)	{
+			if ([n matchForRecycling:pooledObject.descriptor])	{
+				returnMe = pooledObject;
+				[_texPool removeObjectAtIndex:tmpIndex];
+				break;
+			}
+			++tmpIndex;
+		}
+	}
+	else if ([(NSObject*)n isVVMTLBufferDescriptor])	{
 		for (id<VVMTLRecycleable> pooledObject in _bufferPool)	{
 			if ([n matchForRecycling:pooledObject.descriptor])	{
 				returnMe = pooledObject;
@@ -123,11 +142,11 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			++tmpIndex;
 		}
 	}
-	else if ([(NSObject*)n isVVMTLTextureImageDescriptor])	{
-		for (id<VVMTLRecycleable> pooledObject in _texPool)	{
+	else if ([(NSObject*)n isVVMTLTextureLUTDescriptor])	{
+		for (id<VVMTLRecycleable> pooledObject in _lutPool)	{
 			if ([n matchForRecycling:pooledObject.descriptor])	{
 				returnMe = pooledObject;
-				[_texPool removeObjectAtIndex:tmpIndex];
+				[_lutPool removeObjectAtIndex:tmpIndex];
 				break;
 			}
 			++tmpIndex;
@@ -142,7 +161,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (void) housekeeping	{
 	@synchronized (self)	{
-		NSArray<NSMutableArray*>		*pools = @[ _texPool, _bufferPool ];
+		NSArray<NSMutableArray*>		*pools = @[ _texPool, _bufferPool, _lutPool ];
 		for (NSMutableArray * pool in pools)	{
 			
 			int			tmpIndex = 0;
@@ -742,7 +761,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	void			*tmpBacking = malloc(bytesPerRow * tmpSize.height);
 	
-	CGColorSpaceRef		tmpSpace = CGColorSpaceCreateWithName( kCGColorSpaceITUR_709 );
+	//CGColorSpaceRef		tmpSpace = CGColorSpaceCreateWithName( kCGColorSpaceITUR_709 );
+	CGColorSpaceRef		tmpSpace = RenderProperties.global.colorSpace;
 	CGBitmapInfo		tmpBitmapInfo = (CGBitmapInfo)kCGImageAlphaNoneSkipFirst;
 	CGContextRef		tmpCGCtx = CGBitmapContextCreate( tmpBacking, tmpSize.width, tmpSize.height, 8, bytesPerRow, tmpSpace, tmpBitmapInfo);
 	
@@ -819,6 +839,77 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- iosfc"];
+	
+	return returnMe;
+}
+
+
+#pragma mark - LUT creation
+
+
+- (id<VVMTLTextureLUT>) lutForDescriptor:(VVMTLTextureLUTDescriptor*)inDesc	{
+	if (inDesc == nil)
+		return nil;
+	VVMTLTextureLUT		*returnMe = nil;
+	@synchronized (self)	{
+		returnMe = (VVMTLTextureLUT*)[self _recycledObjectMatching:inDesc];
+		if (returnMe != nil)
+			return returnMe;
+		
+		returnMe = [[VVMTLTextureLUT alloc] initWithDescriptor:inDesc];
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexLUT:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	return returnMe;
+}
+
+
+- (id<VVMTLTextureLUT>) bufferBacked1DLUTSized:(MTLSize)n	{
+	MTLSize			targetSize = MTLSizeMake(n.width, 1, 1);
+	VVMTLTextureLUTDescriptor		*desc = [VVMTLTextureLUTDescriptor
+		createWithOrder:1
+		size:targetSize
+		pixelFormat:MTLPixelFormatRGBA32Float
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead];
+	
+	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- 1Dlut"];
+	
+	return returnMe;
+	
+}
+- (id<VVMTLTextureLUT>) bufferBacked2DLUTSized:(MTLSize)n	{
+	MTLSize			targetSize = MTLSizeMake(n.width, n.height, 1);
+	VVMTLTextureLUTDescriptor		*desc = [VVMTLTextureLUTDescriptor
+		createWithOrder:2
+		size:targetSize
+		pixelFormat:MTLPixelFormatRGBA32Float
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead];
+	
+	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- 2Dlut"];
+	
+	return returnMe;
+}
+- (id<VVMTLTextureLUT>) bufferBacked3DLUTSized:(MTLSize)n	{
+	MTLSize			targetSize = n;
+	VVMTLTextureLUTDescriptor		*desc = [VVMTLTextureLUTDescriptor
+		createWithOrder:3
+		size:targetSize
+		pixelFormat:MTLPixelFormatRGBA32Float
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead];
+	
+	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
+	
+	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- 3Dlut"];
 	
 	return returnMe;
 }
@@ -1111,6 +1202,114 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	n.buffer = buffer;
 	n.pool = self;
+	
+	return nil;
+}
+- (NSError *) _generateMissingGPUAssetsInTexLUT:(VVMTLTextureLUT *)n	{
+	if (n == nil)
+		return nil;
+	
+	n.pool = self;
+	
+	VVMTLTextureLUTDescriptor		*desc = (VVMTLTextureLUTDescriptor *)n.descriptor;
+	
+	//	local copies of vars to simplify access
+	id<MTLTexture>			texture = n.texture;
+	id<VVMTLBuffer>			buffer = n.buffer;
+	
+	uint8_t			order = desc.order;
+	MTLSize			size = desc.size;
+	BOOL			mtlBufferBacking = desc.mtlBufferBacking;
+	
+	size_t			bytesPerRow = size.width * 8 * 4 / 8;
+	if (bytesPerRow == 0)	{
+		switch (desc.pfmt)	{
+		case MTLPixelFormatR8Unorm:	//	??
+			bytesPerRow = size.width * 8 * 1 / 8;
+			break;
+		
+		case MTLPixelFormatRG8Unorm:
+			bytesPerRow = size.width * 8 * 2 / 8;
+			break;
+		
+		//case MTLPixelFormatBGRG422:	//	BM stuff
+		//	bytesPerRow = size.width * 8 * 2 / 8;
+		//	break;
+		//case MTLPixelFormatGBGR422:	//	BM stuff
+		//	bytesPerRow = size.width * 8 * 2 / 8;
+		//	break;
+		case MTLPixelFormatRGBA8Unorm:
+			bytesPerRow = size.width * 8 * 4 / 8;
+			break;
+		case MTLPixelFormatBGRA8Unorm:
+			bytesPerRow = size.width * 8 * 4 / 8;
+			break;
+		
+		case MTLPixelFormatRGBA32Float:
+			bytesPerRow = size.width * 32 * 4 / 8;
+			break;
+		
+		case MTLPixelFormatRGB10A2Uint:	//	BM stuff
+			bytesPerRow = size.width * 32 / 8;
+			break;
+		case MTLPixelFormatRGB10A2Unorm:	//	not used?
+			bytesPerRow = size.width * 32 / 8;
+			break;
+		
+		case MTLPixelFormatRGBA16Uint:
+			bytesPerRow = size.width * 16 * 4 / 8;
+			break;
+		default:
+			//	intentionally blank
+			break;
+		}
+	}
+	
+	//	if the descriptor indicates that we need a MTLBuffer (via id<VVMTLBuffer>) as a backing, but we don't have one yet...
+	if (mtlBufferBacking && buffer == nil)	{
+		size_t			targetBufferLength = bytesPerRow;
+		if (order >=2)
+			targetBufferLength *= size.height;
+		if (order >= 3)
+			targetBufferLength *= size.depth;
+		buffer = [self bufferWithLength:targetBufferLength storage:desc.storage];
+		n.buffer = buffer;
+	}
+	
+	//	...okay, so at this point if we need a backing, we should have already created it- now we need to create a texture.
+	
+	if (texture == nil)	{
+		MTLTextureDescriptor		*texDesc = [[MTLTextureDescriptor alloc] init];
+		switch (desc.order)	{
+		case 1:		texDesc.textureType = MTLTextureType1D;		break;
+		case 2:		texDesc.textureType = MTLTextureType2D;		break;
+		case 3:		texDesc.textureType = MTLTextureType3D;		break;
+		default:	break;
+		}
+		texDesc.pixelFormat = desc.pfmt;
+		texDesc.width = size.width;
+		texDesc.height = size.height;
+		texDesc.depth = size.depth;
+		texDesc.storageMode = desc.storage;
+		texDesc.resourceOptions = MTLResourceStorageModeForMTLStorageMode(desc.storage);
+		texDesc.usage = desc.usage;
+		
+		//	if there's an id<VVMTLBuffer> we want to use to back the texture...
+		if (buffer != nil)	{
+			texture = [buffer.buffer newTextureWithDescriptor:texDesc offset:0 bytesPerRow:bytesPerRow];
+			[self _labelTexture:texture];
+			n.texture = texture;
+		}
+		//	else it's just a plain ol' texture
+		else	{
+			
+			texture = [_device newTextureWithDescriptor:texDesc];
+			[self _labelTexture:texture];
+			
+			n.texture = texture;
+		}
+	}
+	
 	
 	return nil;
 }

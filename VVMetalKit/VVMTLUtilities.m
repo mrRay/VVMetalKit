@@ -60,9 +60,10 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	MTLRegion		texRegion = MTLRegionMake2D(0, 0, texDesc.width, texDesc.height);
 	void			*texBytes = NULL;
 	
-	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
+	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
+	CGColorSpaceRef		colorspace = RenderProperties.global.colorSpace;
 	
 	size_t			rgbaBytesPerRow = 8 * 4 * texDesc.width / 8;
 	size_t			rgbaBytesLength = rgbaBytesPerRow * texDesc.height;

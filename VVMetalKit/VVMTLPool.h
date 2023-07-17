@@ -13,7 +13,9 @@
 #import <VVMetalKit/VVMTLRecyclingPool.h>
 @protocol VVMTLTextureImage;
 @protocol VVMTLBuffer;
+@protocol VVMTLTextureLUT;
 @class VVMTLTextureImageDescriptor;
+@class VVMTLTextureLUTDescriptor;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -58,6 +60,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) createFromNSImage:(NSImage *)n;
 
 - (id<VVMTLTextureImage>) textureForIOSurface:(IOSurfaceRef)n;
+
+- (id<VVMTLTextureLUT>) lutForDescriptor:(VVMTLTextureLUTDescriptor*)inDesc;
+
+- (id<VVMTLTextureLUT>) bufferBacked1DLUTSized:(MTLSize)n;
+- (id<VVMTLTextureLUT>) bufferBacked2DLUTSized:(MTLSize)n;
+- (id<VVMTLTextureLUT>) bufferBacked3DLUTSized:(MTLSize)n;
 
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage;
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.

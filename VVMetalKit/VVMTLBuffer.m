@@ -42,7 +42,7 @@
 		pool = nil;
 		preferDeletion = NO;
 		recycleCount = 0;
-		descriptor = n;
+		descriptor = [n copy];
 		supportingObject = nil;
 		supportingContext = NULL;
 		deletionBlock = nil;

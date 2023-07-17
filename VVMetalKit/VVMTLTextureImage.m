@@ -56,7 +56,7 @@
 		pool = nil;
 		preferDeletion = NO;
 		recycleCount = 0;
-		descriptor = n;
+		descriptor = [n copy];
 		supportingObject = nil;
 		supportingContext = NULL;
 		deletionBlock = nil;
@@ -197,6 +197,40 @@
 	n->srcRect.size.height = round(tmpRect.size.height);
 	n->flipV = self.flipV;
 	n->flipH = self.flipH;
+}
+
+- (CIImage *) createCIImageWithColorSpace:(CGColorSpaceRef)cs	{
+	NSDictionary		*optsDict = (cs==NULL) ? nil : @{
+		kCIImageColorSpace: (__bridge id)cs
+	};
+	
+	CIImage			*returnMe = [CIImage
+		imageWithMTLTexture:texture
+		options:optsDict];
+	
+	//	if the image needs to be cropped (if srcRect differs from a rect made with the texture dims), do so now
+	NSRect			fullFrameRect = NSMakeRect(0,0,width,height);
+	if (!NSEqualRects(fullFrameRect,srcRect))	{
+		returnMe = [returnMe imageByCroppingToRect:srcRect];
+		returnMe = [returnMe imageByApplyingTransform:CGAffineTransformMakeTranslation(-1*srcRect.origin.x, -1*srcRect.origin.y)];
+	}
+	
+	//	if we're flipping the image, do so now
+	if (flipH || flipV)	{
+		CGImagePropertyOrientation		newOrientation = 0;
+		if (flipH && flipV)	{
+			newOrientation = kCGImagePropertyOrientationDown;
+		}
+		else if (flipV)	{
+			newOrientation = kCGImagePropertyOrientationDownMirrored;
+		}
+		else	{
+			newOrientation = kCGImagePropertyOrientationUpMirrored;
+		}
+		returnMe = [returnMe imageByApplyingCGOrientation:newOrientation];
+	}
+	
+	return returnMe;
 }
 
 #pragma mark - NSCopying conformance
