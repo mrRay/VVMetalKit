@@ -61,6 +61,13 @@ size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo)	{
 	case SwizzlePF_UYVY_PL_420_UI_8:
 		returnMe = lastPlaneOffset + (lastPlaneBytesPerRow * inInfo->res[1] / 2);
 		break;
+	
+	//case SwizzlePF_RGB_PK_YCoCg:
+	//	returnMe = inInfo->res[0] * inInfo->res[1];
+	//	break;
+	//case SwizzlePF_RGB_PKPL_YCoCgA:	//	YCoCg is 1 byte per pixel, A is stored as RGTC1 which is 8 bytes per 4x4 pixel block for a total of 1.5 bytes per pixel.
+	//	returnMe = (((inInfo->res[0] * inInfo->res[1]) / 2) * 3);
+	//	break;
 	}
 	
 	return returnMe;
@@ -72,6 +79,8 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int i
 	
 	unsigned int		widthRoundedUYVY = inWidth + (inWidth % 2);
 	//unsigned int		heightRoundedUp = inHeight + (inHeight % 2);
+	unsigned int		widthRoundedDXT = inWidth + (inWidth % 4);
+	//unsigned int		heightRoundedDXT = inHeight + (inHeight % 4);
 	
 	switch (inPF)	{
 	case SwizzlePF_Unknown:					bytesPerRow = 0;		break;
@@ -94,6 +103,9 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int i
 	
 	case SwizzlePF_UYVY_PKPL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
 	case SwizzlePF_UYVY_PL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
+	
+	//case SwizzlePF_RGB_PK_YCoCg:			bytesPerRow = 8 * widthRoundedDXT / 8;		break;
+	//case SwizzlePF_RGB_PKPL_YCoCgA:			bytesPerRow = 8 * widthRoundedDXT / 8;		break;
 	}
 	
 	return MakeSwizzleShaderImageInfoWithBytesPerRow(inPF, inWidth, inHeight, bytesPerRow);
@@ -101,6 +113,7 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int i
 
 
 SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow)	{
+	
 	SwizzleShaderImageInfo		returnMe;
 	returnMe.pf = inPF;
 	returnMe.res[0] = inWidth;
@@ -167,6 +180,23 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 		returnMe.planes[2].offset = returnMe.planes[1].offset + (inBytesPerRow * returnMe.res[1]);
 		returnMe.planes[2].bytesPerRow = inBytesPerRow;
 		break;
+	
+	//case SwizzlePF_RGB_PK_YCoCg:
+	//	returnMe.planeCount = 1;
+	//	returnMe.planes[0].offset = 0;
+	//	returnMe.planes[0].bytesPerRow = inBytesPerRow;
+	//	break;
+	//case SwizzlePF_RGB_PKPL_YCoCgA:
+	//	{
+	//		//unsigned int		widthRoundedDXT = inWidth + (inWidth % 4);
+	//		unsigned int		heightRoundedDXT = inHeight + (inHeight % 4);
+	//		returnMe.planeCount = 2;
+	//		returnMe.planes[0].offset = 0;
+	//		returnMe.planes[0].bytesPerRow = inBytesPerRow;
+	//		returnMe.planes[1].offset = returnMe.planes[0].offset + (inBytesPerRow * heightRoundedDXT);
+	//		returnMe.planes[1].bytesPerRow = inBytesPerRow / 2;
+	//	}
+	//	break;
 	}
 	return returnMe;
 }

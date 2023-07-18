@@ -992,6 +992,10 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
 	//NSLog(@"%s",__func__);
+	if (b == nil)	{
+		NSLog(@"ERR: nil prtr, %s",__func__);
+		return nil;
+	}
 	size_t			targetLength = inLength;
 	//size_t			pageSize = getpagesize();	//	if you do these calculations here you may wind up copying more data from the read ptr than you're allowed to.
 	//if (inLength % pageSize == 0)	{
@@ -1003,19 +1007,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
 	
 	MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
-	id<MTLBuffer>	buffer = nil;
-	if (b == NULL)	{
-		buffer = [self.device newBufferWithLength:targetLength options:resourceStorageMode];
-	}
-	else	{
-		buffer = [self.device newBufferWithBytesNoCopy:b length:targetLength options:resourceStorageMode deallocator:d];
-	}
-	
 	VVMTLBuffer		*returnMe = [[VVMTLBuffer alloc] init];
-	returnMe.buffer = buffer;
 	returnMe.pool = self;
-	returnMe.preferDeletion = YES;
 	returnMe.descriptor = desc;
+	returnMe.preferDeletion = YES;
+	returnMe.buffer = [self.device
+		newBufferWithBytesNoCopy:b
+		length:targetLength
+		options:resourceStorageMode
+		deallocator:d];
 	
 	return returnMe;
 }

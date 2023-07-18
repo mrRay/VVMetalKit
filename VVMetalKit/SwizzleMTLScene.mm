@@ -18,14 +18,14 @@
 
 
 @interface SwizzleMTLScene ()	{
-	id<MTLBuffer>		slugBuffer;	//	we can't pass nil buffers to metal because...i don't know why not
+	id<VVMTLBuffer>		slugBuffer;	//	we can't pass nil buffers to metal because...i don't know why not
 	id<VVMTLTextureImage>		slugTexture;	//	we can't pass nil textures to metal because...if we do, the metal debugger doesn't work.
 }
 
-@property (strong) id<MTLBuffer> srcBuffer;
+@property (strong) id<VVMTLBuffer> srcBuffer;
 @property (strong) id<VVMTLTextureImage> srcRGBTexture;
 
-@property (strong) id<MTLBuffer> dstBuffer;
+@property (strong) id<VVMTLBuffer> dstBuffer;
 @property (strong) id<VVMTLTextureImage> dstRGBTexture;
 
 //	contains information describing how the shader should execute (the compute shader needs this)
@@ -57,7 +57,7 @@
 		if (self.computePipelineStateObject == nil || nsErr != nil)
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 		
-		slugBuffer = [n newBufferWithLength:1 options:MTLResourceStorageModeShared];
+		slugBuffer = [VVMTLPool.global bufferWithLength:1 storage:MTLStorageModeShared];
 		slugTexture = [VVMTLPool.global rgbaFloatTexSized:NSMakeSize(16,16)];
 	}
 	return self;
@@ -67,55 +67,7 @@
 #pragma mark - frontend methods
 
 
-- (id<MTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
-	//NSLog(@"%s ... %ld, %p",__func__,inLength,b);
-	size_t			targetLength = 0;
-	size_t			pageSize = getpagesize();
-	if (inLength % pageSize == 0)	{
-		targetLength = inLength;
-	}
-	else	{
-		targetLength = pageSize - (inLength % pageSize) + inLength;
-	}
-	//NSLog(@"\t\ttargetLength is %ld",targetLength);
-	
-	id<MTLBuffer>		returnMe = nil;
-	if (b == nil)	{
-		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
-		//returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeManaged];
-	}
-	else	{
-		returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
-		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeManaged deallocator:d];
-		//returnMe = [self.device newBufferWithBytesNoCopy:b length:inLength options:MTLResourceStorageModeShared deallocator:d];
-	}
-	return returnMe;
-}
-- (id<MTLBuffer>) bufferWithLength:(size_t)inLength basePtr:(nullable void*)b	{
-	//NSLog(@"%s ... %ld, %p",__func__,inLength,b);
-	size_t			targetLength = 0;
-	if (inLength % 4096 == 0)	{
-		targetLength = inLength;
-	}
-	else	{
-		targetLength = 4096 - (inLength % 4096) + inLength;
-	}
-	//NSLog(@"\t\ttargetLength is %ld",targetLength);
-	
-	id<MTLBuffer>		returnMe = nil;
-	if (b == nil)	{
-		returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeShared];
-		//returnMe = [self.device newBufferWithLength:targetLength options:MTLResourceStorageModeManaged];
-	}
-	else	{
-		//returnMe = [self.device newBufferWithBytesNoCopy:b length:targetLength options:MTLResourceStorageModeShared deallocator:d];
-		returnMe = [self.device newBufferWithBytes:b length:inLength options:MTLResourceStorageModeShared];
-		//returnMe = [self.device newBufferWithBytes:b length:inLength options:MTLResourceStorageModeManaged];
-	}
-	return returnMe;
-}
-
-- (void) convertSrcBuffer:(id<MTLBuffer>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (void) convertSrcBuffer:(id<VVMTLBuffer>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	//NSLog(@"%s",__func__);
 	//NSLog(@"%s ... %@ -> %@",__func__,[NSString stringFromFourCC:inInfo.srcImg.pf],[NSString stringFromFourCC:inInfo.dstImg.pf]);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
@@ -210,7 +162,7 @@
 	//	[blitEncoder endEncoding];
 	//}
 }
-- (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstBuffer:(nullable id<MTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
+- (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
 	//if (inSrc == nil || inDst == nil)
 	if (inSrc==nil && !(inDst!=nil || inRGB != nil))
@@ -288,9 +240,9 @@
 }
 
 - (void) renderCallback	{
-	id<MTLBuffer>		srcBuffer = self.srcBuffer;
+	id<VVMTLBuffer>		srcBuffer = self.srcBuffer;
 	id<VVMTLTextureImage>		srcRGBTex = self.srcRGBTexture;
-	id<MTLBuffer>		dstBuffer = self.dstBuffer;
+	id<VVMTLBuffer>		dstBuffer = self.dstBuffer;
 	id<VVMTLTextureImage>		dstRGBTex = self.dstRGBTexture;
 	bool				outputToBuffer = true;
 	
@@ -305,7 +257,7 @@
 		srcRGBTex = slugTexture;
 	
 	[self.computeEncoder
-		setBuffer:srcBuffer
+		setBuffer:srcBuffer.buffer
 		offset:0
 		atIndex:SwizzleShaderArg_SrcBuffer];
 	
@@ -314,7 +266,7 @@
 		atIndex:SwizzleShaderArg_SrcRGBTexture];
 	
 	[self.computeEncoder
-		setBuffer:dstBuffer
+		setBuffer:dstBuffer.buffer
 		offset:0
 		atIndex:SwizzleShaderArg_DstBuffer];
 	
@@ -336,8 +288,8 @@
 	[self.computeEncoder setBuffer:writeBufferBuffer offset:0 atIndex:SwizzleShaderArg_WriteBuffer];
 	
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
-		id<MTLBuffer>		a = srcBuffer;
-		id<MTLBuffer>		b = dstBuffer;
+		id<VVMTLBuffer>		a = srcBuffer;
+		id<VVMTLBuffer>		b = dstBuffer;
 		id<VVMTLTextureImage>		c = dstRGBTex;
 		id<MTLBuffer>		d = infoBuffer;
 		id<MTLBuffer>		e = writeBufferBuffer;

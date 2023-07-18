@@ -42,6 +42,8 @@ typedef enum SwizzlePF	{
 	
 	SwizzlePF_UYVY_PL_420_UI_8 = 'y420',	//	planar (3 planes, Y/Cb/Cr) YCbCr 8-bit 4:2:0 full-range (luma=[0,255] chroma=[1,255]).
 	
+	//SwizzlePF_RGB_PK_YCoCg = 'DYt5',	//	emitted by Hap ecosystem.  scaled YCoCg in S3TC RGBA DXT5.
+	//SwizzlePF_RGB_PKPL_YCoCgA = 'DYtA',	//	emitted by Hap ecosystem.  two planes, first plane is 'DYt5', second plane is an alpha channel.
 	//SwizzlePF_BGR_PKPL_FL_16 = 'APP0',	//	'Apple Proprietary Pixelformat 0'.  semi-planar, half-float per channel, three channels per pixel.  all the B values, followed by all the G values, followed by all the R values.
 } SwizzlePF;
 

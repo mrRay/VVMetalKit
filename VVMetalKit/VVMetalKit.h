@@ -35,6 +35,8 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/VVMTLBufferDescriptor.h>
 #import <VVMetalKitTouch/VVMTLTextureImage.h>
 #import <VVMetalKitTouch/VVMTLTextureImageDescriptor.h>
+#import <VVMetalKitTouch/VVMTLTextureLUT.h>
+#import <VVMetalKitTouch/VVMTLTextureLUTDescriptor.h>
 #import <VVMetalKitTouch/VVMTLPool.h>
 
 #import <VVMetalKitTouch/VVMTLScene.h>
@@ -75,6 +77,8 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/VVMTLBufferDescriptor.h>
 #import <VVMetalKit/VVMTLTextureImage.h>
 #import <VVMetalKit/VVMTLTextureImageDescriptor.h>
+#import <VVMetalKit/VVMTLTextureLUT.h>
+#import <VVMetalKit/VVMTLTextureLUTDescriptor.h>
 #import <VVMetalKit/VVMTLPool.h>
 
 #import <VVMetalKit/VVMTLScene.h>

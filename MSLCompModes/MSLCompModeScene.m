@@ -142,9 +142,10 @@
 	
 	//	each quad is a tri-strip.  we need to draw one quad (4 vertexes + 1 "stop bit") for each step.  we want to draw all the quads with one call.  we need an index buffer for drawing.
 	size_t		indexBufferSize = sizeof(uint16_t) * 5 * localRecipe.steps.count;
-	id<MTLBuffer>		indexBuffer = [self.device
-		newBufferWithLength:indexBufferSize
-		options:MTLResourceStorageModeManaged];
+	id<VVMTLBuffer>		indexBufferObj = [VVMTLPool.global
+		bufferWithLength:indexBufferSize
+		storage:MTLStorageModeManaged];
+	id<MTLBuffer>		indexBuffer = indexBufferObj.buffer;
 	uint16_t			*indexBasePtr = indexBuffer.contents;
 	uint16_t			*indexWPtr = indexBasePtr;
 	//	for each step, add the four adjacent vertices and a stop bit
@@ -162,18 +163,20 @@
 	
 	//	populate a buffer with the recipe's MSLCompModeQuadVertex data
 	size_t		localVertexRecipeSize = localRecipe.minVertexBufferLength;
-	id<MTLBuffer>		vertexDataBuffer = [self.device
-		newBufferWithLength:localVertexRecipeSize
-		options:MTLResourceStorageModeManaged];
+	id<VVMTLBuffer>		vertexDataBufferObj = [VVMTLPool.global
+		bufferWithLength:localVertexRecipeSize
+		storage:MTLStorageModeManaged];
+	id<MTLBuffer>		vertexDataBuffer = vertexDataBufferObj.buffer;
 	[localRecipe dumpVertexDataToBuffer:vertexDataBuffer atOffset:0];
 	[vertexDataBuffer didModifyRange:NSMakeRange(0,vertexDataBuffer.length)];	//	only to be used if the resource is 'managed'
 	[self.renderEncoder useResource:vertexDataBuffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
 	
 	//	populate a buffer with the recipe's projection matrix data
 	size_t		localProjectionMatricesBufferSize = localRecipe.minProjectionMatrixBufferLength;
-	id<MTLBuffer>		projectionMatricesBuffer = [self.device
-		newBufferWithLength:localProjectionMatricesBufferSize
-		options:MTLResourceStorageModeManaged];
+	id<VVMTLBuffer>		projectionMatricesBufferObj = [VVMTLPool.global
+		bufferWithLength:localProjectionMatricesBufferSize
+		storage:MTLStorageModeManaged];
+	id<MTLBuffer>		projectionMatricesBuffer = projectionMatricesBufferObj.buffer;
 	[localRecipe dumpProjectionMatricesToBuffer:projectionMatricesBuffer atOffset:0];
 	[projectionMatricesBuffer didModifyRange:NSMakeRange(0,projectionMatricesBuffer.length)];	//	only to be used if the resource is 'managed'
 	[self.renderEncoder useResource:projectionMatricesBuffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
@@ -220,11 +223,13 @@
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer>cb)	{
 		NSMutableArray<id<VVMTLTextureImage>>		*tmpTextures = recipeTextures;
 		id<MTLBuffer>		tmpMVP = localMVPBuffer;
-		id<MTLBuffer>		tmpVertexData = vertexDataBuffer;
-		id<MTLBuffer>		tmpProjectionMatricesBuffer = projectionMatricesBuffer;
+		id<VVMTLBuffer>		tmpVertexObj = vertexDataBufferObj;
+		id<VVMTLBuffer>		tmpIndexObj = indexBufferObj;
+		id<VVMTLBuffer>		tmpProjectionMatricesBufferObj = projectionMatricesBufferObj;
 		
-		tmpProjectionMatricesBuffer = nil;
-		tmpVertexData = nil;
+		tmpProjectionMatricesBufferObj = nil;
+		tmpIndexObj = nil;
+		tmpVertexObj = nil;
 		tmpMVP = nil;
 		tmpTextures = nil;
 	}];

@@ -132,17 +132,18 @@
 }
 
 
+@synthesize colorSpace=_colorSpace;
 - (void) setColorSpace:(CGColorSpaceRef)n	{
-	if (self.colorSpace != NULL)	{
-		CGColorSpaceRelease(self.colorSpace);
+	if (_colorSpace != NULL)	{
+		CGColorSpaceRelease(_colorSpace);
 	}
-	self.colorSpace = n;
-	if (self.colorSpace != NULL)	{
-		CGColorSpaceRetain(self.colorSpace);
+	_colorSpace = n;
+	if (_colorSpace != NULL)	{
+		CGColorSpaceRetain(_colorSpace);
 	}
 }
 - (CGColorSpaceRef) colorSpace	{
-	return self.colorSpace;
+	return _colorSpace;
 }
 
 
