@@ -10,6 +10,7 @@
 #import <os/lock.h>
 
 #import "RenderProperties.h"
+#import "VVMTLUtilities.h"
 
 #import "VVMTLTextureImage.h"
 #import "VVMTLTextureImageDescriptor.h"
@@ -43,7 +44,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 //	really returns a VVMTLTextureImage or VVMTLBuffer, because that's what this class creates & vends
 - (id<VVMTLRecycleable>) _recycledObjectMatching:(id<VVMTLRecycleableDescriptor>)n;
-- (void) _labelTexture:(id<MTLTexture>)n;
+- (void) _labelTexture:(id<VVMTLTextureImage>)n;
 - (NSError *) _generateMissingGPUAssetsInTexImg:(VVMTLTextureImage *)n;
 - (NSError *) _generateMissingGPUAssetsInBuffer:(VVMTLBuffer *)n;
 - (NSError *) _generateMissingGPUAssetsInTexLUT:(VVMTLTextureLUT *)n;
@@ -231,8 +232,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8"];
-	
 	return returnMe;
 }
 
@@ -246,8 +245,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgba8"];
-	
 	return returnMe;
 }
 
@@ -260,8 +257,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
-	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgb10a2"];
 	
 	return returnMe;
 }
@@ -305,7 +300,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgb10a2B"];
 	returnMe.preferDeletion = YES;
 	
 	return returnMe;
@@ -319,8 +313,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //		storage:MTLStorageModePrivate
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 //	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
-//	
-//	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgb10a2n"];
 //	
 //	return returnMe;
 //}
@@ -364,7 +356,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- uyvyBB"];
 	returnMe.preferDeletion = YES;
 	
 	return returnMe;
@@ -381,8 +372,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 //	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
 //	
-//	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgba16"];
-//	
 //	return returnMe;
 //}
 
@@ -395,8 +384,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
-	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgbaF"];
 	
 	return returnMe;
 }
@@ -473,7 +460,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
 	returnMe.preferDeletion = YES;
 	
 	return returnMe;
@@ -521,7 +507,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
 	returnMe.preferDeletion = YES;
 	
 	return returnMe;
@@ -569,7 +554,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
 	returnMe.preferDeletion = NO;
 	
 	return returnMe;
@@ -620,7 +604,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8BB"];
 	returnMe.preferDeletion = NO;
 	
 	return returnMe;
@@ -637,8 +620,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //		storage:MTLStorageModePrivate
 //		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 //	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
-//	
-//	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgbaHF"];
 //	
 //	return returnMe;
 //}
@@ -686,7 +667,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- bgra8IO"];
 	returnMe.preferDeletion = NO;
 	
 	return returnMe;
@@ -704,8 +684,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	desc.iosfcBacking = YES;
 //	desc.cvpbBacking = YES;
 //	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
-//	
-//	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- rgbaFIO"];
 //	
 //	return returnMe;
 //}
@@ -838,8 +816,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 	}
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- iosfc"];
-	
 	return returnMe;
 }
 
@@ -878,8 +854,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- 1Dlut"];
-	
 	return returnMe;
 	
 }
@@ -894,8 +868,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
 	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- 2Dlut"];
-	
 	return returnMe;
 }
 - (id<VVMTLTextureLUT>) bufferBacked3DLUTSized:(MTLSize)n	{
@@ -908,8 +880,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead];
 	
 	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
-	
-	returnMe.texture.label = [returnMe.texture.label stringByAppendingString:@"- 3Dlut"];
 	
 	return returnMe;
 }
@@ -951,13 +921,62 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.preferDeletion = NO;
-	//returnMe.buffer.label = [returnMe.buffer.label stringByAppendingString:@"???"];
 	
 	return returnMe;
 }
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b	{
 	//NSLog(@"%s",__func__);
+	
+	if (inLength < 1)
+		return nil;
+	
+	size_t			targetLength = inLength;
+	//if (inLength % 4096 == 0)	{
+	//	targetLength = inLength;
+	//}
+	//else	{
+	//	targetLength = 4096 - (inLength % 4096) + inLength;
+	//}
+	
+	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
+	VVMTLBuffer			*returnMe = nil;
+	@synchronized (self)	{
+		returnMe = (VVMTLBuffer*)[self _recycledObjectMatching:desc];
+		//	if we found a recycled object that matches our specs...
+		if (returnMe != nil)	{
+			//	if the base ptr is non-nil, copy the data do the buffer- make no attempt to synchronize it (this should be done deterministically on a specific command buffer)
+			if (b != NULL)	{
+				id<MTLBuffer>		mtlBuffer = returnMe.buffer;
+				memcpy( mtlBuffer.contents, b, inLength );
+				if (desc.storage == MTLStorageModeManaged)	{
+					[mtlBuffer didModifyRange:NSMakeRange(0, inLength)];
+				}
+			}
+		}
+		//	else we didn't find a recycled object that matches our specs- create one!
+		else	{
+			MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
+			id<MTLBuffer>		mtlBuffer = nil;
+			if (b == NULL)	{
+				mtlBuffer = [self.device newBufferWithLength:targetLength options:resourceStorageMode];
+			}
+			else	{
+				mtlBuffer = [self.device newBufferWithBytes:b length:targetLength options:resourceStorageMode];
+			}
+			
+			returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
+			returnMe.buffer = mtlBuffer;
+			returnMe.pool = self;
+			returnMe.preferDeletion = NO;
+		}
+	}
+	return returnMe;
+	
+	
+	
+	
+	/*
 	if (inLength < 1)
 		return nil;
 	
@@ -988,6 +1007,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	returnMe.preferDeletion = YES;
 	
 	return returnMe;
+	*/
 }
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
@@ -1024,12 +1044,22 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 #pragma mark - backend
 
 
-- (void) _labelTexture:(id<MTLTexture>)n	{
+- (void) _labelTexture:(id<VVMTLTextureImage>)n	{
 	if (n == nil)
 		return;
 	//os_unfair_lock_lock(&TEXINDEXLOCK);
 	
-	n.label = [NSString stringWithFormat:@"%ld",(unsigned long)TEXINDEX];
+	VVMTLTextureImageDescriptor		*desc = (VVMTLTextureImageDescriptor*)n.descriptor;
+	NSString		*tmpString = [NSString
+		stringWithFormat:@"%@ (%ld) %ldx%ld %d.%d.%d",
+		NSStringFromMTLPixelFormat(desc.pfmt),
+		(unsigned long)TEXINDEX,
+		(unsigned long)desc.width,
+		(unsigned long)desc.height,
+		desc.mtlBufferBacking,
+		desc.iosfcBacking,
+		desc.cvpbBacking];
+	n.texture.label = tmpString;
 	++TEXINDEX;
 	
 	//os_unfair_lock_unlock(&TEXINDEXLOCK);
@@ -1044,9 +1074,23 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureImageDescriptor		*desc = (VVMTLTextureImageDescriptor *)n.descriptor;
 	//	if we couldn't find a pixel format, bail immediately
-	OSType			cvPixelFormat = BestGuessCVPixelFormatTypeForMTLPixelFormat(desc.pfmt);
+	MTLPixelFormat		descPixelFormat = desc.pfmt;
+	OSType			cvPixelFormat = BestGuessCVPixelFormatTypeForMTLPixelFormat(descPixelFormat);
 	if (cvPixelFormat == 0x00)	{
-		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"No pixel format found for %X",(uint32_t)desc.pfmt] }];
+		//	...sometimes, it's okay if we can't figure out a CoreVideo pixel format for the metal texture format- these are the exceptions:
+		switch (descPixelFormat)	{
+		case MTLPixelFormatBC1_RGBA:
+		case MTLPixelFormatBC3_RGBA:
+		case MTLPixelFormatBC4_RUnorm:
+		case MTLPixelFormatBC7_RGBAUnorm:
+		case MTLPixelFormatBC6H_RGBUfloat:
+		case MTLPixelFormatBC6H_RGBFloat:
+			//	intentionally blank- do nothing, these pixel formats are "okay"
+			break;
+		default:
+			return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"No pixel format found for %X",(uint32_t)desc.pfmt] }];
+			break;
+		}
 	}
 	
 	//	local copies of vars to simplify access
@@ -1098,6 +1142,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		case MTLPixelFormatRGBA16Uint:
 			bytesPerRow = size.width * 16 * 4 / 8;
 			break;
+		
 		default:
 			//	intentionally blank
 			break;
@@ -1164,23 +1209,21 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		//	if there's an id<VVMTLBuffer> we want to use to back the texture...
 		if (buffer != nil)	{
 			texture = [buffer.buffer newTextureWithDescriptor:texDesc offset:0 bytesPerRow:bytesPerRow];
-			[self _labelTexture:texture];
 			n.texture = texture;
+			[self _labelTexture:n];
 		}
 		//	else if there's an IOSurface we want to use to back the texture...
 		else if (iosfc != NULL)	{
 			texture = [_device newTextureWithDescriptor:texDesc iosurface:iosfc plane:0];
-			[self _labelTexture:texture];
-			
 			n.texture = texture;
+			[self _labelTexture:n];
 		}
 		//	else it's just a plain ol' texture
 		else	{
 			
 			texture = [_device newTextureWithDescriptor:texDesc];
-			[self _labelTexture:texture];
-			
 			n.texture = texture;
+			[self _labelTexture:n];
 		}
 	}
 	
@@ -1297,14 +1340,14 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		//	if there's an id<VVMTLBuffer> we want to use to back the texture...
 		if (buffer != nil)	{
 			texture = [buffer.buffer newTextureWithDescriptor:texDesc offset:0 bytesPerRow:bytesPerRow];
-			[self _labelTexture:texture];
+			//[self _labelTexture:texture];
 			n.texture = texture;
 		}
 		//	else it's just a plain ol' texture
 		else	{
 			
 			texture = [_device newTextureWithDescriptor:texDesc];
-			[self _labelTexture:texture];
+			//[self _labelTexture:texture];
 			
 			n.texture = texture;
 		}
@@ -1387,6 +1430,7 @@ static inline OSType BestGuessCVPixelFormatTypeForMTLPixelFormat(MTLPixelFormat 
 	case MTLPixelFormatRGBA16Uint:
 		//	no corresponding CV pixel fmt?
 		break;
+		
 	default:
 		//	intentionally blank
 		break;

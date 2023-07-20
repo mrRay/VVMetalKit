@@ -323,6 +323,36 @@ NSString * NSStringFromOSType(OSType n)	{
 }
 
 
+NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n)	{
+	switch (n)	{
+	case MTLPixelFormatInvalid:			return @"Invalid";
+	case MTLPixelFormatBGRA8Unorm:		return @"BGRA8";
+	case MTLPixelFormatBGRA8Unorm_sRGB:	return @"BGRA8s";
+	case MTLPixelFormatRGBA8Unorm:		return @"RGBA8";
+	case MTLPixelFormatRGBA8Unorm_sRGB:	return @"RGBA8s";
+	case MTLPixelFormatR8Unorm:			return @"R8";
+	case MTLPixelFormatR8Unorm_sRGB:	return @"R8s";
+	case MTLPixelFormatRG8Unorm:		return @"RG8";
+	case MTLPixelFormatRG8Unorm_sRGB:	return @"RG8s";
+	case MTLPixelFormatGBGR422:			return @"GBGR8";
+	case MTLPixelFormatBGRG422:			return @"BGRG8";
+	case MTLPixelFormatRGB10A2Uint:		return @"RGB10A2UI";
+	case MTLPixelFormatRGB10A2Unorm:	return @"RGB10A2";
+	case MTLPixelFormatRGBA16Uint:		return @"RGBA16UI";
+	case MTLPixelFormatRGBA16Float:		return @"RGBA16F";
+	case MTLPixelFormatRGBA32Float:		return @"RGBA32F";
+	case MTLPixelFormatBC1_RGBA:		return @"BC1";
+	case MTLPixelFormatBC3_RGBA:		return @"BC3";
+	case MTLPixelFormatBC4_RUnorm:		return @"BC4";
+	case MTLPixelFormatBC6H_RGBUfloat:	return @"BC6UF";
+	case MTLPixelFormatBC6H_RGBFloat:	return @"BC6F";
+	case MTLPixelFormatBC7_RGBAUnorm:	return @"BC7";
+	default:							return @"???";
+	}
+	return @"???";
+}
+
+
 
 
 

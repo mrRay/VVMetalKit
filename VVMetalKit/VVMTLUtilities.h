@@ -20,6 +20,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex);
 CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inTex, NSSize imgSize);
 
 NSString * NSStringFromOSType(OSType n);
+NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n);
 
 
 

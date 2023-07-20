@@ -79,7 +79,7 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int i
 	
 	unsigned int		widthRoundedUYVY = inWidth + (inWidth % 2);
 	//unsigned int		heightRoundedUp = inHeight + (inHeight % 2);
-	unsigned int		widthRoundedDXT = inWidth + (inWidth % 4);
+	//unsigned int		widthRoundedDXT = inWidth + (inWidth % 4);
 	//unsigned int		heightRoundedDXT = inHeight + (inHeight % 4);
 	
 	switch (inPF)	{

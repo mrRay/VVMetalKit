@@ -36,7 +36,7 @@ NS_ASSUME_NONNULL_BEGIN
 //	buffer containing the model/view/projection matrices that control display
 @property (strong,nullable) id<MTLBuffer> mvpBuffer;
 //	buffer containing the src rect and anamorphic ratio of the images we're asked to display
-@property (strong,nullable) id<MTLBuffer> geoBuffer;
+@property (strong,nullable) id<VVMTLBuffer> geoBuffer;
 
 //	texture containing the image we want to draw.  the area of the image in the VVMTLTextureImage's 'srcRect' will be drawn within the receiver's 'vertRect'.
 @property (strong,nullable,atomic) id<VVMTLTextureImage> imgBuffer;

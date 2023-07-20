@@ -86,7 +86,7 @@
 	VVMTLTextureImage	*localImgBuffer = nil;
 	id<MTLBuffer>		localMVPBuffer = nil;
 	id<MTLBuffer>		localVertBuffer = nil;
-	id<MTLBuffer>		localGeoBuffer = nil;
+	id<VVMTLBuffer>		localGeoBuffer = nil;
 	id<MTLRenderPipelineState>		localPSO = nil;;
 	
 	@synchronized (self)	{
@@ -183,12 +183,12 @@
 				localGeoStruct.colorMultiplier = simd_make_float4(colorVals[0], colorVals[1], colorVals[2], 1.);
 			}
 			
-			
 			//	make a geometry buffer from the struct
-			self.geoBuffer = [metalLayer.device
-				newBufferWithBytes:&localGeoStruct
-				length:sizeof(localGeoStruct)
-				options:MTLResourceStorageModeShared];
+			self.geoBuffer = [VVMTLPool.global
+				bufferWithLength:sizeof(localGeoStruct)
+				storage:MTLStorageModeShared
+				basePtr:&localGeoStruct];
+			
 			localGeoBuffer = self.geoBuffer;
 		}
 		
@@ -223,7 +223,7 @@
 	
 	//	if there's an image buffer...
 	if (localImgBuffer != nil)	{
-		//	pass data to the render encoder
+		//	pass data we already compiled to the render encoder
 		[renderEncoder
 			setVertexBuffer:localVertBuffer
 			offset:0
@@ -238,9 +238,55 @@
 			atIndex:VVMTLTextureImageRectView_FS_Index_Color];
 		
 		[renderEncoder
-			setFragmentBuffer:localGeoBuffer
+			setFragmentBuffer:localGeoBuffer.buffer
 			offset:0
 			atIndex:VVMTLTextureImageRectView_FS_Index_Geo];
+		
+		////	instead of repeatedly assembling a geometry buffer we're going to let metal do the heavy lifting here
+		//{
+		//	CGRect			viewRect = CGRectMake(0,0,viewportSize.x,viewportSize.y);
+		//	
+		//	//NSLog(@"\t\timgBuffer is %@",localImgBuffer);
+		//	//	make sure the vert buffer exists, create it if it doesn't
+		//	if (self.vertBuffer == nil)	{
+		//		const VVMTLTextureImageRectViewVertex		quadVerts[] = {
+		//			{ { CGRectGetMinX(viewRect), CGRectGetMinY(viewRect) } },
+		//			{ { CGRectGetMinX(viewRect), CGRectGetMaxY(viewRect) } },
+		//			{ { CGRectGetMaxX(viewRect), CGRectGetMinY(viewRect) } },
+		//			{ { CGRectGetMaxX(viewRect), CGRectGetMaxY(viewRect) } },
+		//		};
+		//		
+		//		self.vertBuffer = [metalLayer.device
+		//			newBufferWithBytes:quadVerts
+		//			length:sizeof(quadVerts)
+		//			options:MTLResourceStorageModeShared];
+		//	}
+		//	localVertBuffer = self.vertBuffer;
+		//	
+		//	//	make a geometry struct!
+		//	VVMTLTextureImageStruct		localGeoStruct;
+		//	
+		//	//	populate it with the contents of the img buffer (src rect of the texture that contains the image)
+		//	[localImgBuffer populateStruct:&localGeoStruct];
+		//	
+		//	//	calculate where the image will draw in my bounds, apply it to the geometry struct
+		//	localGeoStruct.dstRect = GRectFromNSRect(_vertRect);
+		//	
+		//	NSColor		*tintColor = self.imgTint;
+		//	if (tintColor == nil)	{
+		//		localGeoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
+		//	}
+		//	else	{
+		//		CGFloat		colorVals[8];
+		//		[tintColor getComponents:colorVals];
+		//		localGeoStruct.colorMultiplier = simd_make_float4(colorVals[0], colorVals[1], colorVals[2], 1.);
+		//	}
+		//	
+		//	[renderEncoder
+		//		setFragmentBytes:&localGeoStruct
+		//		length:sizeof(localGeoStruct)
+		//		atIndex:VVMTLTextureImageRectView_FS_Index_Geo];
+		//}
 		
 		[renderEncoder
 			drawPrimitives:MTLPrimitiveTypeTriangleStrip
@@ -252,7 +298,7 @@
 			VVMTLTextureImage	*tmpBuffer = localImgBuffer;
 			id<MTLBuffer>		tmpMVPBuffer = localMVPBuffer;
 			id<MTLBuffer>		tmpVertBuffer = localVertBuffer;
-			id<MTLBuffer>		tmpGeoBuffer = localGeoBuffer;
+			id<VVMTLBuffer>		tmpGeoBuffer = localGeoBuffer;
 			tmpBuffer = nil;
 			
 			id<CAMetalDrawable>		tmpDrawable = self->currentDrawable;

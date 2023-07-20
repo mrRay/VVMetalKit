@@ -56,6 +56,7 @@
 }
 
 - (void) dealloc	{
+	//NSLog(@"%s ... %@",__func__,self);
 	//	if this object wants to be deleted immediately...
 	if (preferDeletion)	{
 		//	execute the recycle block immediately- we'll free the underlying resources in a sec
@@ -65,8 +66,19 @@
 	}
 	//	else we're NOT deleting the object- we are instead going to recycle it
 	else	{
-		//	make a copy of myself and pass it back to the pool
-		VVMTLBuffer		*tmpCopy = [self copy];
+		//	make a copy of myself- resetting any transient properties- and pass it back to the pool
+		//VVMTLBuffer		*tmpCopy = [self copy];	//	NO, do NOT copy like this!
+		VVMTLBuffer		*tmpCopy = [[VVMTLBuffer alloc] initWithDescriptor:(VVMTLBufferDescriptor*)descriptor];
+		tmpCopy.buffer = buffer;
+		
+		tmpCopy.time = kCMTimeZero;
+		tmpCopy.duration = kCMTimeZero;
+		
+		tmpCopy.pool = pool;
+		tmpCopy.supportingObject = supportingObject;
+		tmpCopy.supportingContext = supportingContext;
+		tmpCopy.deletionBlock = deletionBlock;
+		
 		if (tmpCopy != nil)	{
 			[pool recycleObject:tmpCopy];
 		}
@@ -79,6 +91,14 @@
 }
 - (BOOL) isVVMTLBuffer	{
 	return YES;
+}
+- (NSString *) description	{
+	if (preferDeletion)	{
+		return [NSString stringWithFormat:@"<VVMTLBuffer (D) %p>",self];
+	}
+	else	{
+		return [NSString stringWithFormat:@"<VVMTLBuffer %p>",self];
+	}
 }
 
 #pragma mark - VVMTLBuffer conformance
