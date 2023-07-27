@@ -201,6 +201,7 @@ static inline void GaussianElimination(float *input, int in);
 		verts[i].opacity = tmpFloat;
 	}
 }
+
 - (BOOL) populateCompModeWithName:(NSString *)n	{
 	if (n == nil)
 		return NO;
@@ -219,6 +220,15 @@ static inline void GaussianElimination(float *input, int in);
 		return NO;
 	for (int i=0; i<4; ++i)	{
 		verts[i].compModeIndex = n;
+	}
+	return YES;
+}
+- (BOOL) populateWithCompMode:(MSLCompMode *)n	{
+	if (n == nil)
+		return NO;
+	uint16_t		compModeIndex = n.compModeIndex;
+	for (int i=0; i<4; ++i)	{
+		verts[i].compModeIndex = compModeIndex;
 	}
 	return YES;
 }

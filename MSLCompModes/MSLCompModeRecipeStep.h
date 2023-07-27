@@ -11,6 +11,7 @@
 #import <MSLCompModes/MSLCompModeSceneShaderTypes.h>
 
 @protocol VVMTLTextureImage;
+@class MSLCompMode;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -39,6 +40,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (BOOL) populateCompModeWithName:(NSString *)n;
 - (BOOL) populateCompModeWithIndex:(uint16_t)n;
+- (BOOL) populateWithCompMode:(MSLCompMode *)n;
 
 //	copies the vertex data stored locally to the passed buffer at the passed offset
 - (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
