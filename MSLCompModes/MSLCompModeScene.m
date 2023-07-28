@@ -28,7 +28,7 @@
 	self = [super initWithDevice:inDevice];
 	if (self != nil)	{
 		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
-		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 1.0);
+		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
 		//attachDesc.loadAction = MTLLoadActionDontCare;
 		attachDesc.loadAction = MTLLoadActionClear;
 		//attachDesc.loadAction = MTLLoadActionLoad;
@@ -62,6 +62,12 @@
 
 - (void) renderCallback	{
 	//NSLog(@"%s",__func__);
+	
+	MSLCompModeControllerResource		*localResource = self.resource;
+	if (localResource == nil)	{
+		//NSLog(@"ERR: localResources nil, %s",__func__);
+		return;
+	}
 	
 	//	get a local copy of the MVP buffer (creating one if it doesn't exist)
 	id<MTLBuffer>		localMVPBuffer = self.mvpBuffer;
@@ -182,11 +188,6 @@
 	[self.renderEncoder useResource:projectionMatricesBuffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
 	
 	//	make an argument buffer with all of the textures used by the recipe (which we assembled earlier)
-	MSLCompModeControllerResource		*localResource = self.resource;
-	if (localResource == nil)	{
-		NSLog(@"ERR: localResources nil, %s",__func__);
-		return;
-	}
 	id<MTLFunction>		localFragFunc = localResource.frgFunc;
 	id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:1];
 	size_t		texStructLength = argEncoder.encodedLength;
@@ -210,6 +211,10 @@
 	[self.renderEncoder setFragmentBuffer:vertexDataBuffer offset:0 atIndex:0];
 	//	attach the argument buffer to the frag shader
 	[self.renderEncoder setFragmentBuffer:texArrayBuffer offset:0 atIndex:1];
+	//	attach the canvas rect to the frag shader
+	CGSize				renderSize = self.renderSize;
+	simd_float4			canvasRect = simd_make_float4(0.0, 0.0, renderSize.width, renderSize.height);
+	[self.renderEncoder setFragmentBytes:&canvasRect length:sizeof(canvasRect) atIndex:2];
 	
 	//	draw the vertices
 	[self.renderEncoder

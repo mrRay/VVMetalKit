@@ -28,6 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (strong,readonly) NSURL * url;	//	filepath to the comp mode as a NSURL
 @property (strong,readonly) NSString * name;	//	last filepath component, minus extension, after replacing any nonconforming chars with underscores
+@property (strong,readonly) NSString * funcName;	//	the name of the function (usually "name" with any whitespace chars stripped)
 @property (strong,readonly) NSString * functionDeclarations;	//	the function declarations as they'll be added to the shader source code
 @property (strong,readonly) NSString * functions;	//	the function contents as they'll be added to the shader source code
 @property (strong,readonly) NSString * compModeSwitchStatementFuncPtrs;	//	this string is meant to be inserted into the shader when generating it

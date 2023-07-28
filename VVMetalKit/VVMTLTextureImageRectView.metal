@@ -102,7 +102,9 @@ fragment float4 VVMTLTextureImageRectViewFragShader(
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
 	//constexpr sampler		sampler(mag_filter::nearest, min_filter::nearest, address::clamp_to_edge, coord::pixel);
 	float4			color = tex.sample(sampler, samplerCoord) * displayInfo->colorMultiplier;
-	return color;
+	//return color;
+	float4			appliedAlphaColor = float4(color.a, color.a, color.a, 1.) * float4(color.r, color.g, color.b, 1.);
+	return appliedAlphaColor;;
 	
 }
 

@@ -58,22 +58,44 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 	if (n == nil)
 		return;
 	
+	BOOL			postNotification = NO;
 	@synchronized (self)	{
 		if (![_assetURLs containsObject:n])	{
 			[_assetURLs addObject:n];
 			[self _reload];
+			postNotification = YES;
 		}
+	}
+	
+	if (postNotification)	{
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[[NSNotificationCenter defaultCenter]
+				postNotificationName:kMSLCompModeReloadNotificationName
+				object:self
+				userInfo:nil];
+		});
 	}
 }
 - (void) addCompModeURL:(NSURL *)n	{
 	if (n == nil)
 		return;
 	
+	BOOL			postNotification = NO;
 	@synchronized (self)	{
 		if (![_assetURLs containsObject:n])	{
 			[_assetURLs addObject:n];
 			[self _reload];
+			postNotification = YES;
 		}
+	}
+	
+	if (postNotification)	{
+		dispatch_async(dispatch_get_main_queue(), ^{
+			[[NSNotificationCenter defaultCenter]
+				postNotificationName:kMSLCompModeReloadNotificationName
+				object:self
+				userInfo:nil];
+		});
 	}
 }
 
@@ -83,6 +105,13 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 	@synchronized (self)	{
 		[self _reload];
 	}
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter]
+			postNotificationName:kMSLCompModeReloadNotificationName
+			object:self
+			userInfo:nil];
+	});
 }
 - (void) _reload	{
 	//NSLog(@"%s",__func__);
@@ -172,6 +201,12 @@ typedef struct	{
 	texture2d<float, access::sample>		texture;	//	has an implicit id of 0
 } MSLCompModeSceneTexture;
 
+typedef struct {
+	float4		gl_FragCoord;
+	float4		_VVCanvasRect;
+	float4		baseCanvasColor;
+} MSLCompModeFragData;
+
 
 
 
@@ -211,10 +246,17 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	device MSLCompModeQuadVertex * verts [[ buffer(0) ]],
 	device MSLCompModeSceneTexture * textures [[ buffer(1) ]],
 	
+	constant float4 * canvasRect [[ buffer(2) ]],
+	
 	float4 baseCanvasColor [[ color(0) ]] )
 {
+	MSLCompModeFragData		fragRenderData = { inRasterData.position, *canvasRect, baseCanvasColor };
+	fragRenderData.gl_FragCoord.y = fragRenderData._VVCanvasRect.w - fragRenderData.gl_FragCoord.y;
+	
 	device MSLCompModeQuadVertex		*vertexPtr = verts + inRasterData.vertexID;
 	float			layerOpacity = vertexPtr->opacity;
+	if (layerOpacity == 0.0)
+		return baseCanvasColor;
 	
 	//	get a ptr to the texture we're going to sample
 	device MSLCompModeSceneTexture		*texStructPtr = textures + vertexPtr->texIndex;
@@ -222,8 +264,8 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	float4			layerColor = texStructPtr->texture.sample( sampler, inRasterData.texCoord );
 	
 	//	populate function pointers for the two different kinds of composition functions based on the comp mode of the vertex we're rendering
-	float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &) = nullptr;
-	float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &) = nullptr;
+	float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
+	float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
 	switch (vertexPtr->compModeIndex)	{
 PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
 	}
@@ -236,10 +278,10 @@ PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
 	//	figure out if this is the "bottom" layer or not, and get a ptr to the vertex this fragment is currently rendering
 	bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
 	if (isBottomLayer)	{
-		return CompositeBottomFuncPtr( layerColor, layerOpacity);
+		return CompositeBottomFuncPtr( layerColor, layerOpacity, fragRenderData );
 	}
 	else	{
-		return CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity );
+		return CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity, fragRenderData );
 	}
 	
 	return baseCanvasColor;
@@ -308,18 +350,12 @@ PUT_FUNCTION_DEFINITIONS_HERE
 		if (resource != nil)
 			[localResources addObject:resource];
 	}
-	@synchronized (self)	{
+	//@synchronized (self)	{
 		_resources = [NSArray arrayWithArray:localResources];
-	}
+	//}
 	
 	
-	//	post a notification that we've reloaded the list of comp modes 
-	dispatch_async(dispatch_get_main_queue(), ^{
-		[[NSNotificationCenter defaultCenter]
-			postNotificationName:kMSLCompModeReloadNotificationName
-			object:self
-			userInfo:nil];
-	});
+	
 }
 
 

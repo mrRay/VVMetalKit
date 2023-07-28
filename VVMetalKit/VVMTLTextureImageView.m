@@ -26,4 +26,10 @@
 }
 
 
+- (void) setLayerBackgroundColor:(NSColor *)n	{
+	[super setLayerBackgroundColor:n];
+	self.layer.backgroundColor = [[NSColor blackColor] CGColor];
+}
+
+
 @end

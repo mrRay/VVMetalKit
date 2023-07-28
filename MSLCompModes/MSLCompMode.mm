@@ -16,6 +16,7 @@
 
 @property (strong,readwrite) NSURL * url;
 @property (strong,readwrite) NSString * name;
+@property (strong,readwrite) NSString * funcName;
 @property (strong,readwrite) NSString * functionDeclarations;
 @property (strong,readwrite) NSString * functions;
 
@@ -78,17 +79,20 @@
 		//_name = [NSString stringWithString:tmpName];
 		_name = [n.lastPathComponent stringByDeletingPathExtension];
 		
+		NSCharacterSet		*charSet = [NSCharacterSet whitespaceCharacterSet];
+		_funcName = [[_name componentsSeparatedByCharactersInSet:charSet] componentsJoinedByString:@""];
+		
 		//	assemble the function declarations, they're basically going to be constant strings
-		const char		*funcDecsCStr = R"(float4 AAAA(thread float4 & inBottom, thread float4 & inTop, thread float & inTopAlpha);
-float4 BBBB(thread float4 & inTop, thread float & inTopAlpha);)";
+		const char		*funcDecsCStr = R"(float4 AAAA(thread float4 & inBottom, thread float4 & inTop, thread float & inTopAlpha, thread MSLCompModeFragData & inFragData);
+float4 BBBB(thread float4 & inTop, thread float & inTopAlpha, thread MSLCompModeFragData & inFragData);)";
 		_functionDeclarations = [NSString stringWithUTF8String:funcDecsCStr];
-		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_name]];
-		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_name]];
+		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_funcName]];
+		_functionDeclarations = [_functionDeclarations stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_funcName]];
 		
 		//	asemble the functions by doing a basic find-and-replace on the raw string.  bail if we can't find anything.
 		tmpMutString = [rawString mutableCopy];
-		[tmpMutString replaceOccurrencesOfString:@"float4 CompositeTopAndBottom(" withString:[NSString stringWithFormat:@"float4 %@_CompositeTopAndBottom(",_name] options:0 range:NSMakeRange(0,tmpMutString.length)];
-		[tmpMutString replaceOccurrencesOfString:@"float4 CompositeBottom(" withString:[NSString stringWithFormat:@"float4 %@_Bottom(",_name] options:0 range:NSMakeRange(0,tmpMutString.length)];
+		[tmpMutString replaceOccurrencesOfString:@"float4 CompositeTopAndBottom(" withString:[NSString stringWithFormat:@"float4 %@_CompositeTopAndBottom(",_funcName] options:0 range:NSMakeRange(0,tmpMutString.length)];
+		[tmpMutString replaceOccurrencesOfString:@"float4 CompositeBottom(" withString:[NSString stringWithFormat:@"float4 %@_Bottom(",_funcName] options:0 range:NSMakeRange(0,tmpMutString.length)];
 		_functions = [NSString stringWithString:tmpMutString];
 		
 		//_compModeIndex = [MSLCompMode getNewUID];
@@ -111,8 +115,8 @@ float4 BBBB(thread float4 & inTop, thread float & inTopAlpha);)";
 		CompositeTopAndBottomFuncPtr = AAAA;
 		break;)";
 	NSString		*tmpString = [NSString stringWithUTF8String:caseCStr];
-	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_name]];
-	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_name]];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_funcName]];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_funcName]];
 	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"CCCC" withString:[NSString stringWithFormat:@"%d",_compModeIndex]];
 	
 	_compModeSwitchStatementFuncPtrs = (tmpString==nil) ? @"" : tmpString;
