@@ -17,6 +17,7 @@ RenderProperties			*_globalRenderProperties = nil;
 @property (strong) id<MTLDevice> device;
 @property (strong) id<MTLCommandQueue> renderQueue;
 @property (strong) id<MTLCommandQueue> bgCmdQueue;
+@property (strong) id<MTLCommandQueue> displayCmdQueue;
 @property (strong) id<MTLLibrary> defaultLibrary;
 @end
 
@@ -62,6 +63,7 @@ RenderProperties			*_globalRenderProperties = nil;
 		self.defaultLibrary = [self.device newDefaultLibrary];
 		self.renderQueue = [self.device newCommandQueue];
 		self.bgCmdQueue = [self.device newCommandQueue];
+		self.displayCmdQueue = [self.device newCommandQueue];
 	//}
 }
 

@@ -69,12 +69,14 @@
 		1A3BB79B2A13E94D003CDAE8 /* ISFMSLScenePassTarget_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BB7832A13E94D003CDAE8 /* ISFMSLScenePassTarget_priv.h */; };
 		1A3BB79C2A13E94D003CDAE8 /* ISFMSLSceneVal.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A3BB7842A13E94D003CDAE8 /* ISFMSLSceneVal.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A3BB79F2A13E9E9003CDAE8 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
-		1A3BB7BA2A13EA97003CDAE8 /* PINCache.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7B32A13EA79003CDAE8 /* PINCache.framework */; };
-		1A3BB7D52A13EAEE003CDAE8 /* PINOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7CE2A13EACF003CDAE8 /* PINOperation.framework */; };
+		1A3BB7BA2A13EA97003CDAE8 /* PINCache.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7B32A13EA79003CDAE8 /* PINCache.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		1A3BB7D52A13EAEE003CDAE8 /* PINOperation.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7CE2A13EACF003CDAE8 /* PINOperation.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
 		1A3BB7E72A13EBC4003CDAE8 /* libGLSLangValidatorLib.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E62A13EBC4003CDAE8 /* libGLSLangValidatorLib.dylib */; };
 		1A3BB7E92A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E82A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib */; };
 		1A3BB7EA2A13EBCC003CDAE8 /* libGLSLangValidatorLib.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E62A13EBC4003CDAE8 /* libGLSLangValidatorLib.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		1A3BB7EB2A13EBCE003CDAE8 /* libSPIRVCrossLib.dylib in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7E82A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		1A4084602A7AE9130061C89F /* PINCache.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7B32A13EA79003CDAE8 /* PINCache.framework */; };
+		1A4084612A7AE9130061C89F /* PINOperation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A3BB7CE2A13EACF003CDAE8 /* PINOperation.framework */; };
 		1A47F8452A55E30C0087942C /* CIMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A47F8372A55E30C0087942C /* CIMTLScene.m */; };
 		1A47F8462A55E30C0087942C /* CIMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A47F8372A55E30C0087942C /* CIMTLScene.m */; };
 		1A47F8472A55E30C0087942C /* CIMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A47F8442A55E30C0087942C /* CIMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -305,6 +307,8 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
+				1A3BB7D52A13EAEE003CDAE8 /* PINOperation.framework in Embed Frameworks */,
+				1A3BB7BA2A13EA97003CDAE8 /* PINCache.framework in Embed Frameworks */,
 				1A3BB7EA2A13EBCC003CDAE8 /* libGLSLangValidatorLib.dylib in Embed Frameworks */,
 				1A3BB7EB2A13EBCE003CDAE8 /* libSPIRVCrossLib.dylib in Embed Frameworks */,
 				1ADBC7512A141CB6008FB1CA /* libISFGLSLGenerator.dylib in Embed Frameworks */,
@@ -454,14 +458,14 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				1A4084602A7AE9130061C89F /* PINCache.framework in Frameworks */,
+				1A4084612A7AE9130061C89F /* PINOperation.framework in Frameworks */,
 				1AAF56CC2A14238400626430 /* MetalKit.framework in Frameworks */,
 				1AAF56CD2A14238400626430 /* Metal.framework in Frameworks */,
 				1AAF56C92A14237200626430 /* CoreGraphics.framework in Frameworks */,
-				1A3BB7D52A13EAEE003CDAE8 /* PINOperation.framework in Frameworks */,
 				1ADBC7502A141CAB008FB1CA /* libISFGLSLGenerator.dylib in Frameworks */,
 				1A3BB7E92A13EBC8003CDAE8 /* libSPIRVCrossLib.dylib in Frameworks */,
 				1A3BB7E72A13EBC4003CDAE8 /* libGLSLangValidatorLib.dylib in Frameworks */,
-				1A3BB7BA2A13EA97003CDAE8 /* PINCache.framework in Frameworks */,
 				1A3BB79F2A13E9E9003CDAE8 /* VVMetalKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

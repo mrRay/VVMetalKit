@@ -24,6 +24,8 @@ extern NSString * const kMSLCompModeReloadNotificationName;
 
 @property (class,readonly) MSLCompModeController * global;
 
+- (void) setCompModeDirectoryURLs:(NSArray<NSURL*> *)n;
+
 - (void) addCompModeDirectoryURL:(NSURL *)n;
 - (void) addCompModeURL:(NSURL *)n;
 

@@ -80,6 +80,9 @@
 	self.layerBackgroundColor = nil;
 	//self.layerBackgroundColor = [NSColor colorWithDeviceRed:0. green:0. blue:0. alpha:1.];
 }
+- (void) awakeFromNib	{
+	self.colorspace = RenderProperties.global.colorSpace;
+}
 - (void) dealloc	{
 	//NSLog(@"%s ... %@",__func__,self);
 	self.colorspace = NULL;
@@ -272,16 +275,16 @@
 }
 
 
-@synthesize colorspace=myColorspace;
+@synthesize colorspace=_colorspace;
 - (void) setColorspace:(CGColorSpaceRef)n	{
-	if (myColorspace != NULL)
-		CGColorSpaceRelease(myColorspace);
-	myColorspace = (n==NULL) ? NULL : CGColorSpaceRetain(n);
+	if (_colorspace != NULL)
+		CGColorSpaceRelease(_colorspace);
+	_colorspace = (n==NULL) ? NULL : CGColorSpaceRetain(n);
 	
 	metalLayer.colorspace = n;
 }
 - (CGColorSpaceRef) colorspace	{
-	return myColorspace;
+	return _colorspace;
 }
 
 

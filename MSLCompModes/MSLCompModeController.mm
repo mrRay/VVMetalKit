@@ -54,6 +54,27 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 }
 
 
+- (void) setCompModeDirectoryURLs:(NSArray<NSURL*> *)n	{
+	if (n == nil || n.count < 1)
+		return;
+	
+	@synchronized (self)	{
+		[_assetURLs removeAllObjects];
+		for (NSURL * url in n)	{
+			if (![_assetURLs containsObject:url])	{
+				[_assetURLs addObject:url];
+			}
+		}
+		[self _reload];
+	}
+	
+	dispatch_async(dispatch_get_main_queue(), ^{
+		[[NSNotificationCenter defaultCenter]
+			postNotificationName:kMSLCompModeReloadNotificationName
+			object:self
+			userInfo:nil];
+	});
+}
 - (void) addCompModeDirectoryURL:(NSURL *)n	{
 	if (n == nil)
 		return;
@@ -128,6 +149,9 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 		if (!isDir)	{
 			MSLCompMode		*compMode = [MSLCompMode createWithURL:assetURL];
 			if (compMode != nil)	{
+				NSUInteger		existingIndex = [localCompModes indexOfObject:compMode];
+				if (existingIndex != NSNotFound)
+					[localCompModes removeObjectAtIndex:existingIndex];
 				[localCompModes addObject:compMode];
 			}
 		}
@@ -141,6 +165,9 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 			for (NSURL * url in urls)	{
 				MSLCompMode		*compMode = [MSLCompMode createWithURL:url];
 				if (compMode != nil)	{
+					NSUInteger		existingIndex = [localCompModes indexOfObject:compMode];
+					if (existingIndex != NSNotFound)
+						[localCompModes removeObjectAtIndex:existingIndex];
 					[localCompModes addObject:compMode];
 				}
 			}

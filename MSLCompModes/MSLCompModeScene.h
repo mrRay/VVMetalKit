@@ -18,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MSLCompModeScene : VVMTLRenderScene
 
-@property (strong,readwrite) MSLCompModeRecipe * recipe;
+@property (strong,readwrite,nullable) MSLCompModeRecipe * recipe;
 
 @end
 

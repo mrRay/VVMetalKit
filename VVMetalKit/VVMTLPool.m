@@ -41,6 +41,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	NSMutableArray<id<VVMTLRecycleable>>		*_bufferPool;	//	FIFO.
 	NSMutableArray<id<VVMTLRecycleable>>		*_lutPool;	//	FIFO
 	CVMetalTextureCacheRef		_cvTexCache;
+	CMClockRef			_clock;
 }
 //	really returns a VVMTLTextureImage or VVMTLBuffer, because that's what this class creates & vends
 - (id<VVMTLRecycleable>) _recycledObjectMatching:(id<VVMTLRecycleableDescriptor>)n;
@@ -84,6 +85,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		if (cvErr != kCVReturnSuccess)	{
 			NSLog(@"ERR: unable to create metal texture cache (%d)",cvErr);
 		}
+		
+		_clock = CMClockGetHostTimeClock();
 	}
 	
 	return self;
@@ -199,6 +202,13 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 
+- (void) timestampThis:(id<VVMTLTimestamp>)n	{
+	if (n == nil)
+		return;
+	n.time = CMClockGetTime(_clock);
+}
+
+
 #pragma mark - texture creation
 
 
@@ -231,7 +241,19 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+- (id<VVMTLTextureImage>) bgra8SRGBTexSized:(NSSize)n	{
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(n.width)
+		height:round(n.height)
+		pixelFormat:MTLPixelFormatBGRA8Unorm_sRGB
+		storage:MTLStorageModePrivate
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -244,7 +266,19 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+- (id<VVMTLTextureImage>) rgba8SRGBTexSized:(NSSize)n	{
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(n.width)
+		height:round(n.height)
+		pixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
+		storage:MTLStorageModePrivate
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -257,7 +291,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -270,6 +304,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
 	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
@@ -301,7 +336,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.preferDeletion = YES;
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -326,6 +361,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
 	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
@@ -357,7 +393,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.preferDeletion = YES;
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -384,7 +420,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -397,6 +433,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	[blitEncoder endEncoding];
 //	[cmdBuffer commit];
 //	[cmdBuffer waitUntilCompleted];
+//	[self timestampThis:VVMTLTextureImage];
 //	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
@@ -412,13 +449,14 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	[blitEncoder endEncoding];
 //	[cmdBuffer commit];
 //	[cmdBuffer waitUntilCompleted];
+//	[self timestampThis:VVMTLTextureImage];
 //	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
 //	returnMe.preferDeletion = YES;
 //}
 
-- (id<VVMTLTextureImage>) bgra8BufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
+- (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
 	/*
 	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
 
@@ -427,6 +465,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
 	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	size_t				targetLength = bpr * s.height;
@@ -443,7 +482,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(s.width)
 		height:round(s.height)
-		pixelFormat:MTLPixelFormatBGRA8Unorm
+		pixelFormat:pfmt
 		storage:MTLStorageModeManaged
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	desc.mtlBufferBacking = YES;
@@ -461,11 +500,11 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.preferDeletion = YES;
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
-- (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
+- (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt bytesPerRow:(uint32_t)bpr	{
 	/*
 	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
 
@@ -474,53 +513,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[blitEncoder endEncoding];
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
-	*/
-	size_t				targetLength = bpr * s.height;
-	if (targetLength % 4096 != 0)
-		targetLength = 4096 - (targetLength % 4096) + targetLength;
-	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:targetLength storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
-	if (backingBuffer == nil)	{
-		NSLog(@"ERR: unable to make backing buffer in %s",__func__);
-		return nil;
-	}
-	
-	VVMTLTextureImage		*returnMe = nil;
-	
-	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
-		createWithWidth:round(s.width)
-		height:round(s.height)
-		pixelFormat:MTLPixelFormatRGBA8Unorm
-		storage:MTLStorageModeManaged
-		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
-	desc.mtlBufferBacking = YES;
-	
-	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-	returnMe.buffer = backingBuffer;
-	returnMe.bytesPerRow = bpr;
-	
-	@synchronized (self)	{
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
-	
-	returnMe.preferDeletion = YES;
-	
-	return returnMe;
-}
-
-- (id<VVMTLTextureImage>) bgra8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr	{
-	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
-	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
 	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	size_t			targetLength = bpr * s.height;
@@ -537,7 +530,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(s.width)
 		height:round(s.height)
-		pixelFormat:MTLPixelFormatBGRA8Unorm
+		pixelFormat:pfmt
 		storage:MTLStorageModeManaged
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
 	desc.mtlBufferBacking = YES;
@@ -555,89 +548,9 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.preferDeletion = NO;
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
-- (id<VVMTLTextureImage>) rgba8BufferBackedTexSized:(NSSize)s bytesPerRow:(uint32_t)bpr	{
-	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
-	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
-	*/
-	
-	VVMTLTextureImage			*returnMe = nil;
-	
-	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
-		createWithWidth:round(s.width)
-		height:round(s.height)
-		pixelFormat:MTLPixelFormatRGBA8Unorm
-		storage:MTLStorageModeManaged
-		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
-	desc.mtlBufferBacking = YES;
-	
-	@synchronized (self)	{
-		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:desc];
-		if (returnMe != nil)
-			return returnMe;
-		
-		size_t			targetLength = bpr * s.height;
-		if (targetLength % 4096 != 0)
-			targetLength = 4096 - (targetLength % 4096) + targetLength;
-		VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLength:targetLength storage:MTLStorageModeManaged];
-		if (backingBuffer == nil)	{
-			NSLog(@"ERR: unable to make backing buffer in %s",__func__);
-			return nil;
-		}
-		
-		returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-		returnMe.buffer = backingBuffer;
-		returnMe.bytesPerRow = bpr;
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
-	
-	returnMe.preferDeletion = NO;
-	
-	return returnMe;
-	
-}
-
-//- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n	{
-//	VVMTLTextureImage			*returnMe = nil;
-//	
-//	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
-//		createWithWidth:round(n.width)
-//		height:round(n.height)
-//		pixelFormat:MTLPixelFormatRGBA16Float
-//		storage:MTLStorageModePrivate
-//		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
-//	VVMTLTextureImage			*returnMe = [self textureForDescriptor:desc];
-//	
-//	return returnMe;
-//}
-
-//- (id<VVMTLTextureImage>) rgbaHalfFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
-//	/*
-//	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-//
-//	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-//	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-//	[blitEncoder endEncoding];
-//	[cmdBuffer commit];
-//	[cmdBuffer waitUntilCompleted];
-//	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
-//	*/
-//	
-//	returnMe.preferDeletion = YES;
-//}
 
 - (id<VVMTLTextureImage>) textureForExistingTexture:(id<MTLTexture>)n	{
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
@@ -668,7 +581,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	
 	returnMe.preferDeletion = NO;
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -711,7 +624,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		CVMetalTextureRef		recast = (CVMetalTextureRef)recycled.supportingContext;
 		CVBufferRelease(recast);
 	};
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -760,6 +673,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		CGColorSpaceRelease(tmpSpace);
 	if (tmpBacking != NULL)
 		free(tmpBacking);
+	
+	[self timestampThis:returnMe];
 	
 	return returnMe;
 }
@@ -815,7 +730,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			return nil;
 		}
 	}
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 
@@ -853,7 +768,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead];
 	
 	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
-	
 	return returnMe;
 	
 }
@@ -867,7 +781,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead];
 	
 	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
-	
 	return returnMe;
 }
 - (id<VVMTLTextureLUT>) bufferBacked3DLUTSized:(MTLSize)n	{
@@ -880,7 +793,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		usage:MTLTextureUsageShaderRead];
 	
 	VVMTLTextureLUT		*returnMe = (VVMTLTextureLUT*)[self lutForDescriptor:desc];
-	
 	return returnMe;
 }
 
@@ -921,7 +833,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	returnMe.preferDeletion = NO;
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 //	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.
@@ -971,6 +883,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			returnMe.preferDeletion = NO;
 		}
 	}
+	[self timestampThis:returnMe];
 	return returnMe;
 	
 	
@@ -1036,7 +949,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		length:targetLength
 		options:resourceStorageMode
 		deallocator:d];
-	
+	[self timestampThis:returnMe];
 	return returnMe;
 }
 

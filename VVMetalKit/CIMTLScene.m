@@ -52,6 +52,12 @@
 }
 
 
+//- (void) setClearColors:(float)r :(float)g :(float)b :(float)a	{
+//	MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
+//	attachDesc.clearColor = MTLClearColorMake(r, g, b, a);
+//}
+
+
 - (void) renderCIImage:(CIImage *)inCIImage toTexture:(id<VVMTLTextureImage>)inTex inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	if (inTex == nil || inCB == nil)
 		return;
@@ -90,6 +96,10 @@
 	CIRenderDestination		*ciDest = [[CIRenderDestination alloc]
 		initWithMTLTexture:self.renderTarget.texture
 		commandBuffer:self.commandBuffer];
+	ciDest.alphaMode = CIRenderDestinationAlphaUnpremultiplied;
+	ciDest.colorSpace = self.colorSpace;
+	ciDest.flipped = NO;
+	
 	CIRenderTask		*renderTask = [_ciContext
 		startTaskToRender:imageToDraw
 		toDestination:ciDest
@@ -105,5 +115,6 @@
 	
 	imageToDraw = nil;
 }
+
 
 @end

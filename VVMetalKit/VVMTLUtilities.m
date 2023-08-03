@@ -16,6 +16,41 @@
 
 
 
+#define A_HAS_B(a,b) (((a)&(b))==(b))
+
+
+
+
+void CGBitmapContextUnpremultiply(CGContextRef ctx)	{
+	NSSize				actualSize = NSMakeSize(CGBitmapContextGetWidth(ctx), CGBitmapContextGetHeight(ctx));
+	unsigned long		bytesPerRow = CGBitmapContextGetBytesPerRow(ctx);
+	unsigned char		*bitmapData = (unsigned char *)CGBitmapContextGetData(ctx);
+	unsigned char		*pixelPtr = nil;
+	double				colors[4];
+	if (bitmapData==nil || bytesPerRow<=0 || actualSize.width<1 || actualSize.height<1)
+		return;
+	for (int y=0; y<actualSize.height; ++y)	{
+		pixelPtr = bitmapData + (y * bytesPerRow);
+		for (int x=0; x<actualSize.width; ++x)	{
+			//	convert unsigned chars to normalized doubles
+			for (int i=0; i<4; ++i)
+				colors[i] = ((double)*(pixelPtr+i))/255.;
+			//	unpremultiply if there's an alpha and it won't cause a divide-by-zero
+			if (colors[3]>0. && colors[3]<1.)	{
+				for (int i=0; i<3; ++i)
+					colors[i] = colors[i] / colors[3];
+			}
+			//	convert the normalized components back into unsigned chars
+			for (int i=0; i<4; ++i)
+				*(pixelPtr+i) = (unsigned char)(colors[i]*255.);
+			
+			//	don't forget to increment the pixel ptr!
+			pixelPtr += 4;
+		}
+	}
+}
+
+
 CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	if (inMTLTex == nil)
 		return nil;
@@ -272,8 +307,6 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	
 	return returnMe;
 }
-
-
 CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize imgSize)	{
 	NSSize			texSize = NSMakeSize(inMTLTex.width, inMTLTex.height);
 	//	if the texture size we were passed matches the size of the passed texture, we can just call the parent function and bail
@@ -315,6 +348,116 @@ CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize
 	copier = nil;
 	
 	return returnMe;
+}
+
+
+id<VVMTLTextureImage> CreateTextureFromCGImage(CGImageRef inImg)	{
+	NSSize			rawSize = (inImg==NULL) ? NSZeroSize : NSMakeSize(CGImageGetWidth(inImg), CGImageGetHeight(inImg));
+	return CreateTextureFromResizedCGImage(inImg, rawSize);
+}
+id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize targetSize)	{
+	//NSLog(@"%s ... %@, %@",__func__,inImg,NSStringFromSize(targetSize));
+	//NSLog(@"%s ... %@",__func__,NSStringFromSize(targetSize));
+	NSSize			rawSize = (inImg==NULL) ? NSZeroSize : NSMakeSize(CGImageGetWidth(inImg), CGImageGetHeight(inImg));
+	//NSLog(@"\t\trawSize is %@",NSStringFromSize(rawSize));
+	
+	BOOL				directUploadOK = YES;
+	CGBitmapInfo		newImgInfo = CGImageGetBitmapInfo(inImg);
+	CGImageAlphaInfo	calculatedAlphaInfo = newImgInfo & kCGBitmapAlphaInfoMask;
+	
+	//A_HAS_B(newImgInfo, kCGBitmapByteOrderDefault)
+	if (A_HAS_B(newImgInfo, kCGBitmapFloatComponents)	||
+	A_HAS_B(newImgInfo, kCGBitmapByteOrder16Little)	||
+	A_HAS_B(newImgInfo, kCGBitmapByteOrder16Big)	||
+	//A_HAS_B(newImgInfo, kCGBitmapByteOrder32Little)	||
+	A_HAS_B(newImgInfo, kCGBitmapByteOrder32Big))	{
+		directUploadOK = NO;
+	}
+	
+	if (!NSEqualSizes(targetSize,rawSize))	{
+		directUploadOK = NO;
+	}
+	
+	
+	switch (calculatedAlphaInfo)	{
+	case kCGImageAlphaOnly:
+	case kCGImageAlphaNone:
+		directUploadOK = NO;
+		break;
+	case kCGImageAlphaPremultipliedLast:
+	case kCGImageAlphaPremultipliedFirst:
+	case kCGImageAlphaLast:
+	case kCGImageAlphaFirst:
+	case kCGImageAlphaNoneSkipLast:
+	case kCGImageAlphaNoneSkipFirst:
+		break;
+	}
+	
+	//	if the direct upload is OK, just copy the data right out of the image and upload it
+	if (directUploadOK)	{
+		//NSLog(@"direct upload!");
+		NSData		*frameData = (__bridge_transfer NSData *)CGDataProviderCopyData(CGImageGetDataProvider(inImg));
+		//NSLog(@"\t\tframeData is %p",frameData);
+		if (frameData == nil)	{
+			return nil;
+		}
+		size_t			bytesPerRow = CGImageGetBytesPerRow(inImg);
+		
+		id<VVMTLTextureImage>		newFrameImgBuffer = [VVMTLPool.global
+			bufferBackedTexSized:rawSize
+			pixelFormat:MTLPixelFormatBGRA8Unorm
+			basePtr:(void *)frameData.bytes
+			bytesPerRow:(uint32_t)bytesPerRow
+			bufferDeallocator:^(void *pointer, NSUInteger length)	{
+				NSData		*tmpData = frameData;
+				tmpData = nil;
+			}];
+		frameData = nil;
+		//NSLog(@"newFrameImgBuffer is %@",newFrameImgBuffer);
+		
+		return newFrameImgBuffer;
+	}
+	//	else the direct upload isn't OK- i have to draw the image into a context which is backing a texture
+	else	{
+		//NSLog(@"redraw!");
+		//	allocate a buffer-backed texture of the appropriate dimensions
+		size_t			bytesPerRow = sizeof(uint8_t) * 4 * targetSize.width;
+		id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
+			bufferBackedTexSized:targetSize
+			pixelFormat:MTLPixelFormatRGBA8Unorm
+			bytesPerRow:(uint32_t)bytesPerRow];
+		//	make a CGBitmapContext backed by the same buffer that backs our texture
+		void			*bufferDataPtr = returnMe.buffer.buffer.contents;
+		CGContextRef	ctx = CGBitmapContextCreate(
+			bufferDataPtr,
+			(long)targetSize.width,
+			(long)targetSize.height,
+			8,
+			bytesPerRow,
+			RenderProperties.global.colorSpace,
+			kCGImageAlphaPremultipliedLast);
+		if (ctx == NULL)	{
+			NSLog(@"\t\tERR: ctx null in %s",__func__);
+			return nil;
+		}
+		//	draw the image in the bitmap context, flush it
+		CGContextDrawImage(ctx, CGRectMake(0,0,targetSize.width,targetSize.height), inImg);
+		CGContextFlush(ctx);
+		
+		//	the bitmap context we just drew into has premultiplied alpha, so we need to un-premultiply before uploading it
+		//CGBitmapContextUnpremultiply(ctx);		//	commented out b/c it's a big perf hit!
+		
+		CGContextRelease(ctx);
+		//	make a blit encoder, synchronize the resource
+		id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+		id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+		[blitEncoder synchronizeResource:returnMe.buffer.buffer];
+		[blitEncoder endEncoding];
+		[cmdBuffer commit];
+		[cmdBuffer waitUntilCompleted];
+		[VVMTLPool.global timestampThis:returnMe];
+		return returnMe;
+	}
 }
 
 

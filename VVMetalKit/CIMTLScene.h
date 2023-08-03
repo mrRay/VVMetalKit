@@ -23,6 +23,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (id<VVMTLTextureImage>) renderCIImage:(CIImage *)inCIImage toTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)inCB;
 
+//- (void) setClearColors:(float)r :(float)g :(float)b :(float)a;
+
 @end
 
 

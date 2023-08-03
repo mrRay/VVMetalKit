@@ -9,15 +9,20 @@
 #import <AppKit/AppKit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Metal/Metal.h>
+@protocol VVMTLTextureImage;
 
 //NS_ASSUME_NONNULL_BEGIN
 
 
 
 
-CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex);
+void CGBitmapContextUnpremultiply(CGContextRef ctx);
 
+CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex);
 CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inTex, NSSize imgSize);
+
+id<VVMTLTextureImage> CreateTextureFromCGImage(CGImageRef inImg);
+id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize imgSize);
 
 NSString * NSStringFromOSType(OSType n);
 NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n);

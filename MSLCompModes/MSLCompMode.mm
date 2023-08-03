@@ -106,6 +106,19 @@ float4 BBBB(thread float4 & inTop, thread float & inTopAlpha, thread MSLCompMode
 	return [NSString stringWithFormat:@"<MSLCompMode %p %d %@>",self,_compModeIndex,_name];
 }
 
+- (BOOL) isEqual:(id)n	{
+	if (n == nil)
+		return NO;
+	if (![(NSObject*)n isMSLCompMode])
+		return NO;
+	//	we match comp modes by NAME, ONLY!  if the name matches, the comp mdoes are assumed to be equal!
+	MSLCompMode		*recast = (MSLCompMode *)n;
+	return [recast.name isEqualToString:_name];
+}
+- (BOOL) isEqualTo:(id)n	{
+	return [self isEqual:n];
+}
+
 @synthesize compModeIndex=_compModeIndex;
 - (void) setCompModeIndex:(uint16_t)n	{
 	_compModeIndex = n;
@@ -123,6 +136,21 @@ float4 BBBB(thread float4 & inTop, thread float & inTopAlpha, thread MSLCompMode
 }
 - (uint16_t) compModeIndex	{
 	return _compModeIndex;
+}
+
+@end
+
+
+
+
+
+
+
+
+@implementation NSObject (MSLCompModeNSObjectAdditions)
+
+- (BOOL) isMSLCompMode	{
+	return NO;
 }
 
 @end

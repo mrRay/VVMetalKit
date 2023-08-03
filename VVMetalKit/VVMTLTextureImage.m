@@ -211,8 +211,17 @@
 	//	if the image needs to be cropped (if srcRect differs from a rect made with the texture dims), do so now
 	NSRect			fullFrameRect = NSMakeRect(0,0,width,height);
 	if (!NSEqualRects(fullFrameRect,srcRect))	{
-		returnMe = [returnMe imageByCroppingToRect:srcRect];
-		returnMe = [returnMe imageByApplyingTransform:CGAffineTransformMakeTranslation(-1*srcRect.origin.x, -1*srcRect.origin.y)];
+		//	the srcRect for VVMTLTextureImage has the origin in the bottom-left corner, but CoreImage's origin is in the top-left corner
+		NSPoint			topLeftFullFrame = NSMakePoint(fullFrameRect.origin.x, fullFrameRect.origin.y + fullFrameRect.size.height);
+		NSPoint			topLeftSrcRect = NSMakePoint(srcRect.origin.x, srcRect.origin.y + srcRect.size.height);
+		NSRect			ciSrcRect;
+		ciSrcRect.origin = NSMakePoint(topLeftSrcRect.x - topLeftFullFrame.x, topLeftFullFrame.y - topLeftSrcRect.y);
+		ciSrcRect.size = srcRect.size;
+		returnMe = [returnMe imageByCroppingToRect:ciSrcRect];
+		returnMe = [returnMe imageByApplyingTransform:CGAffineTransformMakeTranslation(-1*ciSrcRect.origin.x, -1*ciSrcRect.origin.y)];
+		
+		//returnMe = [returnMe imageByCroppingToRect:srcRect];
+		//returnMe = [returnMe imageByApplyingTransform:CGAffineTransformMakeTranslation(-1*srcRect.origin.x, -1*srcRect.origin.y)];
 	}
 	
 	//	if we're flipping the image, do so now
