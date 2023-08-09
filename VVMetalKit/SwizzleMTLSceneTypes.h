@@ -30,6 +30,9 @@ typedef enum SwizzlePF	{
 	SwizzlePF_ARGB_PK_UI_8 = 32,
 	SwizzlePF_RGBA_PK_FP_32 = 'RGfA',	//	32 bit float per channel (128 bits per pixel)
 	
+	SwizzlePF_HSVA_PK_UI_8 = 'HSV8',
+	SwizzlePF_CMYK_PK_UI_8 = 'CMY8',
+	
 	SwizzlePF_UYVY_PK_422_UI_8 = '2vuy',
 	SwizzlePF_YUYV_PK_422_UI_8 = 'yuvs',
 	SwizzlePF_UYVY_PK_422_UI_10 = 'v210',

@@ -51,6 +51,62 @@ void CGBitmapContextUnpremultiply(CGContextRef ctx)	{
 }
 
 
+CGImageRef CreateCGImageRefFromVVMTLTextureImage(id<VVMTLTextureImage> inImg)	{
+	//	if the image occupies the whole texture, just call the function that downloads the whole texture
+	NSSize			rawImgSize = inImg.srcRect.size;
+	if (NSEqualSizes(rawImgSize, inImg.size))	{
+		return CreateCGImageRefFromMTLTexture(inImg.texture);
+	}
+	
+	//	...if we're here, then the image we want to create a CGImageRef of doesn't occupy the whole texture- so copy it to a new texture that it will occupy fully...
+	
+	id<VVMTLTextureImage>		tmpTex = [VVMTLPool.global bgra8IOSurfaceBackedTexSized:rawImgSize];
+	
+	CopierMTLScene		*copier = [[CopierMTLScene alloc] initWithDevice:RenderProperties.global.device];
+	id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+	[copier
+		copyImg:inImg
+		toImg:tmpTex
+		allowScaling:NO
+		sizingMode:SizingModeCopy
+		inCommandBuffer:cmdBuffer];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	
+	CGImageRef			returnMe = CreateCGImageRefFromMTLTexture(tmpTex.texture);
+	copier = nil;
+	tmpTex = nil;
+	return returnMe;
+}
+CGImageRef CreateCGImageRefFromResizedVVMTLTextureImage(id<VVMTLTextureImage> inImg, NSSize imgSize)	{
+	//	if the image occupies the whole texture, just call the function that downloads the whole texture
+	NSSize			rawImgSize = inImg.srcRect.size;
+	if (NSEqualSizes(rawImgSize, imgSize))	{
+		return CreateCGImageRefFromMTLTexture(inImg.texture);
+	}
+	
+	//	...if we're here, then the image we want to create a CGImageRef of doesn't occupy the whole texture- so copy it to a new texture that it will occupy fully...
+	
+	id<VVMTLTextureImage>		tmpTex = [VVMTLPool.global bgra8IOSurfaceBackedTexSized:imgSize];
+	
+	CopierMTLScene		*copier = [[CopierMTLScene alloc] initWithDevice:RenderProperties.global.device];
+	id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+	[copier
+		copyImg:inImg
+		toImg:tmpTex
+		allowScaling:YES
+		sizingMode:SizingModeFit
+		inCommandBuffer:cmdBuffer];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	
+	CGImageRef			returnMe = CreateCGImageRefFromMTLTexture(tmpTex.texture);
+	copier = nil;
+	tmpTex = nil;
+	return returnMe;
+}
+
+
 CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	if (inMTLTex == nil)
 		return nil;

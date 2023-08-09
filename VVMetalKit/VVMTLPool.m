@@ -679,6 +679,32 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	return returnMe;
 }
 
+- (id<VVMTLTextureImage>) createFromNSBitmapImageRep:(NSBitmapImageRep *)n	{
+	if (n == nil)
+		return nil;
+	/*
+	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
+	[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	*/
+	id<VVMTLTextureImage>		returnMe = [self
+		bufferBackedTexSized:n.size
+		pixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
+		basePtr:n.bitmapData
+		bytesPerRow:(uint32_t)n.bytesPerRow
+		bufferDeallocator:^(void *ptr, NSUInteger length)	{
+			NSBitmapImageRep		*tmpRep = n;
+			tmpRep = nil;
+		}];
+	return returnMe;
+}
+
 - (id<VVMTLTextureImage>) textureForIOSurface:(IOSurfaceRef)n	{
 	if (n == NULL)
 		return nil;

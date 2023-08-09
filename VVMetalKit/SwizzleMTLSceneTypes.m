@@ -47,6 +47,9 @@ size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo)	{
 	
 	case SwizzlePF_RGBA_PK_FP_32:
 	
+	case SwizzlePF_HSVA_PK_UI_8:
+	case SwizzlePF_CMYK_PK_UI_8:
+	
 	case SwizzlePF_UYVY_PK_422_UI_8:
 	case SwizzlePF_YUYV_PK_422_UI_8:
 	case SwizzlePF_UYVY_PK_422_UI_10:
@@ -93,6 +96,9 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int i
 	
 	case SwizzlePF_RGBA_PK_FP_32:			bytesPerRow = 32 * 4 * inWidth / 8;		break;
 	
+	case SwizzlePF_HSVA_PK_UI_8:
+	case SwizzlePF_CMYK_PK_UI_8:			bytesPerRow = 8 * 4 * inWidth / 8;		break;
+	
 	case SwizzlePF_UYVY_PK_422_UI_8:
 	case SwizzlePF_YUYV_PK_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
 	case SwizzlePF_UYVY_PK_422_UI_10:		bytesPerRow = ((inWidth + 47) / 48) * 128;		break;
@@ -130,6 +136,9 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 	case SwizzlePF_ARGB_PK_UI_8:
 	
 	case SwizzlePF_RGBA_PK_FP_32:
+	
+	case SwizzlePF_HSVA_PK_UI_8:
+	case SwizzlePF_CMYK_PK_UI_8:
 	
 	case SwizzlePF_UYVY_PK_422_UI_8:
 	case SwizzlePF_YUYV_PK_422_UI_8:

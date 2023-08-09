@@ -105,6 +105,8 @@
 		case SwizzlePF_BGRX_PK_UI_8:
 		case SwizzlePF_ARGB_PK_UI_8:
 		case SwizzlePF_RGBA_PK_FP_32:
+		case SwizzlePF_HSVA_PK_UI_8:
+		case SwizzlePF_CMYK_PK_UI_8:
 			self.shaderEvalSize = MTLSizeMake(1,1,1);
 			break;
 		case SwizzlePF_UYVY_PK_422_UI_8:
@@ -188,6 +190,8 @@
 		case SwizzlePF_BGRX_PK_UI_8:
 		case SwizzlePF_ARGB_PK_UI_8:
 		case SwizzlePF_RGBA_PK_FP_32:
+		case SwizzlePF_HSVA_PK_UI_8:
+		case SwizzlePF_CMYK_PK_UI_8:
 			self.shaderEvalSize = MTLSizeMake(1,1,1);
 			break;
 		case SwizzlePF_UYVY_PK_422_UI_8:

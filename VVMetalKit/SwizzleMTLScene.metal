@@ -154,6 +154,8 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 	case SwizzlePF_BGRA_PK_UI_8:
 	case SwizzlePF_BGRX_PK_UI_8:
 	case SwizzlePF_ARGB_PK_UI_8:
+	case SwizzlePF_HSVA_PK_UI_8:
+	case SwizzlePF_CMYK_PK_UI_8:
 		{
 			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (loc.y * imgInfo.planes[0].bytesPerRow) + (loc.x * bytesPerPixel);
@@ -554,6 +556,35 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 			*normRGB = rawVals.gbar * fadeToBlackMultiplier;
 		}
 		break;
+	case SwizzlePF_HSVA_PK_UI_8:
+		{
+			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
+			
+			float4			K = float4( 1.0, 2.0 / 3.0, 1.0 / 3.0, 3.0 );
+			float3			p = abs( fract(rawVals.xxx + K.xyz) * float3(6.0) - K.www);
+			
+			float3			rgbVals = float3(rawVals.z) * mix(K.xxx, clamp(p - K.xxx, float3(0.0), float3(1.0)), rawVals.y );
+			
+			(*normRGB).rgb = rgbVals * fadeToBlackMultiplier.rgb;
+			(*normRGB).a = rawVals.a * fadeToBlackMultiplier.a;
+		}
+		break;
+	case SwizzlePF_CMYK_PK_UI_8:
+		{
+			float4		rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
+			
+			float4		rgbVals;
+			
+			//rgbVals.rgb = (float3(1.0) - rawVals.xyz) * float3(1.0-rawVals.w);
+			rgbVals.r = (1. - rawVals.x) * (1. - rawVals.w);
+			rgbVals.g = (1. - rawVals.y) * (1. - rawVals.w);
+			rgbVals.b = (1. - rawVals.z) * (1. - rawVals.w);
+			
+			rgbVals.a = 1.0;
+			
+			*normRGB = rgbVals * fadeToBlackMultiplier;
+		}
+		break;
 	case SwizzlePF_UYVY_PK_422_UI_8:
 	case SwizzlePF_YUYV_PK_422_UI_8:
 	case SwizzlePF_UYVY_PK_422_UI_10:
@@ -925,6 +956,47 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 				//	++wPtr;
 				//}
 			//}
+		}
+		break;
+	case SwizzlePF_HSVA_PK_UI_8:
+		{
+			float4		K = float4( 0.0, -1.0 / 3.0, 2.0 / 3.0, -1.0 );
+			//vec4 p = mix(vec4(c.bg, K.wz), vec4(c.gb, K.xy), step(c.b, c.g));
+			//vec4 q = mix(vec4(p.xyw, c.r), vec4(c.r, p.yzx), step(p.x, c.r));
+			float4		p = (normRGB[0].g < normRGB[0].b) ? float4( normRGB[0].bg, K.wz ) : float4( normRGB[0].gb, K.xy );
+			float4		q = (normRGB[0].r < p.x) ? float4( p.xyw, normRGB[0].r ) : float4( normRGB[0].r, p.yzx );
+			
+			float		d = q.x - min(q.w, q.y);
+			float		e = 1.0e-10;
+			
+			float3		rgbVals = float3( abs(q.z + (q.w - q.y) / (6.0 * d + e)), d / (q.x + e), q.x);
+			
+			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
+			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
+			
+			*(wPtr + 0) = (uint8_t)round(rgbVals.r * 255.);
+			*(wPtr + 1) = (uint8_t)round(rgbVals.g * 255.);
+			*(wPtr + 2) = (uint8_t)round(rgbVals.b * 255.);
+			*(wPtr + 3) = (uint8_t)round(normRGB[0].a * 255.);
+		}
+		break;
+	case SwizzlePF_CMYK_PK_UI_8:
+		{
+			float4		cmyk;
+			cmyk.w = 1.0 - max(max(normRGB[0].x, normRGB[0].y), normRGB[0].z);
+			cmyk.x = (1.0 - normRGB[0].x - cmyk.w) / (1.0 - cmyk.w);
+			cmyk.y = (1.0 - normRGB[0].y - cmyk.w) / (1.0 - cmyk.w);
+			cmyk.z = (1.0 - normRGB[0].z - cmyk.w) / (1.0 - cmyk.w);
+			
+			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
+			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
+			
+			*(wPtr + 0) = (uint8_t)round(cmyk.x * 255.);
+			*(wPtr + 1) = (uint8_t)round(cmyk.y * 255.);
+			*(wPtr + 2) = (uint8_t)round(cmyk.z * 255.);
+			*(wPtr + 3) = (uint8_t)round(cmyk.w * 255.);
 		}
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_8:

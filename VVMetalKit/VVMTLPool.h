@@ -59,6 +59,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;
 //- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
 - (id<VVMTLTextureImage>) createFromNSImage:(NSImage *)n;
+- (id<VVMTLTextureImage>) createFromNSBitmapImageRep:(NSBitmapImageRep *)n;
 
 - (id<VVMTLTextureImage>) textureForIOSurface:(IOSurfaceRef)n;
 

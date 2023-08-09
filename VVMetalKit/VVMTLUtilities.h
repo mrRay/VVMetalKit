@@ -18,6 +18,9 @@
 
 void CGBitmapContextUnpremultiply(CGContextRef ctx);
 
+CGImageRef CreateCGImageRefFromVVMTLTextureImage(id<VVMTLTextureImage> inImg);
+CGImageRef CreateCGImageRefFromResizedVVMTLTextureImage(id<VVMTLTextureImage> inImg, NSSize imgSize);
+
 CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inTex);
 CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inTex, NSSize imgSize);
 
