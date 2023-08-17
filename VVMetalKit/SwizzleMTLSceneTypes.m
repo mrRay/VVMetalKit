@@ -25,15 +25,56 @@ NSString * NSStringFromSwizzlePF(SwizzlePF inPF)	{
 
 
 
-size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo)	{
+unsigned int SwizzleShaderImageInfoGetBytesPerRow(SwizzleShaderImageInfo *inInfo)	{
+	unsigned int		inWidth = inInfo->res[0];
+	SwizzlePF			inPF = inInfo->pf;
+	unsigned int		bytesPerRow = 0;
+	
+	unsigned int		widthRoundedUYVY = inWidth + (inWidth % 2);
+	//unsigned int		heightRoundedUp = inHeight + (inHeight % 2);
+	//unsigned int		widthRoundedDXT = inWidth + (inWidth % 4);
+	//unsigned int		heightRoundedDXT = inHeight + (inHeight % 4);
+	
+	switch (inPF)	{
+	case SwizzlePF_Unknown:					bytesPerRow = 0;		break;
+	
+	case SwizzlePF_RGBA_PK_UI_8:
+	case SwizzlePF_RGBX_PK_UI_8:
+	case SwizzlePF_BGRA_PK_UI_8:
+	case SwizzlePF_BGRX_PK_UI_8:
+	case SwizzlePF_ARGB_PK_UI_8:			bytesPerRow = 8 * 4 * inWidth / 8;		break;
+	
+	case SwizzlePF_RGBA_PK_FP_32:			bytesPerRow = 32 * 4 * inWidth / 8;		break;
+	
+	case SwizzlePF_HSVA_PK_UI_8:
+	case SwizzlePF_CMYK_PK_UI_8:			bytesPerRow = 8 * 4 * inWidth / 8;		break;
+	
+	case SwizzlePF_UYVY_PK_422_UI_8:
+	case SwizzlePF_YUYV_PK_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVY_PK_422_UI_10:		bytesPerRow = ((inWidth + 47) / 48) * 128;		break;
+	
+	case SwizzlePF_UYVA_PKPL_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVY_PKPL_422_UI_16:		bytesPerRow = 16 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVA_PKPL_422_UI_16:		bytesPerRow = 16 * widthRoundedUYVY / 8;		break;
+	
+	case SwizzlePF_UYVY_PKPL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
+	case SwizzlePF_UYVY_PL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
+	
+	//case SwizzlePF_RGB_PK_YCoCg:			bytesPerRow = 8 * widthRoundedDXT / 8;		break;
+	//case SwizzlePF_RGB_PKPL_YCoCgA:			bytesPerRow = 8 * widthRoundedDXT / 8;		break;
+	}
+	
+	return bytesPerRow;
+}
+unsigned int SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo)	{
 	if (inInfo == nil)
 		return 0;
 	
-	size_t			returnMe = 0;
+	unsigned int			returnMe = 0;
 	
 	int				lastPlane = inInfo->planeCount - 1;
-	size_t			lastPlaneOffset = inInfo->planes[lastPlane].offset;
-	size_t			lastPlaneBytesPerRow = inInfo->planes[lastPlane].bytesPerRow;
+	unsigned int			lastPlaneOffset = inInfo->planes[lastPlane].offset;
+	unsigned int			lastPlaneBytesPerRow = inInfo->planes[lastPlane].bytesPerRow;
 	
 	switch (inInfo->pf)	{
 	case SwizzlePF_Unknown:
@@ -78,42 +119,15 @@ size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo)	{
 
 
 SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight)	{
-	unsigned int		bytesPerRow = 0;
-	
-	unsigned int		widthRoundedUYVY = inWidth + (inWidth % 2);
-	//unsigned int		heightRoundedUp = inHeight + (inHeight % 2);
-	//unsigned int		widthRoundedDXT = inWidth + (inWidth % 4);
-	//unsigned int		heightRoundedDXT = inHeight + (inHeight % 4);
-	
-	switch (inPF)	{
-	case SwizzlePF_Unknown:					bytesPerRow = 0;		break;
-	
-	case SwizzlePF_RGBA_PK_UI_8:
-	case SwizzlePF_RGBX_PK_UI_8:
-	case SwizzlePF_BGRA_PK_UI_8:
-	case SwizzlePF_BGRX_PK_UI_8:
-	case SwizzlePF_ARGB_PK_UI_8:			bytesPerRow = 8 * 4 * inWidth / 8;		break;
-	
-	case SwizzlePF_RGBA_PK_FP_32:			bytesPerRow = 32 * 4 * inWidth / 8;		break;
-	
-	case SwizzlePF_HSVA_PK_UI_8:
-	case SwizzlePF_CMYK_PK_UI_8:			bytesPerRow = 8 * 4 * inWidth / 8;		break;
-	
-	case SwizzlePF_UYVY_PK_422_UI_8:
-	case SwizzlePF_YUYV_PK_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVY_PK_422_UI_10:		bytesPerRow = ((inWidth + 47) / 48) * 128;		break;
-	
-	case SwizzlePF_UYVA_PKPL_422_UI_8:		bytesPerRow = 8 * 2 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVY_PKPL_422_UI_16:		bytesPerRow = 16 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVA_PKPL_422_UI_16:		bytesPerRow = 16 * widthRoundedUYVY / 8;		break;
-	
-	case SwizzlePF_UYVY_PKPL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
-	case SwizzlePF_UYVY_PL_420_UI_8:		bytesPerRow = 8 * widthRoundedUYVY / 8;		break;
-	
-	//case SwizzlePF_RGB_PK_YCoCg:			bytesPerRow = 8 * widthRoundedDXT / 8;		break;
-	//case SwizzlePF_RGB_PKPL_YCoCgA:			bytesPerRow = 8 * widthRoundedDXT / 8;		break;
-	}
-	
+	SwizzleShaderImageInfo		tmpInfo;
+	//	populate the struct we'll be returning enough to calculate its bytes per row as per the above function
+	tmpInfo.pf = inPF;
+	tmpInfo.res[0] = inWidth;
+	tmpInfo.res[1] = inHeight;
+	tmpInfo.planeCount = 1;
+	//	calculate the bytes per row
+	unsigned int			bytesPerRow = SwizzleShaderImageInfoGetBytesPerRow(&tmpInfo);
+	//	return a fully populated struct via a standard method
 	return MakeSwizzleShaderImageInfoWithBytesPerRow(inPF, inWidth, inHeight, bytesPerRow);
 }
 

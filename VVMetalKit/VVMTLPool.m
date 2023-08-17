@@ -956,13 +956,20 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		return nil;
 	}
 	size_t			targetLength = inLength;
-	//size_t			pageSize = getpagesize();	//	if you do these calculations here you may wind up copying more data from the read ptr than you're allowed to.
+	
+	//size_t			pageSize = getpagesize();	//	WARNING: if you do these calculations here you may wind up copying more data from the read ptr than you're allowed to.
+	//size_t			pageSizeRemainder = inLength % pageSize;
+	//if (pageSizeRemainder != 0)
+	//	targetLength += (pageSize - pageSizeRemainder);
+	
+	//size_t			pageSize = getpagesize();	//	WARNING: if you do these calculations here you may wind up copying more data from the read ptr than you're allowed to.
 	//if (inLength % pageSize == 0)	{
 	//	targetLength = inLength;
 	//}
 	//else	{
 	//	targetLength = pageSize - (inLength % pageSize) + inLength;
 	//}
+	
 	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
 	
 	MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);

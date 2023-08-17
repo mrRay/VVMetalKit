@@ -101,7 +101,8 @@ typedef struct	{
 #if defined __cplusplus
 extern "C" {
 #endif
-	size_t SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo);
+	unsigned int SwizzleShaderImageInfoGetBytesPerRow(SwizzleShaderImageInfo *inInfo);
+	unsigned int SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo);
 	SwizzleShaderImageInfo MakeSwizzleShaderImageInfo(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight);
 	SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inBytesPerRow);
 	BOOL SwizzleShaderImageInfoEquality(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b);
