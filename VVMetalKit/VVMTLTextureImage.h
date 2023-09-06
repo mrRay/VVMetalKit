@@ -8,6 +8,7 @@
 #ifndef MTLTextureImage_h
 #define MTLTextureImage_h
 
+#import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #import <CoreImage/CoreImage.h>
 

@@ -607,6 +607,38 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //- (id<VVMTLTextureImage>) uyvyIOSurfaceBackedTexSized:(NSSize)n	{
 //}
 
+- (id<VVMTLTextureImage>) lum8TexSized:(NSSie)n	{
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(n.width)
+		height:round(n.height)
+		pixelFormat:MTLPixelFormatR8Unorm
+		storage:MTLStorageModePrivate
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+- (id<VVMTLTextureImage>) bufferBackedLum8TexSized:(NSSize)n	{
+	/*
+	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
+	[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	*/
+	size_t		bytesPerRow = 8 * round(n.width) / 8;
+	id<VVMTLTextureImage		returnMe = [self
+		bufferBackedTexSized:n
+		pixelFormat:MTLPixelFormatR8Unorm
+		bytesPerRow:bytesPerRow];
+	return returnMe;
+}
+
 - (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize	{
 	if (inRef == NULL)
 		return nil;
