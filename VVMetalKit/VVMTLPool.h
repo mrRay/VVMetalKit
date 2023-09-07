@@ -57,7 +57,7 @@ NS_ASSUME_NONNULL_BEGIN
 //- (id<VVMTLTextureImage>) rgbaHalfFloatIOSurfaceBackedTexFromCVPB:(CVPixelBufferRef)inCVPB;
 //- (id<VVMTLTextureImage>) uyvyIOSurfaceBackedTexSized:(NSSize)n;
 
-- (id<VVMTLTextureImage>) lum8TexSized:(NSSie)n;
+- (id<VVMTLTextureImage>) lum8TexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) bufferBackedLum8TexSized:(NSSize)n;
 
 - (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;

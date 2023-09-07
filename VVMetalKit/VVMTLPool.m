@@ -607,7 +607,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //- (id<VVMTLTextureImage>) uyvyIOSurfaceBackedTexSized:(NSSize)n	{
 //}
 
-- (id<VVMTLTextureImage>) lum8TexSized:(NSSie)n	{
+- (id<VVMTLTextureImage>) lum8TexSized:(NSSize)n	{
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)
 		height:round(n.height)
@@ -631,8 +631,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[self timestampThis:VVMTLTextureImage];
 	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
-	size_t		bytesPerRow = 8 * round(n.width) / 8;
-	id<VVMTLTextureImage		returnMe = [self
+	uint32_t		bytesPerRow = 8 * round(n.width) / 8;
+	id<VVMTLTextureImage>		returnMe = [self
 		bufferBackedTexSized:n
 		pixelFormat:MTLPixelFormatR8Unorm
 		bytesPerRow:bytesPerRow];
