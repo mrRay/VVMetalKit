@@ -552,6 +552,19 @@ NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n)	{
 }
 
 
+BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt)	{
+	switch (inPfmt)	{
+	case MTLPixelFormatBC6H_RGBFloat:
+	case MTLPixelFormatBC6H_RGBUfloat:
+	case MTLPixelFormatRGBA32Float:
+		return YES;
+	default:
+		return NO;
+	}
+	return NO;
+}
+
+
 
 
 

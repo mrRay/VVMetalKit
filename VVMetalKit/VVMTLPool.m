@@ -504,6 +504,57 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	return returnMe;
 }
 
+- (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr	{
+	/*
+	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
+
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
+	[blitEncoder endEncoding];
+	[cmdBuffer commit];
+	[cmdBuffer waitUntilCompleted];
+	[self timestampThis:VVMTLTextureImage];
+	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	*/
+	size_t				targetLength = bpr * s.height;
+	//if (targetLength % 4096 != 0)
+	//	targetLength = 4096 - (targetLength % 4096) + targetLength;
+	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLength:targetLength storage:MTLStorageModeManaged basePtr:b];
+	if (backingBuffer == nil)	{
+		NSLog(@"ERR: unable to make backing buffer in %s",__func__);
+		return nil;
+	}
+	
+	//	copy the data into the passed buffer
+	memcpy(backingBuffer.buffer.contents, b, targetLength);
+	
+	VVMTLTextureImage		*returnMe = nil;
+	
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(s.width)
+		height:round(s.height)
+		pixelFormat:pfmt
+		storage:MTLStorageModeManaged
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+	desc.mtlBufferBacking = YES;
+	
+	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
+	returnMe.buffer = backingBuffer;
+	returnMe.bytesPerRow = bpr;
+	
+	@synchronized (self)	{
+		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	
+	returnMe.preferDeletion = YES;
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt bytesPerRow:(uint32_t)bpr	{
 	/*
 	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
@@ -725,15 +776,25 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	[self timestampThis:VVMTLTextureImage];
 	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
+	
+	//	this only works if the bitmap's underlying data ptr is 4096-byte aligned!
+	//id<VVMTLTextureImage>		returnMe = [self
+	//	bufferBackedTexSized:n.size
+	//	pixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
+	//	basePtr:n.bitmapData
+	//	bytesPerRow:(uint32_t)n.bytesPerRow
+	//	bufferDeallocator:^(void *ptr, NSUInteger length)	{
+	//		NSBitmapImageRep		*tmpRep = n;
+	//		tmpRep = nil;
+	//	}];
+	
+	
 	id<VVMTLTextureImage>		returnMe = [self
 		bufferBackedTexSized:n.size
-		pixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
+		//pixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
+		pixelFormat:MTLPixelFormatRGBA8Unorm
 		basePtr:n.bitmapData
-		bytesPerRow:(uint32_t)n.bytesPerRow
-		bufferDeallocator:^(void *ptr, NSUInteger length)	{
-			NSBitmapImageRep		*tmpRep = n;
-			tmpRep = nil;
-		}];
+		bytesPerRow:(uint32_t)n.bytesPerRow];
 	return returnMe;
 }
 

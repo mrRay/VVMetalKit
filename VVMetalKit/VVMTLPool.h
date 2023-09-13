@@ -47,7 +47,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) rgbaFloatTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 //- (id<VVMTLTextureImage>) rgbaBufferBackedFloatTexSized:(NSSize)n;
+
+//	does NOT copy the passed data buffer- just declares it as the backing to a MTLBuffer, which in turn backs a MTLTexture.
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
+//	DOES copy the passed data buffer!
+- (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr;
+//	creates an empty buffer-backed texture
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt bytesPerRow:(uint32_t)bpr;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;

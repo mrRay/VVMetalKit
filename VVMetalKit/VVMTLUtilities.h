@@ -15,6 +15,9 @@
 
 
 
+#if defined __cplusplus
+extern "C"	{
+#endif
 
 void CGBitmapContextUnpremultiply(CGContextRef ctx);
 
@@ -29,6 +32,13 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize i
 
 NSString * NSStringFromOSType(OSType n);
 NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n);
+
+
+BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt);
+
+#if defined __cplusplus
+}
+#endif
 
 
 
