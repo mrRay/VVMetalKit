@@ -10,8 +10,11 @@ LOCAL_SRC_DIR="${PROJECT_DIR}/submodules/ISFMSLKit/submodules/ISFGLSLGenerator"
 # we're going to make this directory, and put all the cmake files for this project in it
 LOCAL_BUILD_DIR="${PROJECT_TEMP_ROOT}/ISFGLSLGenerator.build"
 
+LOCAL_INSTALL_DIR="${LOCAL_SRC_DIR}/build/install"
+
 # make sure that cmake has created a build system in the build dir (if we don't, the 'clean' command may fail)
 /opt/homebrew/bin/cmake -S "${LOCAL_SRC_DIR}" -B "${LOCAL_BUILD_DIR}"
+#/opt/homebrew/bin/cmake -S "${LOCAL_SRC_DIR}" -B "${LOCAL_BUILD_DIR}" -G Xcode
 
 # this is a "flag file"- its contents are irrelevant, the file's existence indicates state
 LOCAL_BUILD_FILE_FLAG="${TARGET_BUILD_DIR}/ISFGLSLGeneratorPreventCleanBuild"
@@ -33,4 +36,8 @@ fi
 echo "buliding ISFGLSLGenerator..."
 
 /opt/homebrew/bin/cmake --build "${LOCAL_BUILD_DIR}" --config RelWithDebInfo
-/opt/homebrew/bin/cmake --install "${LOCAL_BUILD_DIR}" --prefix "${LOCAL_SRC_DIR}/build/install"
+#/opt/homebrew/bin/cmake --build "${LOCAL_BUILD_DIR}" --config ${CONFIGURATION}
+
+/opt/homebrew/bin/cmake --install "${LOCAL_BUILD_DIR}" --prefix "${LOCAL_INSTALL_DIR}"
+
+codesign --timestamp --options runtime -f -s "Developer ID Application: Vidvox, LLC" "${LOCAL_INSTALL_DIR}/lib/liBISFGLSLGenerator.dylib"
