@@ -35,6 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 //	if you don't use this then you'll need to populate the vertex positions manually
 - (void) populateVertexPositionsWithRect:(NSRect)n;
+- (void) populateVertexPositionsWithRectFlippedVertically:(NSRect)n;
 //	if you don't use this then the vertex opacities will default to 1.0
 - (void) populateVertexOpacities:(float)n;
 

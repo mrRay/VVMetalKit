@@ -136,6 +136,10 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 }
 - (void) _reload	{
 	//NSLog(@"%s",__func__);
+	if (_assetURLs == nil || _assetURLs.count < 1)	{
+		return;
+	}
+	
 	//	clear the comp modes
 	NSMutableArray<MSLCompMode*>		*localCompModes = [[NSMutableArray alloc] init];
 	

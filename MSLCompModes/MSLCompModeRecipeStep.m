@@ -139,40 +139,35 @@ static inline void GaussianElimination(float *input, int in);
 	_img = n;
 	
 	NSRect		srcRect = n.srcRect;
-	NSRect		tmpRect;
-	NSPoint		tmpPoint;
-	if (n.flipH && n.flipV)	{
-		tmpPoint = VVRectGetAnchorPoint(srcRect, VVRectAnchor_TR);
-		tmpPoint.x = (n.width - tmpPoint.x);
-		tmpPoint.y = (n.height - tmpPoint.y);
-		tmpRect = VVMakeAnchoredRect(tmpPoint, srcRect.size, VVRectAnchor_BL);
+	//NSRect		tmpRect;
+	//NSPoint		tmpPoint;
+	
+	const VVRectAnchor		normalOrder[] = { VVRectAnchor_BL, VVRectAnchor_TL, VVRectAnchor_BR, VVRectAnchor_TR };
+	const VVRectAnchor		flipVOrder[] = { VVRectAnchor_TL, VVRectAnchor_BL, VVRectAnchor_TR, VVRectAnchor_BR };
+	const VVRectAnchor		flipHOrder[] = { VVRectAnchor_BR, VVRectAnchor_TR, VVRectAnchor_BL, VVRectAnchor_TL };
+	const VVRectAnchor		flipVAndHOrder[] = { VVRectAnchor_TR, VVRectAnchor_BR, VVRectAnchor_TL, VVRectAnchor_BL };
+	const VVRectAnchor		*orderPtr = normalOrder;
+	
+	BOOL		cumulativeFlipH = n.flipH;
+	BOOL		cumulativeFlipV = n.flipV;
+	//	metal texture access uses the top-left corner as the origin, so we have to flip the src rect in the VVMTLTextureImage veritcally before we access it in the shader
+	cumulativeFlipV = !cumulativeFlipV;
+	
+	if (cumulativeFlipH && cumulativeFlipV)	{
+		orderPtr = flipVAndHOrder;
 	}
-	else if (n.flipH)	{
-		tmpPoint = VVRectGetAnchorPoint(srcRect, VVRectAnchor_BR);
-		tmpPoint.x = (n.width - tmpPoint.x);
-		tmpRect = VVMakeAnchoredRect(tmpPoint, srcRect.size, VVRectAnchor_BL);
+	else if (cumulativeFlipH)	{
+		orderPtr = flipHOrder;
 	}
-	else if (n.flipV)	{
-		tmpPoint = VVRectGetAnchorPoint(srcRect, VVRectAnchor_TL);
-		tmpPoint.y = (n.height - tmpPoint.y);
-		tmpRect = VVMakeAnchoredRect(tmpPoint, srcRect.size, VVRectAnchor_BL);
-	}
-	else	{
-		tmpRect = srcRect;
+	else if (cumulativeFlipV)	{
+		orderPtr = flipVOrder;
 	}
 	
-	//	BL
-	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BL);
-	verts[0].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
-	//	TL
-	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
-	verts[1].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
-	//	BR
-	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BR);
-	verts[2].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
-	//	TR
-	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TR);
-	verts[3].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	for (int i=0; i<4; ++i)	{
+		NSPoint		tmpPoint = VVRectGetAnchorPoint(srcRect, *(orderPtr + i));
+		verts[i].texCoord = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	}
+	
 }
 - (id<VVMTLTextureImage>) img	{
 	return _img;
@@ -195,6 +190,23 @@ static inline void GaussianElimination(float *input, int in);
 	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TR);
 	verts[3].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
 }
+- (void) populateVertexPositionsWithRectFlippedVertically:(NSRect)n	{
+	NSRect		tmpRect = n;
+	NSPoint		tmpPoint;
+	
+	//	TL
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
+	verts[0].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	BL
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BL);
+	verts[1].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	TR
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TR);
+	verts[2].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+	//	BR
+	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BR);
+	verts[3].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+}
 - (void) populateVertexOpacities:(float)n	{
 	float		tmpFloat = fmax(0, fmin(1, n));
 	for (int i=0; i<4; ++i)	{
@@ -203,11 +215,14 @@ static inline void GaussianElimination(float *input, int in);
 }
 
 - (BOOL) populateCompModeWithName:(NSString *)n	{
+	//NSLog(@"%s ... %@",__func__,n);
 	if (n == nil)
 		return NO;
 	MSLCompMode		*compMode = [MSLCompModeController.global compModeWithName:n];
-	if (compMode == nil)
+	if (compMode == nil)	{
+		NSLog(@"ERR: unable to find comp mode named \"%@\" in %s",n,__func__);
 		return NO;
+	}
 	uint16_t		compModeIndex = compMode.compModeIndex;
 	for (int i=0; i<4; ++i)	{
 		verts[i].compModeIndex = compModeIndex;

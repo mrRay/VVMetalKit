@@ -38,6 +38,7 @@
 			selector:@selector(compModeReloadNotification:)
 			name:kMSLCompModeReloadNotificationName
 			object:nil];
+		[self compModeReloadNotification:nil];
 	}
 	return self;
 }
@@ -65,7 +66,7 @@
 	
 	MSLCompModeControllerResource		*localResource = self.resource;
 	if (localResource == nil)	{
-		//NSLog(@"ERR: localResources nil, %s",__func__);
+		NSLog(@"ERR: localResources nil, %s",__func__);
 		return;
 	}
 	
