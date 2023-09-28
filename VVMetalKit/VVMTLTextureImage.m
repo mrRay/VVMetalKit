@@ -200,8 +200,10 @@
 }
 
 - (CIImage *) createCIImageWithColorSpace:(CGColorSpaceRef)cs	{
+	//NSLog(@"%s",__func__);
 	NSDictionary		*optsDict = (cs==NULL) ? nil : @{
-		kCIImageColorSpace: (__bridge id)cs
+		kCIImageColorSpace: (__bridge id)cs,
+		kCIImageApplyOrientationProperty: @( kCGImagePropertyOrientationDownMirrored )
 	};
 	
 	CIImage			*returnMe = [CIImage
@@ -224,13 +226,16 @@
 		//returnMe = [returnMe imageByApplyingTransform:CGAffineTransformMakeTranslation(-1*srcRect.origin.x, -1*srcRect.origin.y)];
 	}
 	
-	//	if we're flipping the image, do so now
-	if (flipH || flipV)	{
+	BOOL		cumulativeHFlip = flipH;
+	BOOL		cumulativeVFlip = flipV;
+	cumulativeVFlip = !cumulativeVFlip;	//	no idea why this is necessary, the textures i'm passing it aren't flipped.
+	
+	if (cumulativeHFlip || cumulativeVFlip)	{
 		CGImagePropertyOrientation		newOrientation = 0;
-		if (flipH && flipV)	{
+		if (cumulativeHFlip && cumulativeVFlip)	{
 			newOrientation = kCGImagePropertyOrientationDown;
 		}
-		else if (flipV)	{
+		else if (cumulativeVFlip)	{
 			newOrientation = kCGImagePropertyOrientationDownMirrored;
 		}
 		else	{

@@ -18,6 +18,8 @@
 
 #define A_HAS_B(a,b) (((a)&(b))==(b))
 
+#define ROUNDUPTOMULTOF16(n) (((n%16)==0) ? (n) : (n + (16-(n%16))))
+
 
 
 
@@ -121,7 +123,8 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 			height:inMTLTex.height
 			pixelFormat:inMTLTex.pixelFormat
 			storage:MTLStorageModeManaged
-			usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+			usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			bytesPerRow:0];
 		desc.mtlBufferBacking = YES;
 		
 		id<VVMTLTextureImage>		bufferBackedTex = [VVMTLPool.global textureForDescriptor:desc];
@@ -378,7 +381,8 @@ CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize
 		height:texSize.height
 		pixelFormat:inMTLTex.pixelFormat
 		storage:MTLStorageModeManaged
-		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite];
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+		bytesPerRow:0];
 	desc.mtlBufferBacking = YES;
 	
 	id<VVMTLTextureImage>		bufferBackedTex = [VVMTLPool.global textureForDescriptor:desc];
@@ -420,6 +424,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	BOOL				directUploadOK = YES;
 	CGBitmapInfo		newImgInfo = CGImageGetBitmapInfo(inImg);
 	CGImageAlphaInfo	calculatedAlphaInfo = newImgInfo & kCGBitmapAlphaInfoMask;
+	size_t				bytesPerRow = CGImageGetBytesPerRow(inImg);
 	
 	//A_HAS_B(newImgInfo, kCGBitmapByteOrderDefault)
 	if (A_HAS_B(newImgInfo, kCGBitmapFloatComponents)	||
@@ -431,6 +436,11 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	}
 	
 	if (!NSEqualSizes(targetSize,rawSize))	{
+		directUploadOK = NO;
+	}
+	
+	
+	if (bytesPerRow % 16 != 0)	{
 		directUploadOK = NO;
 	}
 	
@@ -457,11 +467,10 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		if (frameData == nil)	{
 			return nil;
 		}
-		size_t			bytesPerRow = CGImageGetBytesPerRow(inImg);
 		
 		id<VVMTLTextureImage>		newFrameImgBuffer = [VVMTLPool.global
 			bufferBackedTexSized:rawSize
-			pixelFormat:MTLPixelFormatBGRA8Unorm
+			pixelFormat:MTLPixelFormatRGBA8Unorm
 			basePtr:(void *)frameData.bytes
 			bytesPerRow:(uint32_t)bytesPerRow
 			bufferDeallocator:^(void *pointer, NSUInteger length)	{
@@ -478,6 +487,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		//NSLog(@"redraw!");
 		//	allocate a buffer-backed texture of the appropriate dimensions
 		size_t			bytesPerRow = sizeof(uint8_t) * 4 * targetSize.width;
+		bytesPerRow = ROUNDUPTOMULTOF16(bytesPerRow);
 		id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
 			bufferBackedTexSized:targetSize
 			pixelFormat:MTLPixelFormatRGBA8Unorm

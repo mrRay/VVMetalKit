@@ -62,7 +62,9 @@
 	if (inTex == nil || inCB == nil)
 		return;
 	
+	//inTex.flipV = YES;
 	_srcImage = inCIImage;
+	self.renderSize = inTex.srcRect.size;
 	
 	self.renderTarget = inTex;
 	self.commandBuffer = inCB;
@@ -86,34 +88,54 @@
 
 - (void) renderCallback	{
 	CGRect		extent = CGRectZero;
-	CIImage		*imageToDraw = _srcImage;
-	if (imageToDraw != nil)
-		extent = imageToDraw.extent;
+	CIImage		*srcImg = _srcImage;
+	if (srcImg != nil)
+		extent = srcImg.extent;
 	if (CGRectEqualToRect(extent, CGRectZero))
-		imageToDraw = nil;
+		srcImg = nil;
+	//NSLog(@"\t\timage extent is %@",NSStringFromRect(extent));
 	
 	NSError		*nsErr = nil;
+	NSSize		renderSize = self.renderSize;
+	/*
+	[_ciContext
+		render:srcImg
+		toMTLTexture:self.renderTarget.texture
+		commandBuffer:self.commandBuffer
+		//bounds:NSMakeRect(0,0,renderSize.width,renderSize.height)
+		bounds:extent
+		colorSpace:self.colorSpace];
+	*/
+	
+	CIImage			*bgImg = [CIImage imageWithColor:[CIColor clearColor]];
+	CIImage			*imgToDraw = [CIBlendKernel.sourceOver applyWithForeground:srcImg background:bgImg];
+	imgToDraw = [imgToDraw imageByCroppingToRect:NSMakeRect(0,0,renderSize.width,renderSize.height)];
+	
 	CIRenderDestination		*ciDest = [[CIRenderDestination alloc]
 		initWithMTLTexture:self.renderTarget.texture
 		commandBuffer:self.commandBuffer];
 	ciDest.alphaMode = CIRenderDestinationAlphaUnpremultiplied;
+	//ciDest.blendKernel = CIBlendKernel.sourceOver;
 	ciDest.colorSpace = self.colorSpace;
-	ciDest.flipped = NO;
+	//ciDest.clamped = NO;
+	//ciDest.dithered = NO;
+	ciDest.flipped = YES;
 	
 	CIRenderTask		*renderTask = [_ciContext
-		startTaskToRender:imageToDraw
+		startTaskToRender:imgToDraw
 		toDestination:ciDest
 		error:&nsErr];
 	if (renderTask == nil || nsErr != nil)	{
 		NSLog(@"ERR: (%@) in %s",nsErr.localizedDescription,__func__);
 	}
 	
+	
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> completed)	{
-		CIImage			*tmpImage = imageToDraw;
+		CIImage			*tmpImage = imgToDraw;
 		tmpImage = nil;
 	}];
 	
-	imageToDraw = nil;
+	srcImg = nil;
 }
 
 

@@ -23,9 +23,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VVMTLTextureImageDescriptor : NSObject <VVMTLRecycleableDescriptor>
 
-+ (instancetype) createWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage;
++ (instancetype) createWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage bytesPerRow:(NSUInteger)inBytesPerRow;
 
-- (instancetype) initWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage;
+- (instancetype) initWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage bytesPerRow:(NSUInteger)inBytesPerRow;
 
 @property (assign,readwrite) NSUInteger width;
 @property (assign,readwrite) NSUInteger height;
@@ -35,6 +35,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (assign,readwrite) BOOL mtlBufferBacking;	//	NO by default, if YES we're looking for a texture backed by a id<VVMTLBuffer>
 @property (assign,readwrite) BOOL iosfcBacking;	//	NO by default, if YES we're looking for a texture backed by an IOSurfaceRef
 @property (assign,readwrite) BOOL cvpbBacking;	//	NO by default, if YES we're looking for a texture backed by a CVPixelBufferRef (or maybe a texture backed by an IOSurface backed by a CVPixelBufferRef!)
+@property (assign,readwrite) NSUInteger bytesPerRow;	//	0 by default- convenience variable, used to pass specific bytes per row values around when there is a backing with padding
 
 @end
 

@@ -13,11 +13,11 @@
 @implementation VVMTLTextureImageDescriptor
 
 
-+ (instancetype) createWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage	{
-	return [[VVMTLTextureImageDescriptor alloc] initWithWidth:inWidth height:inHeight pixelFormat:inPfmt storage:inStorage usage:inUsage];
++ (instancetype) createWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage bytesPerRow:(NSUInteger)inBytesPerRow	{
+	return [[VVMTLTextureImageDescriptor alloc] initWithWidth:inWidth height:inHeight pixelFormat:inPfmt storage:inStorage usage:inUsage bytesPerRow:inBytesPerRow];
 }
 
-- (instancetype) initWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage	{
+- (instancetype) initWithWidth:(NSUInteger)inWidth height:(NSUInteger)inHeight pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage bytesPerRow:(NSUInteger)inBytesPerRow	{
 	self = [super init];
 	if (self != nil)	{
 		_width = inWidth;
@@ -28,6 +28,7 @@
 		_mtlBufferBacking = NO;
 		_iosfcBacking = NO;
 		_cvpbBacking = NO;
+		_bytesPerRow = inBytesPerRow;
 	}
 	return self;
 }
@@ -50,6 +51,7 @@
 	returnMe.mtlBufferBacking = _mtlBufferBacking;
 	returnMe.iosfcBacking = _iosfcBacking;
 	returnMe.cvpbBacking = _cvpbBacking;
+	returnMe.bytesPerRow = _bytesPerRow;
 	return returnMe;
 }
 
@@ -68,7 +70,8 @@
 	|| _usage != recast.usage
 	|| _mtlBufferBacking != recast.mtlBufferBacking
 	|| _iosfcBacking != recast.iosfcBacking
-	|| _cvpbBacking != recast.cvpbBacking)
+	|| _cvpbBacking != recast.cvpbBacking
+	|| _bytesPerRow != recast.bytesPerRow)
 	{
 		return NO;
 	}

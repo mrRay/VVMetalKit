@@ -45,6 +45,11 @@ constant float3x3 kTransMatrix_YCbCr_to_RGB_HD{
 	{ 0.0, -0.187, 1.856 },
 	{ 1.575, -0.468, 0.0 }
 };
+constant float3x3 kTransMatrix_YCbCr_to_RGB_BT2020{
+	{ 1.0, 1.0, 1.0 },
+	{ 0.0, -0.16455312684366, 1.8814 },
+	{ 1.4746, -0.57135312684366, 0.0 }
+};
 
 
 constant float3x3 kTransMatrix_RGB_to_YCbCr_601{
@@ -72,6 +77,11 @@ constant float3x3 kTransMatrix_RGB_to_YCbCr_HD{
 	{ 0.715, -0.385, -0.454 },
 	{ 0.072, 0.5, -0.046 }
 };
+constant float3x3 kTransMatrix_RGB_to_YCbCr_BT2020{
+	{ 0.2627, -0.13963, 0.5 },
+	{ 0.678, -0.3603699373, -0.4597857046 },
+	{ 0.0593, 0.5, -0.0402142954 }
+};
 
 
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_601{ 16./255., 128./255., 128./255. };
@@ -79,12 +89,14 @@ constexpr constant float3 kTransOffset_YCbCr_to_RGB_709{ 16./255., 128./255., 12
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_Full{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_SD{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_HD{ 0./255., 128./255., 128./255. };
+constexpr constant float3 kTransOffset_YCbCr_to_RGB_BT2020{ 0./255., 128./255., 128./255. };
 
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_601{ 16./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_709{ 16./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_Full{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_SD{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_HD{ 0./255., 128./255., 128./255. };
+constexpr constant float3 kTransOffset_RGB_to_YCbCr_BT2020{ 0./255., 128./255., 128./255. };
 
 
 float3 GammaConvert_BT709_nonLinearToLinear(float3 nonlinear);

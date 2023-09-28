@@ -1420,6 +1420,7 @@
 					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/GLSLangValidatorLib/include\"",
 					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/SPIRVCrossLib/include\"",
 					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/submodules/ISFGLSLGenerator/build/install/include\"",
+					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/submodules/ISFGLSLGenerator/libISFGLSLGenerator/include\"",
 				);
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1432,6 +1433,7 @@
 					"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/GLSLangValidatorLib/bin",
 					"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/SPIRVCrossLib/bin",
 					"$(PROJECT_DIR)/submodules/ISFMSLKit/submodules/ISFGLSLGenerator/build/install/lib",
+					"\"${TEMP_ROOT}/ISFGLSLGenerator.build/libISFGLSLGenerator/Debug\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
@@ -1460,6 +1462,7 @@
 					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/GLSLangValidatorLib/include\"",
 					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/SPIRVCrossLib/include\"",
 					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/submodules/ISFGLSLGenerator/build/install/include\"",
+					"\"$(PROJECT_DIR)/submodules/ISFMSLKit/submodules/ISFGLSLGenerator/libISFGLSLGenerator/include\"",
 				);
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -1472,6 +1475,7 @@
 					"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/GLSLangValidatorLib/bin",
 					"$(PROJECT_DIR)/submodules/ISFMSLKit/extern/SPIRVCrossLib/bin",
 					"$(PROJECT_DIR)/submodules/ISFMSLKit/submodules/ISFGLSLGenerator/build/install/lib",
+					"\"${TEMP_ROOT}/ISFGLSLGenerator.build/libISFGLSLGenerator/Debug\"",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 11.0;
 				MARKETING_VERSION = 1.0;
