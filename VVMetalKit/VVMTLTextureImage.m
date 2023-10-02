@@ -255,9 +255,12 @@
 	
 	//	VVMTLTextureImage conformance
 	returnMe.texture = srcTex.texture;
-	returnMe.buffer = nil;
-	returnMe.iosfc = nil;
-	returnMe.cvpb = nil;
+	//returnMe.buffer = nil;
+	returnMe.buffer = srcTex.buffer;
+	//returnMe.iosfc = nil;
+	returnMe.iosfc = srcTex.iosfc;
+	//returnMe.cvpb = nil;
+	returnMe.cvpb = srcTex.cvpb;
 	returnMe.bytesPerRow = bytesPerRow;
 	returnMe.srcTexImg = srcTex;	//	make sure the copy retains the src!
 	
