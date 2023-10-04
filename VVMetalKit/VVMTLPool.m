@@ -614,38 +614,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	[self timestampThis:returnMe];
 	return returnMe;
-	/*
-	if (returnMe != nil)	{
-		NSLog(@"\t\tfound recycled tex/img, %s",__func__);
-		//	timestamp, and return
-		[self timestampThis:returnMe];
-		return returnMe;
-	}
-	
-	//	...if we're here, we couldn't find an existing tex matching the description- we have to create one...
-	
-	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLength:targetLength storage:MTLStorageModeManaged];
-	if (backingBuffer == nil)	{
-		NSLog(@"ERR: unable to make backing buffer in %s",__func__);
-		return nil;
-	}
-	
-	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
-	returnMe.buffer = backingBuffer;
-	//returnMe.bytesPerRow = bpr;
-	
-	@synchronized (self)	{
-		NSError			*nsErr = [self _generateMissingGPUAssetsInTexImg:returnMe];
-		if (nsErr != nil)	{
-			NSLog(@"ERR (%@) in %s",nsErr,__func__);
-			return nil;
-		}
-	}
-	
-	returnMe.preferDeletion = NO;
-	[self timestampThis:returnMe];
-	return returnMe;
-	*/
 }
 
 - (id<VVMTLTextureImage>) textureForExistingTexture:(id<MTLTexture>)n	{
@@ -1054,42 +1022,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	[self timestampThis:returnMe];
 	return returnMe;
-	
-	
-	
-	
-	/*
-	if (inLength < 1)
-		return nil;
-	
-	size_t			targetLength = inLength;
-	//if (inLength % 4096 == 0)	{
-	//	targetLength = inLength;
-	//}
-	//else	{
-	//	targetLength = 4096 - (inLength % 4096) + inLength;
-	//}
-	
-	VVMTLBuffer			*returnMe = nil;
-	
-	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
-	
-	MTLResourceOptions			resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
-	id<MTLBuffer>	buffer = nil;
-	if (b == NULL)	{
-		buffer = [self.device newBufferWithLength:targetLength options:resourceStorageMode];
-	}
-	else	{
-		buffer = [self.device newBufferWithBytes:b length:targetLength options:resourceStorageMode];
-	}
-	
-	returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
-	returnMe.buffer = buffer;
-	returnMe.pool = self;
-	returnMe.preferDeletion = YES;
-	
-	return returnMe;
-	*/
 }
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d	{
@@ -1193,49 +1125,12 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	BOOL			iosfcBacking = desc.iosfcBacking;
 	BOOL			cvpbBacking = desc.cvpbBacking;
 	
+	//	if the descriptor doesn't have a bytes per row, calculate the bytes per row based on the pixel format and dimensions
 	size_t			bytesPerRow = desc.bytesPerRow;
 	if (bytesPerRow == 0)	{
-		switch (desc.pfmt)	{
-		case MTLPixelFormatR8Unorm:	//	??
-			bytesPerRow = size.width * 8 * 1 / 8;
-			break;
-		
-		case MTLPixelFormatRG8Unorm:
-			bytesPerRow = size.width * 8 * 2 / 8;
-			break;
-		
-		case MTLPixelFormatBGRG422:	//	BM stuff
-			bytesPerRow = size.width * 8 * 2 / 8;
-			break;
-		case MTLPixelFormatGBGR422:	//	BM stuff
-			bytesPerRow = size.width * 8 * 2 / 8;
-			break;
-		case MTLPixelFormatRGBA8Unorm:
-			bytesPerRow = size.width * 8 * 4 / 8;
-			break;
-		case MTLPixelFormatBGRA8Unorm:
-			bytesPerRow = size.width * 8 * 4 / 8;
-			break;
-		
-		case MTLPixelFormatRGBA32Float:
-			bytesPerRow = size.width * 32 * 4 / 8;
-			break;
-		
-		case MTLPixelFormatRGB10A2Uint:	//	BM stuff
-			bytesPerRow = size.width * 32 / 8;
-			break;
-		case MTLPixelFormatRGB10A2Unorm:	//	not used?
-			bytesPerRow = size.width * 32 / 8;
-			break;
-		
-		case MTLPixelFormatRGBA16Uint:
-			bytesPerRow = size.width * 16 * 4 / 8;
-			break;
-		
-		default:
-			//	intentionally blank
-			break;
-		}
+		NSSize			adjustedImgSize = size;
+		bytesPerRow = BytesPerRowFromMTLPixelFormatAndSize(desc.pfmt, &adjustedImgSize);
+		desc.bytesPerRow = bytesPerRow;
 	}
 	
 	//	if the descriptor indicates that we need a CVPixelBufferRef as a backing, but we don't have one yet...
@@ -1256,6 +1151,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		CVPixelBufferRelease(cvpb);
 		
 		bytesPerRow = CVPixelBufferGetBytesPerRow(cvpb);
+		desc.bytesPerRow = bytesPerRow;
 	}
 	
 	//	if the descriptor indicates that we need an IOSurfaceRef as a backing, but we don't have one yet...
@@ -1283,6 +1179,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		n.iosfc = iosfc;
 		
 		bytesPerRow = IOSurfaceGetBytesPerRow(iosfc);
+		desc.bytesPerRow = bytesPerRow;
 	}
 	
 	//	if the descriptor indicates that we need a MTLBuffer (via id<VVMTLBuffer>) as a backing, but we don't have one yet...
@@ -1381,9 +1278,11 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		//	bytesPerRow = size.width * 8 * 2 / 8;
 		//	break;
 		case MTLPixelFormatRGBA8Unorm:
+		case MTLPixelFormatRGBA8Unorm_sRGB:
 			bytesPerRow = size.width * 8 * 4 / 8;
 			break;
 		case MTLPixelFormatBGRA8Unorm:
+		case MTLPixelFormatBGRA8Unorm_sRGB:
 			bytesPerRow = size.width * 8 * 4 / 8;
 			break;
 		
@@ -1444,7 +1343,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 		//	else it's just a plain ol' texture
 		else	{
-			
 			texture = [_device newTextureWithDescriptor:texDesc];
 			//[self _labelTexture:texture];
 			

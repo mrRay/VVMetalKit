@@ -18,7 +18,9 @@
 
 #define A_HAS_B(a,b) (((a)&(b))==(b))
 
+#define DXT_BLOCK_SIZE 4
 #define ROUNDUPTOMULTOF16(n) (((n%16)==0) ? (n) : (n + (16-(n%16))))
+#define ROUNDAUPTOMULTOFB(A,B) ((((A)%(B))==0) ? (A) : ((A) + ((B)-((A)%(B)))))
 
 
 
@@ -470,7 +472,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		
 		id<VVMTLTextureImage>		newFrameImgBuffer = [VVMTLPool.global
 			bufferBackedTexSized:rawSize
-			pixelFormat:MTLPixelFormatRGBA8Unorm
+			pixelFormat:MTLPixelFormatBGRA8Unorm
 			basePtr:(void *)frameData.bytes
 			bytesPerRow:(uint32_t)bytesPerRow
 			bufferDeallocator:^(void *pointer, NSUInteger length)	{
@@ -572,6 +574,73 @@ BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt)	{
 		return NO;
 	}
 	return NO;
+}
+
+
+size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inoutSize)	{
+	size_t			bytesPerRow = 0;
+	NSSize			size = *inoutSize;
+	switch (inPfmt)	{
+	case MTLPixelFormatR8Unorm:
+	case MTLPixelFormatR8Unorm_sRGB:
+		bytesPerRow = size.width * 8 * 1 / 8;
+		break;
+	case MTLPixelFormatRG8Unorm:
+	case MTLPixelFormatRG8Unorm_sRGB:
+		bytesPerRow = size.width * 8 * 2 / 8;
+		break;
+	case MTLPixelFormatGBGR422:
+	case MTLPixelFormatBGRG422:
+		size.width = ROUNDAUPTOMULTOFB((int)round(size.width), 2);
+		bytesPerRow = size.width * 8 * 2 / 8;
+		break;
+	case MTLPixelFormatBGRA8Unorm:
+	case MTLPixelFormatBGRA8Unorm_sRGB:
+	case MTLPixelFormatRGBA8Unorm:
+	case MTLPixelFormatRGBA8Unorm_sRGB:
+		bytesPerRow = size.width * 8 * 4 / 8;
+		break;
+	case MTLPixelFormatRGB10A2Uint:
+	case MTLPixelFormatRGB10A2Unorm:
+		bytesPerRow = size.width * 32 / 8;
+		break;
+	case MTLPixelFormatRGBA16Uint:
+		bytesPerRow = size.width * 16 * 4 / 8;
+		break;
+	case MTLPixelFormatRGBA16Float:
+		bytesPerRow = size.width * 16 * 4 / 8;
+		break;
+	case MTLPixelFormatRGBA32Float:
+		bytesPerRow = size.width * 32 * 4 / 8;
+		break;
+	case MTLPixelFormatBC1_RGBA:
+		size.width = ROUNDAUPTOMULTOFB((int)round(size.width), DXT_BLOCK_SIZE);
+		size.height = ROUNDAUPTOMULTOFB((int)round(size.height), DXT_BLOCK_SIZE);
+		bytesPerRow = size.width / DXT_BLOCK_SIZE * 8;	//	two 16-bit color and one 32-bit descriptor per 4 x 4 block of pixels (DXT_BLOCK_SIZE is 4)
+		break;
+	case MTLPixelFormatBC3_RGBA:
+		size.width = ROUNDAUPTOMULTOFB((int)round(size.width), DXT_BLOCK_SIZE);
+		size.height = ROUNDAUPTOMULTOFB((int)round(size.height), DXT_BLOCK_SIZE);
+		bytesPerRow = size.width / DXT_BLOCK_SIZE * 16;	//	BC1 for the color plus BC4 for the alpha!
+		break;
+	case MTLPixelFormatBC4_RUnorm:
+		size.width = ROUNDAUPTOMULTOFB((int)round(size.width), DXT_BLOCK_SIZE);
+		size.height = ROUNDAUPTOMULTOFB((int)round(size.height), DXT_BLOCK_SIZE);
+		bytesPerRow = size.width / DXT_BLOCK_SIZE * 8;	//	8 bytes per 4x4 block- greyscale/alpha only!
+		break;
+	case MTLPixelFormatBC6H_RGBUfloat:
+	case MTLPixelFormatBC6H_RGBFloat:
+	case MTLPixelFormatBC7_RGBAUnorm:
+		size.width = ROUNDAUPTOMULTOFB((int)round(size.width), DXT_BLOCK_SIZE);
+		size.height = ROUNDAUPTOMULTOFB((int)round(size.height), DXT_BLOCK_SIZE);
+		bytesPerRow = size.width / DXT_BLOCK_SIZE * 16;
+		break;
+	default:
+		NSLog(@"******** ERR: %s, %ld %lx",__func__,(unsigned long)inPfmt,(unsigned long)inPfmt);
+		break;
+	}
+	*inoutSize = size;
+	return bytesPerRow;
 }
 
 
