@@ -232,7 +232,9 @@
 		id<VVMTLBuffer>		tmpVertexObj = vertexDataBufferObj;
 		id<VVMTLBuffer>		tmpIndexObj = indexBufferObj;
 		id<VVMTLBuffer>		tmpProjectionMatricesBufferObj = projectionMatricesBufferObj;
+		NSMutableArray<id<VVMTLTextureImage>>		*tmpRecipeTextures = recipeTextures;
 		
+		tmpRecipeTextures = nil;
 		tmpProjectionMatricesBufferObj = nil;
 		tmpIndexObj = nil;
 		tmpVertexObj = nil;
