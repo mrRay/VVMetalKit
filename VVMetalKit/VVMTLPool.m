@@ -127,6 +127,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	int			tmpIndex = 0;
 	
 	if ([(NSObject*)n isVVMTLTextureImageDescriptor])	{
+		//	if the descriptor doesn't have a bytes per row, calculate the bytes per row based on the pixel format and dimensions
+		VVMTLTextureImageDescriptor		*recast = (VVMTLTextureImageDescriptor*)n;
+		size_t			bytesPerRow = recast.bytesPerRow;
+		if (bytesPerRow == 0)	{
+			NSSize			adjustedImgSize = NSMakeSize(recast.width, recast.height);
+			bytesPerRow = BytesPerRowFromMTLPixelFormatAndSize(recast.pfmt, &adjustedImgSize);
+			recast.bytesPerRow = bytesPerRow;
+		}
+		
 		for (id<VVMTLRecycleable> pooledObject in _texPool)	{
 			if ([n matchForRecycling:pooledObject.descriptor])	{
 				returnMe = pooledObject;
