@@ -40,6 +40,7 @@
 		buffer = nil;
 		_iosfc = NULL;
 		_cvpb = NULL;
+		bytesPerRow = n.bytesPerRow;
 		
 		//	VVMTLImage conformance
 		width = n.width;
@@ -89,7 +90,7 @@
 		tmpCopy.buffer = buffer;
 		tmpCopy.iosfc = _iosfc;
 		tmpCopy.cvpb = _cvpb;
-		tmpCopy.bytesPerRow = 0;
+		tmpCopy.bytesPerRow = bytesPerRow;
 		
 		tmpCopy.width = width;
 		tmpCopy.height = height;
