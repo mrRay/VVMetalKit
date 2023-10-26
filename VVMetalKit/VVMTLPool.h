@@ -91,10 +91,4 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-static inline MTLResourceOptions MTLResourceStorageModeForMTLStorageMode(MTLStorageMode inStorage);
-static inline OSType BestGuessCVPixelFormatTypeForMTLPixelFormat(MTLPixelFormat inPF);
-
-
-
-
 NS_ASSUME_NONNULL_END

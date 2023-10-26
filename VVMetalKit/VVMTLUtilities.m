@@ -605,16 +605,28 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 			
 		}
 		else	{
-			id<VVMTLTextureImage>		newFrameImgBuffer = [VVMTLPool.global
-				bufferBackedTexSized:rawSize
-				pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
-				basePtr:(void *)frameData.bytes
-				bytesPerRow:(uint32_t)bytesPerRow
-				bufferDeallocator:^(void *pointer, NSUInteger length)	{
-					NSData		*tmpData = frameData;
-					tmpData = nil;
-				}];
-			frameData = nil;
+			void		*basePtr = (void *)frameData.bytes;
+			id<VVMTLTextureImage>		newFrameImgBuffer = nil;
+			if ((uint64_t)basePtr % 4096 == 0)	{
+				newFrameImgBuffer = [VVMTLPool.global
+					bufferBackedTexSized:rawSize
+					pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
+					basePtr:basePtr
+					bytesPerRow:(uint32_t)bytesPerRow
+					bufferDeallocator:^(void *pointer, NSUInteger length)	{
+						NSData		*tmpData = frameData;
+						tmpData = nil;
+					}];
+				frameData = nil;
+			}
+			else	{
+				newFrameImgBuffer = [VVMTLPool.global
+					bufferBackedTexSized:rawSize
+					pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
+					basePtr:basePtr
+					bytesPerRow:(uint32_t)bytesPerRow];
+				frameData = nil;
+			}
 			//NSLog(@"newFrameImgBuffer is %@",newFrameImgBuffer);
 			
 			return newFrameImgBuffer;
@@ -781,6 +793,75 @@ size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inou
 }
 
 
+MTLResourceOptions MTLResourceStorageModeForMTLStorageMode(MTLStorageMode inStorage)	{
+	MTLResourceOptions		returnMe = MTLResourceStorageModePrivate;
+	switch (inStorage)	{
+	case MTLStorageModePrivate:
+		returnMe = MTLResourceStorageModePrivate;
+		break;
+	case MTLStorageModeShared:
+		returnMe = MTLResourceStorageModeShared;
+		break;
+	case MTLStorageModeManaged:
+		returnMe = MTLResourceStorageModeManaged;
+		break;
+	case MTLStorageModeMemoryless:
+		//	intentionally blank, not handled
+		break;
+	}
+	return returnMe;
+}
+
+OSType BestGuessCVPixelFormatTypeForMTLPixelFormat(MTLPixelFormat inPF)	{
+	OSType			cvPixelFormat = 0x00;
+	switch (inPF)	{
+	case MTLPixelFormatR8Unorm:	//	??
+		cvPixelFormat = kCVPixelFormatType_OneComponent8;
+		break;
+	
+	case MTLPixelFormatRG8Unorm:
+		cvPixelFormat = kCVPixelFormatType_TwoComponent8;
+		break;
+	
+	case MTLPixelFormatBGRG422:	//	BM stuff
+		cvPixelFormat = kCVPixelFormatType_422YpCbCr8;
+		break;
+	case MTLPixelFormatGBGR422:	//	BM stuff
+		cvPixelFormat = kCVPixelFormatType_422YpCbCr8_yuvs;
+		//cvPixelFormat = kCVPixelFormatType_422YpCbCr8FullRange;
+		break;
+	case MTLPixelFormatRGBA8Unorm:
+	case MTLPixelFormatRGBA8Unorm_sRGB:
+		cvPixelFormat = kCVPixelFormatType_32RGBA;
+		break;
+	case MTLPixelFormatBGRA8Unorm:
+	case MTLPixelFormatBGRA8Unorm_sRGB:
+		cvPixelFormat = kCVPixelFormatType_32BGRA;
+		break;
+	
+	case MTLPixelFormatRGBA32Float:
+		cvPixelFormat = kCVPixelFormatType_128RGBAFloat;
+		break;
+	
+	case MTLPixelFormatRGB10A2Uint:	//	BM stuff
+		cvPixelFormat = kCVPixelFormatType_30RGB;
+		break;
+	case MTLPixelFormatRGB10A2Unorm:	//	not used?
+		cvPixelFormat = kCVPixelFormatType_30RGB;
+		break;
+	
+	case MTLPixelFormatRGBA16Uint:
+		//	no corresponding CV pixel fmt?
+		break;
+		
+	default:
+		//	intentionally blank
+		break;
+	}
+	return cvPixelFormat;
+}
+
+
 
 
 
@@ -805,6 +886,10 @@ size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inou
 }
 
 @end
+
+
+
+
 
 
 
