@@ -713,6 +713,34 @@ NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n)	{
 }
 
 
+vector_float4 Vec4FromNSColor(NSColor * inColor)	{
+	vector_float4		returnMe = simd_make_float4(1., 1., 1., 1.);
+	if (inColor != nil)	{
+		CGFloat				tmpCGFloats[8];
+		[inColor getComponents:tmpCGFloats];
+		NSInteger			numOfComponents = inColor.numberOfComponents;
+		for (NSInteger i=0; i<numOfComponents; ++i)	{
+			switch (i)	{
+			case 0:		returnMe.r = tmpCGFloats[i];		break;
+			case 1:		returnMe.g = tmpCGFloats[i];		break;
+			case 2:		returnMe.b = tmpCGFloats[i];		break;
+			case 3:		returnMe.a = tmpCGFloats[i];		break;
+			}
+		}
+		//	if there were < 4 components, write a '1' to any unused channels
+		for (NSInteger i=numOfComponents; i<4; ++i)	{
+			switch (i)	{
+			case 0:		returnMe.r = 1.0;		break;
+			case 1:		returnMe.g = 1.0;		break;
+			case 2:		returnMe.b = 1.0;		break;
+			case 3:		returnMe.a = 1.0;		break;
+			}
+		}
+	}
+	return returnMe;
+}
+
+
 BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt)	{
 	switch (inPfmt)	{
 	case MTLPixelFormatBC6H_RGBFloat:

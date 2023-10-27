@@ -9,6 +9,8 @@
 #import <AppKit/AppKit.h>
 #import <CoreGraphics/CoreGraphics.h>
 #import <Metal/Metal.h>
+#import <simd/simd.h>
+
 @protocol VVMTLTextureImage;
 
 //NS_ASSUME_NONNULL_BEGIN
@@ -33,6 +35,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize i
 NSString * NSStringFromOSType(OSType n);
 NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n);
 
+vector_float4 Vec4FromNSColor(NSColor * inColor);
 
 BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt);
 
