@@ -19,7 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VVMTLRenderScene : VVMTLScene
 
-@property (strong,nonatomic,nullable) id<MTLRenderPipelineState> renderPipelineStateObject;
+@property (strong,nonatomic,nullable) MTLRenderPipelineDescriptor * renderPSODesc;
+@property (strong,nonatomic,nullable) id<MTLRenderPipelineState> renderPSO;
 
 @property (readonly,nonatomic) MTLRenderPassDescriptor * renderPassDescriptor;
 @property (readonly,nonatomic) id<MTLRenderCommandEncoder> renderEncoder;

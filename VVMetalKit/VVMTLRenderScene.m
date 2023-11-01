@@ -27,7 +27,8 @@
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice	{
 	self = [super initWithDevice:inDevice];
 	if (self != nil)	{
-		self.renderPipelineStateObject = nil;
+		self.renderPSODesc = nil;
+		self.renderPSO = nil;
 		self.renderPassDescriptor = nil;
 		self.renderEncoder = nil;
 		self.mvpBuffer = nil;
@@ -36,11 +37,34 @@
 		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
 		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
 		attachDesc.loadAction = MTLLoadActionDontCare;
+		
+		self.renderPSODesc = [[MTLRenderPipelineDescriptor alloc] init];
+		//self.renderPSODesc.vertexFunction = vertFunc;
+		//self.renderPSODesc.fragmentFunction = fragFunc;
+		self.renderPSODesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
+		
+		self.renderPSODesc.alphaToCoverageEnabled = NO;
+		self.renderPSODesc.colorAttachments[0].blendingEnabled = YES;
+		
+		self.renderPSODesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+		self.renderPSODesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+		
+		//	"GL over" is:
+		self.renderPSODesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+		self.renderPSODesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+		self.renderPSODesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+		self.renderPSODesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+		
+		//	"GL add" is:
+		//self.renderPSODesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+		//self.renderPSODesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+		//self.renderPSODesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
+		//self.renderPSODesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
 	}
 	return self;
 }
 - (void) dealloc	{
-	self.renderPipelineStateObject = nil;
+	self.renderPSO = nil;
 	self.renderPassDescriptor = nil;
 	self.renderEncoder = nil;
 }
@@ -64,8 +88,8 @@
 	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -1.f, 1.f }];
 	
 	//	set the pipeline state
-	if (self.renderPipelineStateObject != nil)
-		[self.renderEncoder setRenderPipelineState:self.renderPipelineStateObject];
+	if (self.renderPSO != nil)
+		[self.renderEncoder setRenderPipelineState:self.renderPSO];
 }
 - (void) _renderTeardown	{
 	//	if there's a color attachment, make sure it's retained through the end of the command buffer

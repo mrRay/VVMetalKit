@@ -53,7 +53,7 @@
 	MSLCompModeController		*compModeController = [MSLCompModeController global];
 	self.resource = [compModeController resourceForDevice:self.device];
 	//	we can get our PSO from the resources object
-	self.renderPipelineStateObject = self.resource.pso_8bit;
+	self.renderPSO = self.resource.pso_8bit;
 	
 }
 

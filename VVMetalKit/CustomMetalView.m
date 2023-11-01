@@ -164,7 +164,40 @@
 	if (self.colorspace != NULL)
 		metalLayer.colorspace = self.colorspace;
 	
-	//	subclasses should override this method, call the super, and then make the pso here
+	//	subclasses should override this method, call the super, and then make the pso here.  it would look something like this:
+	/*
+	NSError				*nsErr = nil;
+	NSBundle			*myBundle = [NSBundle bundleForClass:[CustomMetalView class]];
+	id<MTLLibrary>		defaultLibrary = [device newDefaultLibraryWithBundle:myBundle error:&nsErr];
+	id<MTLFunction>		vertFunc = [defaultLibrary newFunctionWithName:@"CustomMetalViewVertShader"];
+	id<MTLFunction>		fragFunc = [defaultLibrary newFunctionWithName:@"CustomMetalViewFragShader"];
+
+	MTLRenderPipelineDescriptor		*psDesc = [[MTLRenderPipelineDescriptor alloc] init];
+	psDesc.vertexFunction = vertFunc;
+	psDesc.fragmentFunction = fragFunc;
+	psDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
+	
+	//	commented out- this was an attempt to make VVMTLTextureImageRectView "transparent" (0 alpha would display view behind it)
+	psDesc.alphaToCoverageEnabled = NO;
+	psDesc.colorAttachments[0].blendingEnabled = YES;
+	
+	psDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+	psDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+	
+	//	"GL over" is:
+	psDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+	psDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+	psDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+	psDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+	
+	//	"GL add" is:
+	//psDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+	//psDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+	//psDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
+	//psDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+	
+	pso = [device newRenderPipelineStateWithDescriptor:psDesc error:&nsErr];
+	*/
 }
 - (void) drawInCmdBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
 	//	intentionally blank, override this in your subclass

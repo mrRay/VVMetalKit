@@ -11,6 +11,9 @@
 		1A061DC42A165E6B00980D41 /* MSLCompModeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */; };
 		1A061DC82A165E8800980D41 /* MSLCompModeSceneShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A061DCB2A165EDB00980D41 /* VVMetalKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1A0FBE8D260E1C2E00FF39BB /* VVMetalKit.framework */; };
+		1A06925C2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A06925A2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A06925D2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A06925B2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m */; };
+		1A093A7C2AF2930C00AC3C1F /* CustomMetalView.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A093A7B2AF2930C00AC3C1F /* CustomMetalView.metal */; };
 		1A0AEA982A55B6F6003BBFBE /* VVMTLUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0AEA962A55B6F6003BBFBE /* VVMTLUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0AEA992A55B6F6003BBFBE /* VVMTLUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0AEA972A55B6F6003BBFBE /* VVMTLUtilities.m */; };
 		1A0AEAA82A55D79E003BBFBE /* Metal.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1AAF56CB2A14238400626430 /* Metal.framework */; };
@@ -117,7 +120,7 @@
 		1ABE24632A4DE8E600317187 /* VVMTLTextureImageRectView.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */; };
 		1ABE24652A4DE90400317187 /* VVMTLTextureImageShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ABE24662A4DE90A00317187 /* VVMTLTextureImageRectViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */; };
+		1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC4AC132A5EFB9D00119888 /* VVMTLLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC4AC142A5EFB9D00119888 /* VVMTLLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */; };
 		1AC4AC232A5EFED900119888 /* VVMTLTextureLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC212A5EFED900119888 /* VVMTLTextureLUT.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -319,6 +322,9 @@
 		1A061DC12A165E6B00980D41 /* MSLCompModeScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeScene.h; sourceTree = "<group>"; };
 		1A061DC22A165E6B00980D41 /* MSLCompModeScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeScene.m; sourceTree = "<group>"; };
 		1A061DC72A165E8500980D41 /* MSLCompModeSceneShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeSceneShaderTypes.h; sourceTree = "<group>"; };
+		1A06925A2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLOrthoRenderScene.h; sourceTree = "<group>"; };
+		1A06925B2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLOrthoRenderScene.m; sourceTree = "<group>"; };
+		1A093A7B2AF2930C00AC3C1F /* CustomMetalView.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = CustomMetalView.metal; sourceTree = "<group>"; };
 		1A0AEA962A55B6F6003BBFBE /* VVMTLUtilities.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLUtilities.h; sourceTree = "<group>"; };
 		1A0AEA972A55B6F6003BBFBE /* VVMTLUtilities.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLUtilities.m; sourceTree = "<group>"; };
 		1A0AEAB72A55D7BD003BBFBE /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
@@ -541,6 +547,8 @@
 				1ABE24522A4DE88200317187 /* VVMTLComputeScene.m */,
 				1ABE24552A4DE88B00317187 /* VVMTLRenderScene.h */,
 				1ABE24562A4DE88B00317187 /* VVMTLRenderScene.m */,
+				1A06925A2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h */,
+				1A06925B2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m */,
 				1ABE24592A4DE8A500317187 /* VVMTLTextureImageRectView.h */,
 				1ABE245A2A4DE8A500317187 /* VVMTLTextureImageRectView.m */,
 				1ABE245D2A4DE8B400317187 /* VVMTLTextureImageView.h */,
@@ -562,6 +570,7 @@
 				1A0FBEAE260E1F5000FF39BB /* CopierMTLScene.metal */,
 				1A0FBEA2260E1F4F00FF39BB /* CustomMetalView.h */,
 				1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */,
+				1A093A7B2AF2930C00AC3C1F /* CustomMetalView.metal */,
 				1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */,
 				1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */,
 				1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */,
@@ -711,6 +720,7 @@
 				1A976B6E2A461D4C00C654FA /* VVMTLBuffer.h in Headers */,
 				1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */,
 				1AC4AC132A5EFB9D00119888 /* VVMTLLUT.h in Headers */,
+				1A06925C2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h in Headers */,
 				1A976B6D2A461D4C00C654FA /* VVMTLRecycleable.h in Headers */,
 				1A20CF012A46213B00F2EDBB /* VVMTLRecyclingPool.h in Headers */,
 				1A20CF032A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h in Headers */,
@@ -1085,6 +1095,7 @@
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A9924052A4DA41F00F5094D /* VVMTLBuffer.m in Sources */,
 				1ABE24502A4DE87500317187 /* VVMTLScene.m in Sources */,
+				1A06925D2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m in Sources */,
 				1A0AEA992A55B6F6003BBFBE /* VVMTLUtilities.m in Sources */,
 				1ABE245C2A4DE8A500317187 /* VVMTLTextureImageRectView.m in Sources */,
 				1ABE24542A4DE88200317187 /* VVMTLComputeScene.m in Sources */,
@@ -1095,6 +1106,7 @@
 				1A4819762816C7C800CE2D00 /* BilinearInterpolation.metal in Sources */,
 				1A20CF0F2A4A1A3700F2EDBB /* VVMTLPool.m in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
+				1A093A7C2AF2930C00AC3C1F /* CustomMetalView.metal in Sources */,
 				1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */,
 				1ABE24582A4DE88B00317187 /* VVMTLRenderScene.m in Sources */,
 				1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */,
@@ -1242,7 +1254,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
@@ -1301,7 +1313,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				MACOSX_DEPLOYMENT_TARGET = 10.15;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = macosx;
@@ -1327,6 +1339,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MODULEMAP_FILE = VVMetalKit/VVMetalKit.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
@@ -1352,6 +1365,7 @@
 					"@executable_path/../Frameworks",
 					"@loader_path/../Frameworks",
 				);
+				MODULEMAP_FILE = VVMetalKit/VVMetalKit.modulemap;
 				MODULE_VERIFIER_SUPPORTED_LANGUAGES = "objective-c objective-c++";
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
