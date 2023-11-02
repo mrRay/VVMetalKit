@@ -15,6 +15,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKitTouch/SwizzleMTLScene.h>
 #import <VVMetalKitTouch/CopierMTLScene.h>
 #import <VVMetalKitTouch/CustomMetalView.h>
+#import <VVMetalKitTouch/CMVMTLDrawObject.h>
 //#import <VVMetalKitTouch/VVSizingTool.h>
 #import <VVMetalKitTouch/SizingTool_c.h>
 #import <VVMetalKitTouch/SizingTool_objc.h>
@@ -56,6 +57,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/SwizzleMTLScene.h>
 #import <VVMetalKit/CopierMTLScene.h>
 #import <VVMetalKit/CustomMetalView.h>
+#import <VVMetalKit/CMVMTLDrawObject.h>
 //#import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingTool_c.h>
 #import <VVMetalKit/SizingTool_objc.h>

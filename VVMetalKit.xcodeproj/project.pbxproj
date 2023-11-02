@@ -93,6 +93,8 @@
 		1A48197C2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */; };
 		1A48197D2816C7E100CE2D00 /* BicubicInterpolation.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */; };
 		1A4D50DA2A14320B008F1E7C /* ISFMSLKit.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1A4D50D92A14320B008F1E7C /* ISFMSLKit.mm */; };
+		1A6A02D82AF3DDC4003B12BF /* CMVMTLDrawObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */; };
+		1A6A02D92AF3DDC4003B12BF /* CMVMTLDrawObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6A02D72AF3DDC4003B12BF /* CMVMTLDrawObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A7A00752AAB8A6A0080F508 /* ISFMSLConstants.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A7A00732AAB8A6A0080F508 /* ISFMSLConstants.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A89211E2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A976B612A461D4C00C654FA /* VVMTLImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -393,6 +395,8 @@
 		1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BicubicInterpolation.h; sourceTree = "<group>"; };
 		1A48197B2816C7E100CE2D00 /* BicubicInterpolation.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = BicubicInterpolation.metal; sourceTree = "<group>"; };
 		1A4D50D92A14320B008F1E7C /* ISFMSLKit.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = ISFMSLKit.mm; path = submodules/ISFMSLKit/ISFMSLKit/ISFMSLKit.mm; sourceTree = SOURCE_ROOT; };
+		1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CMVMTLDrawObject.m; sourceTree = "<group>"; };
+		1A6A02D72AF3DDC4003B12BF /* CMVMTLDrawObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMVMTLDrawObject.h; sourceTree = "<group>"; };
 		1A7A00732AAB8A6A0080F508 /* ISFMSLConstants.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ISFMSLConstants.h; path = submodules/ISFMSLKit/ISFMSLKit/ISFMSLConstants.h; sourceTree = SOURCE_ROOT; };
 		1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomMetalViewShaderTypes.h; sourceTree = "<group>"; };
 		1A976B612A461D4C00C654FA /* VVMTLImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVMTLImage.h; sourceTree = "<group>"; };
@@ -572,6 +576,8 @@
 				1A0FBEAD260E1F5000FF39BB /* CustomMetalView.m */,
 				1A093A7B2AF2930C00AC3C1F /* CustomMetalView.metal */,
 				1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */,
+				1A6A02D72AF3DDC4003B12BF /* CMVMTLDrawObject.h */,
+				1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */,
 				1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */,
 				1A0FBE9B260E1F4F00FF39BB /* SizingTool_metal.metal */,
 				1AE5D72326165A470064DC1C /* SizingTool_c.h */,
@@ -716,6 +722,7 @@
 				1A199DF0279F6A1F00EE9ACB /* VVColorConversions.h in Headers */,
 				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
 				1A89211E2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h in Headers */,
+				1A6A02D92AF3DDC4003B12BF /* CMVMTLDrawObject.h in Headers */,
 				1A976B6F2A461D4C00C654FA /* VVMTLTimestamp.h in Headers */,
 				1A976B6E2A461D4C00C654FA /* VVMTLBuffer.h in Headers */,
 				1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */,
@@ -1091,6 +1098,7 @@
 				1ABE24602A4DE8B400317187 /* VVMTLTextureImageView.m in Sources */,
 				1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */,
 				1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */,
+				1A6A02D82AF3DDC4003B12BF /* CMVMTLDrawObject.m in Sources */,
 				1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */,
 				1A0FBEB2260E1F5000FF39BB /* SizingTool_metal.metal in Sources */,
 				1A9924052A4DA41F00F5094D /* VVMTLBuffer.m in Sources */,
