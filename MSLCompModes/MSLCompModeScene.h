@@ -18,7 +18,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MSLCompModeScene : VVMTLRenderScene
 
-@property (strong,readwrite,nullable) MSLCompModeRecipe * recipe;
+//	this is the only method you should be using to render things with this scene
+- (BOOL) renderRecipe:(MSLCompModeRecipe *)inRecipe inCanvasBounds:(NSRect)inCanvasBounds toTexture:(id<VVMTLTextureImage>)inTex inCommandBuffer:(id<MTLCommandBuffer>)cb;
+
+//	NO, don't use these (publicly)
+- (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));;
+- (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));;
+
+
+
 
 @end
 

@@ -821,6 +821,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		pixelFormat:MTLPixelFormatRGBA8Unorm
 		basePtr:n.bitmapData
 		bytesPerRow:(uint32_t)n.bytesPerRow];
+	returnMe.flipV = YES;
 	return returnMe;
 }
 

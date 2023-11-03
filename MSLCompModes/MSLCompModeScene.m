@@ -14,7 +14,17 @@
 
 
 
+#define VVMINX(r) ((r.size.width>=0) ? (r.origin.x) : (r.origin.x+r.size.width))
+#define VVMAXX(r) ((r.size.width>=0) ? (r.origin.x+r.size.width) : (r.origin.x))
+#define VVMINY(r) ((r.size.height>=0) ? (r.origin.y) : (r.origin.y+r.size.height))
+#define VVMAXY(r) ((r.size.height>=0) ? (r.origin.y+r.size.height) : (r.origin.y))
+
+
+
+
 @interface MSLCompModeScene ()
+@property (strong,readwrite,nullable) MSLCompModeRecipe * recipe;
+@property (readwrite) NSRect canvasBounds;	//	the region of the canvas that we're rendering
 @property (strong,readwrite) MSLCompModeControllerResource * resource;
 @end
 
@@ -58,6 +68,28 @@
 }
 
 
+#pragma mark - frontend
+
+
+- (BOOL) renderRecipe:(MSLCompModeRecipe *)inRecipe inCanvasBounds:(NSRect)inCanvasBounds toTexture:(id<VVMTLTextureImage>)inTex inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+	if (inRecipe == nil)	{
+		NSLog(@"ERR: recipe nil, %s",__func__);
+		return NO;
+	}
+	if (inTex == nil)	{
+		NSLog(@"ERR: tex nil, %s",__func__);
+		return NO;
+	}
+	
+	self.recipe = inRecipe;
+	self.canvasBounds = inCanvasBounds;
+	
+	[self renderToTexture:inTex inCommandBuffer:cb];
+	
+	return YES;
+}
+
+
 #pragma mark - superclass overrides
 
 
@@ -73,22 +105,30 @@
 	//	get a local copy of the MVP buffer (creating one if it doesn't exist)
 	id<MTLBuffer>		localMVPBuffer = self.mvpBuffer;
 	if (localMVPBuffer == nil)	{
-		CGSize			renderSize = self.renderSize;
-		double			left = 0.0;
-		double			right = renderSize.width;
-		double			top = renderSize.height;
-		double			bottom = 0.0;
+		//CGSize			renderSize = self.renderSize;
+		//double			left = 0.0;
+		//double			right = renderSize.width;
+		//double			top = renderSize.height;
+		//double			bottom = 0.0;
+		double			left = VVMINX(_canvasBounds);
+		double			right = VVMAXX(_canvasBounds);
+		double			top = VVMAXY(_canvasBounds);
+		double			bottom = VVMINY(_canvasBounds);
 		double			far = 1.0;
 		double			near = -1.0;
 		BOOL		flipV = NO;
 		BOOL		flipH = NO;
 		if (flipV)	{
-			top = 0.0;
-			bottom = renderSize.height;
+			//top = 0.0;
+			//bottom = renderSize.height;
+			top = VVMINY(_canvasBounds);
+			bottom = VVMAXY(_canvasBounds);
 		}
 		if (flipH)	{
-			right = 0.0;
-			left = renderSize.width;
+			//right = 0.0;
+			//left = renderSize.width;
+			right = VVMINX(_canvasBounds);
+			left = VVMAXX(_canvasBounds);
 		}
 		matrix_float4x4			mvp = simd_matrix_from_rows(
 			//	old and busted
