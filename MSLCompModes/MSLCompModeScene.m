@@ -82,10 +82,32 @@
 	}
 	
 	self.recipe = inRecipe;
-	self.canvasBounds = inCanvasBounds;
+	if (!NSEqualRects(self.canvasBounds, inCanvasBounds))	{
+		self.canvasBounds = inCanvasBounds;
+		self.mvpBuffer = nil;
+	}
 	
 	[self renderToTexture:inTex inCommandBuffer:cb];
 	
+	return YES;
+}
+- (BOOL) renderBlackFrameToTexture:(id<VVMTLTextureImage>)inTex inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+	//	configure the render pass descriptor to use the attachment texture
+	MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
+	attachDesc.texture = inTex.texture;
+	
+	//	make a render encoder
+	id<MTLRenderCommandEncoder>		renderEncoder = [cb renderCommandEncoderWithDescriptor:self.renderPassDescriptor];
+	
+	//	configure the viewport
+	CGSize			tmpSize = inTex.size;
+	[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -1.f, 1.f }];
+	
+	//	set the pipeline state
+	if (self.renderPSO != nil)
+		[renderEncoder setRenderPipelineState:self.renderPSO];
+	
+	[renderEncoder endEncoding];
 	return YES;
 }
 
@@ -157,6 +179,7 @@
 			options:MTLResourceStorageModeShared];
 		self.mvpBuffer = localMVPBuffer;
 	}
+	
 	
 	MSLCompModeRecipe		*localRecipe = self.recipe;
 	//	run through the steps, assembling an array of the textures used by the various quad steps.  update the 'texIndex' values of the vertexes at the same time.
