@@ -574,7 +574,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	}
 	
 	//	copy the data into the passed buffer
-	memcpy(backingBuffer.buffer.contents, b, targetLength);
+	//memcpy(backingBuffer.buffer.contents, b, targetLength);
 	
 	returnMe = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
 	returnMe.buffer = backingBuffer;
