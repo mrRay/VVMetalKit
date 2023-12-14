@@ -58,8 +58,8 @@
 		preferDeletion = NO;
 		recycleCount = 0;
 		descriptor = [n copy];
-		supportingObject = nil;
-		supportingContext = NULL;
+		_supportingObject = nil;
+		_supportingContext = NULL;
 		deletionBlock = nil;
 		//deletionBlock = ^(id<VVMTLRecycleable> recycled)	{
 		//	VVMTLTextureImage		*recast = (VVMTLTextureImage*)blah;
@@ -102,8 +102,8 @@
 		tmpCopy.duration = kCMTimeZero;
 		
 		tmpCopy.pool = pool;
-		tmpCopy.supportingObject = supportingObject;
-		tmpCopy.supportingContext = supportingContext;
+		tmpCopy.supportingObject = self.supportingObject;
+		tmpCopy.supportingContext = self.supportingContext;
 		tmpCopy.deletionBlock = deletionBlock;
 		
 		if (tmpCopy != nil)	{
@@ -114,8 +114,8 @@
 	//	free my underlying resources either way!
 	self.iosfc = NULL;
 	self.cvpb = nil;
-	supportingObject = nil;
-	supportingContext = nil;
+	self.supportingObject = nil;
+	self.supportingContext = nil;
 	deletionBlock = nil;
 }
 
@@ -281,8 +281,8 @@
 	returnMe.preferDeletion = YES;	//	we just wait to delete the copy immediately (it will retain the original)
 	returnMe.recycleCount = 0;
 	returnMe.descriptor = [(NSObject*)srcTex.descriptor copy];
-	returnMe.supportingObject = nil;	//	do not copy any of the supporting stuff- the original's handling all this.
-	returnMe.supportingContext = nil;
+	//returnMe.supportingObject = nil;	//	do not copy any of the supporting stuff- the original's handling all this.
+	//returnMe.supportingContext = nil;
 	returnMe.deletionBlock = nil;
 	
 	return returnMe;
@@ -321,8 +321,36 @@
 @synthesize preferDeletion;
 @synthesize recycleCount;
 @synthesize descriptor;
-@synthesize supportingObject;
-@synthesize supportingContext;
+@synthesize supportingObject=_supportingObject;
+- (void) setSupportingObject:(id)n	{
+	//	we only want the supporting object and context to be attached/retained by the single base instance- we don't want any of its copies to also retain the object/context...
+	if (_srcTexImg == nil)	{
+		_supportingObject = n;
+		return;
+	}
+	_srcTexImg.supportingObject = n;
+}
+- (id) supportingObject:(id)n	{
+	if (_srcTexImg == nil)	{
+		return _supportingObject;
+	}
+	return _srcTexImg.supportingObject;
+}
+@synthesize supportingContext=_supportingContext;
+- (void) setSupportingContext:(void *)n	{
+	//	we only want the supporting object and context to be attached/retained by the single base instance- we don't want any of its copies to also retain the object/context...
+	if (_srcTexImg == nil)	{
+		_supportingContext = n;
+		return;
+	}
+	_srcTexImg.supportingContext = n;
+}
+- (void *) supportingContext	{
+	if (_srcTexImg == nil)	{
+		return _supportingContext;
+	}
+	return _srcTexImg.supportingContext;
+}
 @synthesize deletionBlock;
 
 @end
