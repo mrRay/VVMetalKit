@@ -265,10 +265,10 @@
 		1A0FBE83260E1C2E00FF39BB = {
 			isa = PBXGroup;
 			children = (
+				1A0FBE8E260E1C2E00FF39BB /* Products */,
 				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
 				1AED790C2A1524D6004C0126 /* MSLCompModes */,
 				1A8C0409261631FC00038DC9 /* Frameworks */,
-				1A0FBE8E260E1C2E00FF39BB /* Products */,
 			);
 			sourceTree = "<group>";
 		};
@@ -356,6 +356,13 @@
 				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
 			);
 			path = VVMetalKit;
+			sourceTree = "<group>";
+		};
+		1A406C4A2B324A940071F17D /* Products */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		1A8C0409261631FC00038DC9 /* Frameworks */ = {
