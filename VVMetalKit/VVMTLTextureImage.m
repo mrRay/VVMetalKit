@@ -34,6 +34,8 @@
 	if (n == nil)
 		self = nil;
 	if (self != nil)	{
+		_srcTexImg = nil;
+		
 		//	VVMTLTextureImage conformance
 		texture = nil;
 		
@@ -285,6 +287,8 @@
 	//returnMe.supportingContext = nil;
 	returnMe.deletionBlock = nil;
 	
+	srcTex = nil;
+	
 	return returnMe;
 }
 
@@ -328,13 +332,18 @@
 		_supportingObject = n;
 		return;
 	}
-	_srcTexImg.supportingObject = n;
+	else	{
+		//	commented out because this should arguably be unintended- no object should really be screwing with the source texture's supporting context or object...right?
+		//_srcTexImg.supportingObject = n;
+	}
 }
 - (id) supportingObject:(id)n	{
 	if (_srcTexImg == nil)	{
 		return _supportingObject;
 	}
-	return _srcTexImg.supportingObject;
+	else	{
+		return _srcTexImg.supportingObject;
+	}
 }
 @synthesize supportingContext=_supportingContext;
 - (void) setSupportingContext:(void *)n	{
@@ -343,13 +352,18 @@
 		_supportingContext = n;
 		return;
 	}
-	_srcTexImg.supportingContext = n;
+	else	{
+		//	commented out because this should arguably be unintended- no object should really be screwing with the source texture's supporting context or object...right?
+		//_srcTexImg.supportingContext = n;
+	}
 }
 - (void *) supportingContext	{
 	if (_srcTexImg == nil)	{
 		return _supportingContext;
 	}
-	return _srcTexImg.supportingContext;
+	else	{
+		return _srcTexImg.supportingContext;
+	}
 }
 @synthesize deletionBlock;
 

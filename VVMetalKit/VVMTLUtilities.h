@@ -38,12 +38,14 @@ NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n);
 vector_float4 Vec4FromNSColor(NSColor * inColor);
 
 BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt);
+BOOL IsMTLPixelFormatCompressed(MTLPixelFormat n);
 
 //	the size is passed as a ptr, and its value will be adjusted if a pixel format has specific size requirements
 size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inoutSize);
 
 MTLResourceOptions MTLResourceStorageModeForMTLStorageMode(MTLStorageMode inStorage);
 OSType BestGuessCVPixelFormatTypeForMTLPixelFormat(MTLPixelFormat inPF);
+
 
 #if defined __cplusplus
 }

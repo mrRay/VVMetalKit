@@ -752,6 +752,88 @@ BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt)	{
 	}
 	return NO;
 }
+BOOL IsMTLPixelFormatCompressed(MTLPixelFormat n)	{
+	switch (n)	{
+		case MTLPixelFormatBC1_RGBA:
+		case MTLPixelFormatBC1_RGBA_sRGB:
+		case MTLPixelFormatBC2_RGBA:
+		case MTLPixelFormatBC2_RGBA_sRGB:
+		case MTLPixelFormatBC3_RGBA:
+		case MTLPixelFormatBC3_RGBA_sRGB:
+		case MTLPixelFormatBC4_RUnorm:
+		case MTLPixelFormatBC4_RSnorm:
+		case MTLPixelFormatBC5_RGUnorm:
+		case MTLPixelFormatBC5_RGSnorm:
+		case MTLPixelFormatBC6H_RGBFloat:
+		case MTLPixelFormatBC6H_RGBUfloat:
+		case MTLPixelFormatBC7_RGBAUnorm:
+		case MTLPixelFormatBC7_RGBAUnorm_sRGB:
+		case MTLPixelFormatPVRTC_RGB_2BPP:
+		case MTLPixelFormatPVRTC_RGB_2BPP_sRGB:
+		case MTLPixelFormatPVRTC_RGB_4BPP:
+		case MTLPixelFormatPVRTC_RGB_4BPP_sRGB:
+		case MTLPixelFormatPVRTC_RGBA_2BPP:
+		case MTLPixelFormatPVRTC_RGBA_2BPP_sRGB:
+		case MTLPixelFormatPVRTC_RGBA_4BPP:
+		case MTLPixelFormatPVRTC_RGBA_4BPP_sRGB:
+		case MTLPixelFormatEAC_R11Unorm:
+		case MTLPixelFormatEAC_R11Snorm:
+		case MTLPixelFormatEAC_RG11Unorm:
+		case MTLPixelFormatEAC_RG11Snorm:
+		case MTLPixelFormatEAC_RGBA8:
+		case MTLPixelFormatEAC_RGBA8_sRGB:
+		case MTLPixelFormatETC2_RGB8:
+		case MTLPixelFormatETC2_RGB8_sRGB:
+		case MTLPixelFormatETC2_RGB8A1:
+		case MTLPixelFormatETC2_RGB8A1_sRGB:
+		case MTLPixelFormatASTC_4x4_sRGB:
+		case MTLPixelFormatASTC_5x4_sRGB:
+		case MTLPixelFormatASTC_5x5_sRGB:
+		case MTLPixelFormatASTC_6x5_sRGB:
+		case MTLPixelFormatASTC_6x6_sRGB:
+		case MTLPixelFormatASTC_8x5_sRGB:
+		case MTLPixelFormatASTC_8x6_sRGB:
+		case MTLPixelFormatASTC_8x8_sRGB:
+		case MTLPixelFormatASTC_10x5_sRGB:
+		case MTLPixelFormatASTC_10x6_sRGB:
+		case MTLPixelFormatASTC_10x8_sRGB:
+		case MTLPixelFormatASTC_10x10_sRGB:
+		case MTLPixelFormatASTC_12x10_sRGB:
+		case MTLPixelFormatASTC_12x12_sRGB:
+		case MTLPixelFormatASTC_4x4_LDR:
+		case MTLPixelFormatASTC_5x4_LDR:
+		case MTLPixelFormatASTC_5x5_LDR:
+		case MTLPixelFormatASTC_6x5_LDR:
+		case MTLPixelFormatASTC_6x6_LDR:
+		case MTLPixelFormatASTC_8x5_LDR:
+		case MTLPixelFormatASTC_8x6_LDR:
+		case MTLPixelFormatASTC_8x8_LDR:
+		case MTLPixelFormatASTC_10x5_LDR:
+		case MTLPixelFormatASTC_10x6_LDR:
+		case MTLPixelFormatASTC_10x8_LDR:
+		case MTLPixelFormatASTC_10x10_LDR:
+		case MTLPixelFormatASTC_12x10_LDR:
+		case MTLPixelFormatASTC_12x12_LDR:
+		case MTLPixelFormatASTC_4x4_HDR:
+		case MTLPixelFormatASTC_5x4_HDR:
+		case MTLPixelFormatASTC_5x5_HDR:
+		case MTLPixelFormatASTC_6x5_HDR:
+		case MTLPixelFormatASTC_6x6_HDR:
+		case MTLPixelFormatASTC_8x5_HDR:
+		case MTLPixelFormatASTC_8x6_HDR:
+		case MTLPixelFormatASTC_8x8_HDR:
+		case MTLPixelFormatASTC_10x5_HDR:
+		case MTLPixelFormatASTC_10x6_HDR:
+		case MTLPixelFormatASTC_10x8_HDR:
+		case MTLPixelFormatASTC_10x10_HDR:
+		case MTLPixelFormatASTC_12x10_HDR:
+		case MTLPixelFormatASTC_12x12_HDR:
+			return YES;
+		default:
+			return NO;
+	}
+	return NO;
+}
 
 
 size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inoutSize)	{
