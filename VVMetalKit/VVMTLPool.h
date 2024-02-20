@@ -44,6 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 //- (id<VVMTLTextureImage>) rgb10a2NormTexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) uyvyBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 //- (id<VVMTLTextureImage>) rgba16TexSized:(NSSize)n;
+- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) rgbaFloatTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 //- (id<VVMTLTextureImage>) rgbaBufferBackedFloatTexSized:(NSSize)n;

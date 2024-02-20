@@ -429,6 +429,20 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 //	return returnMe;
 //}
 
+- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n	{
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(n.width)
+		height:round(n.height)
+		pixelFormat:MTLPixelFormatRGBA16Float
+		storage:MTLStorageModePrivate
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+		bytesPerRow:0];
+	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+
 - (id<VVMTLTextureImage>) rgbaFloatTexSized:(NSSize)n	{
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(n.width)

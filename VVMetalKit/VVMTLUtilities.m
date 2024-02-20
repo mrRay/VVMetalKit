@@ -867,6 +867,9 @@ OSType BestGuessCVPixelFormatTypeForMTLPixelFormat(MTLPixelFormat inPF)	{
 		cvPixelFormat = kCVPixelFormatType_32BGRA;
 		break;
 	
+	case MTLPixelFormatRGBA16Float:
+		cvPixelFormat = kCVPixelFormatType_64RGBAHalf;
+		break;
 	case MTLPixelFormatRGBA32Float:
 		cvPixelFormat = kCVPixelFormatType_128RGBAFloat;
 		break;
