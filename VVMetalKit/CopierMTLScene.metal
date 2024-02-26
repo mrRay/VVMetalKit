@@ -15,27 +15,30 @@ kernel void CopierMTLSceneFunc(
 		return;
 	
 	//	if 'gid' is not in geoBuffer's "dstRect" then draw transparent black and we're done immediately
-	GPoint		gidPoint = MakePoint(gid.x, gid.y);
-	if (!PointInRect(gidPoint, geoBuffer->dstRect))	{
+	GRect		dstRect_tl = geoBuffer->dstRect;
+	GPoint		gidPoint_tl = MakePoint(gid.x, gid.y);
+	if (!PointInRect(gidPoint_tl, dstRect_tl))	{
 		outTexture.write(float4(0,0,0,0), gid);
 		return;
 	}
 	
 	//	calculate the normalized position of "gid" within geoBuffer's "dstRect"
-	GRect		dstRect = geoBuffer->dstRect;
-	GPoint		normCoords = NormCoordsOfPixelInRect(gidPoint, dstRect);
+	GPoint		normCoords_dst_tl = NormCoordsOfPixelInRect(gidPoint_tl, dstRect_tl);
 	if (geoBuffer->flipV)
-		normCoords.y = 1.0 - normCoords.y;
+		normCoords_dst_tl.y = 1.0 - normCoords_dst_tl.y;
 	if (geoBuffer->flipH)
-		normCoords.x = 1.0 - normCoords.x;
-	//	convert this normalized position into pixel coords of the normalized pos within geoBuffer's "srcRect"
-	GRect		srcRect = geoBuffer->srcRect;
-	GPoint		pxlCoords = PixelForNormCoordsInRect(normCoords, srcRect);
+		normCoords_dst_tl.x = 1.0 - normCoords_dst_tl.x;
+	
+	//	the srcRect coords use the bottom-left as the origin- convert this to a rect using the top-left origin coordinate system
+	GRect		srcRect_bl = geoBuffer->srcRect;
+	GRect		srcRect_tl = MakeRect( srcRect_bl.origin.x, srcTexture.get_height()-(srcRect_bl.origin.y+srcRect_bl.size.height), srcRect_bl.size.width, srcRect_bl.size.height );
+	
+	GPoint		pxlCoords_src_tl = PixelForNormCoordsInRect( normCoords_dst_tl, srcRect_tl );
+	
 	//	sample srcTexture at these pixel coords
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
-	const float4			srcColor = srcTexture.sample(sampler, float2(pxlCoords.x,pxlCoords.y)) * geoBuffer->colorMultiplier;
+	const float4			srcColor = srcTexture.sample(sampler, float2(pxlCoords_src_tl.x,pxlCoords_src_tl.y)) * geoBuffer->colorMultiplier;
 	outTexture.write(srcColor, gid);
-	
 	
 }
 
