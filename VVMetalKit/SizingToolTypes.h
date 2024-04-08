@@ -13,8 +13,6 @@ typedef enum SizingMode	{
 } SizingMode;
 
 
-
-
 typedef struct GSize	{
 	float		width;
 	float		height;

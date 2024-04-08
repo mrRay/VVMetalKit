@@ -52,7 +52,7 @@ fragment float4 VVMTLTextureImageRectViewFragShader(
 	}
 	
 	//	get the src rect we're supposed to be drawing
-	GRect			srcRect = displayInfo->srcRect;
+	GRect			srcRect = displayInfo->srcRectCart;
 	
 	
 	

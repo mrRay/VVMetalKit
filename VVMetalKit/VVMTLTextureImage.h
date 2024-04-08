@@ -48,6 +48,9 @@
 //	returns a CIImage backed by the receiver's id<MTLTexture>, taking into account cropping and flippedness
 - (CIImage * __nonnull) createCIImageWithColorSpace:(CGColorSpaceRef __nonnull)cs;
 
+//	the 'srcRect' property of a VVMTLImage uses a coordinate system with an origin in the bottom-left corner of the window.  metal expects a coordinate system that uses the top-left corner as the origin.
+@property (readonly) NSRect mtlSrcRect;
+
 @end
 
 

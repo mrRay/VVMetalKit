@@ -7,6 +7,8 @@
 
 #import "VVMTLTextureImage.h"
 
+#import "VVMacros.h"
+
 
 
 
@@ -150,6 +152,15 @@
 	return [self.descriptor matchForRecycling:recast.descriptor];
 }
 
+- (NSRect) mtlSrcRect	{
+	NSRect		returnMe = self.srcRect;
+	//	get the top-left corner of the existing src rect
+	NSPoint		topLeftCornerInBottomLeftSystem = VVRectGetAnchorPoint(self.srcRect, VVRectAnchor_TL);
+	//	conver it to the bottom-left of the new src rect
+	returnMe.origin.y = self.height - topLeftCornerInBottomLeftSystem.y;
+	return returnMe;
+}
+
 #pragma mark - VVMTLTextureImage conformance
 
 @synthesize texture;
@@ -194,10 +205,17 @@
 	if (n==nil)
 		return;
 	NSRect		tmpRect = self.srcRect;
-	n->srcRect.origin.x = round(tmpRect.origin.x);
-	n->srcRect.origin.y = round(tmpRect.origin.y);
-	n->srcRect.size.width = round(tmpRect.size.width);
-	n->srcRect.size.height = round(tmpRect.size.height);
+	n->srcRectCart.origin.x = round(tmpRect.origin.x);
+	n->srcRectCart.origin.y = round(tmpRect.origin.y);
+	n->srcRectCart.size.width = round(tmpRect.size.width);
+	n->srcRectCart.size.height = round(tmpRect.size.height);
+	
+	n->srcRectMtl.origin.x = n->srcRectCart.origin.x;
+	n->srcRectMtl.size.width = n->srcRectCart.size.width;
+	n->srcRectMtl.size.height = n->srcRectCart.size.height;
+	NSPoint		topLeftCornerCartesian = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
+	n->srcRectMtl.origin.y = round(self.height - topLeftCornerCartesian.y);
+	
 	n->flipV = self.flipV;
 	n->flipH = self.flipH;
 }

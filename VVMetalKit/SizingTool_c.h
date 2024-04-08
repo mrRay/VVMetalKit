@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #import <TargetConditionals.h>
+
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #include <VVMetalKitTouch/SizingToolTypes.h>
 #else
@@ -27,6 +28,9 @@ static inline bool GRectsEqual(GRect inA, GRect inB);
 static inline GRect RectThatFitsRectInRect(GRect inSrcRect, GRect inDstRect, SizingMode mode);
 
 static inline bool PointInRect(GPoint inPoint, GRect inRect);
+static inline GPoint ClampPointToRect(GPoint inPoint, GRect inRect);
+static inline bool PixelInRect(GPoint inPixel, GRect inRect);
+static inline GPoint ClampPixelToRect(GPoint inPixel, GRect inRect);
 
 static inline float MaxX(GRect inRect);
 static inline float MinX(GRect inRect);
@@ -34,9 +38,15 @@ static inline float MaxY(GRect inRect);
 static inline float MinY(GRect inRect);
 
 static inline GPoint NormCoordsOfPointInRect(GPoint inPoint, GRect inRect);
+static inline GPoint PointForNormCoordsInRect(GPoint inPoint, GRect inRect);
 
 static inline GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect);
 static inline GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect);
+
+
+static inline GRange MakeGRange(int32_t inLocation, int32_t inLength);
+static inline GRange MakeGRangeAbsolute(GRange inRange);
+static inline GRange InvertGRangeLength(GRange inRange);
 
 
 
@@ -44,18 +54,22 @@ static inline GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect);
 static inline GPoint MakePoint(float inX, float inY)	{
 	struct GPoint		returnMe = { inX, inY };
 	return returnMe;
+	//return { inX, inY };
 }
 static inline bool GPointsEqual(GPoint inA, GPoint inB)	{
 	return (inA.x == inB.x && inA.y == inB.y);
+	//return (inA.x == inB.x && inA.y == inB.y);
 }
 
 
 static inline GSize MakeSize(float inWidth, float inHeight)	{
 	struct GSize		returnMe = { inWidth, inHeight };
 	return returnMe;
+	//return { inWidth, inHeight };
 }
 static inline bool GSizesEqual(GSize inA, GSize inB)	{
 	return (inA.width == inB.width && inA.height == inB.height);
+	//return (inA.width == inB.width && inA.height == inB.height);
 }
 
 
@@ -64,13 +78,16 @@ static inline bool GSizesEqual(GSize inA, GSize inB)	{
 static inline GRect MakeRect(float inX, float inY, float inW, float inH)	{
 	struct GRect		returnMe = { { inX, inY }, { inW, inH } };
 	return returnMe;
+	//return { { inX, inY }, { inW, inH } };
 }
 static inline GRect MakeRectFromVals(GPoint inPt, GSize inSize)	{
 	struct GRect		returnMe = { inPt, inSize };
 	return returnMe;
+	//return { inPt, inSize };
 }
 static inline bool GRectsEqual(GRect inA, GRect inB)	{
 	return (GPointsEqual(inA.origin, inB.origin) && GSizesEqual(inA.size, inB.size));
+	//return (GPointsEqual(inA.origin, inB.origin) && GSizesEqual(inA.size, inB.size));
 }
 
 
@@ -156,6 +173,23 @@ static inline bool PointInRect(GPoint inPoint, GRect inRect)	{
 		return false;
 	return true;
 }
+static inline GPoint ClampPointToRect(GPoint inPoint, GRect inRect)	{
+	//return MakePoint( clamp(inPoint.x, MinX(inRect), MaxX(inRect)), clamp(inPoint.y, MinY(inRect), MaxY(inRect)) );
+	return MakePoint( fmin(fmax(inPoint.x, MinX(inRect)), MaxX(inRect)), fmin(fmax(inPoint.y, MinY(inRect)), MaxY(inRect)) );
+}
+
+
+static inline bool PixelInRect(GPoint inPixel, GRect inRect)	{
+	if (inPixel.x < MinX(inRect) || inPixel.x > (MaxX(inRect)-1))
+		return false;
+	if (inPixel.y < MinY(inRect) || inPixel.y > (MaxY(inRect)-1))
+		return false;
+	return true;
+}
+static inline GPoint ClampPixelToRect(GPoint inPixel, GRect inRect)	{
+	//return MakePoint( clamp(inPixel.x, MinX(inRect), MaxX(inRect)-1), clamp(inPixel.y, MinY(inRect), MaxY(inRect)-1) );
+	return MakePoint( fmin(fmax(inPixel.x, MinX(inRect)), MaxX(inRect)-1), fmin(fmax(inPixel.y, MinY(inRect)), MaxY(inRect)-1) );
+}
 
 
 static inline float MaxX(GRect inRect)	{
@@ -188,6 +222,9 @@ static inline GPoint NormCoordsOfPointInRect(GPoint inPoint, GRect inRect)	{
 	GPoint		localCoords = MakePoint(inPoint.x - inRect.origin.x, inPoint.y - inRect.origin.y);
 	return MakePoint( localCoords.x/inRect.size.width, localCoords.y/inRect.size.height );
 }
+static inline GPoint PointForNormCoordsInRect(GPoint inPoint, GRect inRect)	{
+	return MakePoint( (inPoint.x*(inRect.size.width))+inRect.origin.x, (inPoint.y*(inRect.size.height))+inRect.origin.y );
+}
 
 
 static inline GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect)	{
@@ -196,6 +233,27 @@ static inline GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect)	{
 }
 static inline GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect)	{
 	return MakePoint( (inPoint.x*(inRect.size.width-1.))+inRect.origin.x, (inPoint.y*(inRect.size.height-1.))+inRect.origin.y );
+}
+
+
+
+
+static inline GRange MakeGRange(int32_t inLocation, int32_t inLength)	{
+	GRange		returnMe;
+	returnMe.location = inLocation;
+	returnMe.length = inLength;
+	return returnMe;
+}
+static inline GRange MakeGRangeAbsolute(GRange inRange)	{
+	if (inRange.length >= 0 || inRange.location == GRangeLocationNotFound)
+		return inRange;
+	return InvertGRangeLength(inRange);
+}
+static inline GRange InvertGRangeLength(GRange inRange)	{
+	GRange		returnMe;
+	returnMe.length = inRange.length * -1;
+	returnMe.location = inRange.location - returnMe.length;
+	return returnMe;
 }
 
 
