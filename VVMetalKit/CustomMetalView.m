@@ -270,6 +270,11 @@
 		
 		tmpScreen = ScreenForWindowFrame(tmpWin.frame);
 	}
+	
+	if (tmpScreen == nil)	{
+		return YES;
+	}
+	
 	CGFloat			scale = tmpScreen.backingScaleFactor;
 	
 	#endif
