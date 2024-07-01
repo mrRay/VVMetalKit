@@ -103,7 +103,7 @@ typedef NS_ENUM(NSUInteger, VVRectAnchor)	{
 
 static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor);
 static inline VVRECT VVMakeAnchoredRect(VVPOINT inPt, VVSIZE inSize, VVRectAnchor inAnchor);
-static inline VVRECT VVRectSetFrameSize(VVRECT inRect, VVSIZE newSize, VVRectAnchor inAnchor);
+static inline VVRECT VVRectAnchorSetFrameSize(VVRECT inRect, VVSIZE newSize, VVRectAnchor inAnchor);
 
 
 static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor)	{
@@ -172,7 +172,7 @@ static inline VVRECT VVMakeAnchoredRect(VVPOINT inPt, VVSIZE inSize, VVRectAncho
 	
 	return returnMe;
 }
-static inline VVRECT VVRectSetFrameSize(VVRECT inRect, VVSIZE newSize, VVRectAnchor inAnchor)	{
+static inline VVRECT VVRectAnchorSetFrameSize(VVRECT inRect, VVSIZE newSize, VVRectAnchor inAnchor)	{
 	VVPOINT			anchorPoint = VVRectGetAnchorPoint(inRect, inAnchor);
 	return VVMakeAnchoredRect(anchorPoint, newSize, inAnchor);
 }
