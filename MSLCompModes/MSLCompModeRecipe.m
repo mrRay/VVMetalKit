@@ -63,15 +63,35 @@
 		NSLog(@"ERR: attempted out of bounds write, %s",__func__);
 		return;
 	}
+	
 	const size_t	quadSize = sizeof(MSLCompModeQuadVertex) * 4;
 	size_t			localOffset = inOffset;
+	int				tmpLayerIndex = 0;
 	for (MSLCompModeRecipeStep * step in self.steps)	{
+		
 		[step dumpVertexDataToBuffer:outBuffer atOffset:localOffset];
+		
 		localOffset += quadSize;
+		++tmpLayerIndex;
 	}
 }
 
-- (void) dumpProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+//- (void) dumpLayerDataToBuffer:(id<MTLBuffer>)outBuffer texToGeo:(BOOL)inTexToGeo atOffset:(size_t)inOffset	{
+//	if (outBuffer == nil)
+//		return;
+//	if ( (inOffset + self.minProjectionMatrixBufferLength) > outBuffer.length )	{
+//		NSLog(@"ERR: attempted out of bounds write, %s",__func__);
+//		return;
+//	}
+//	const size_t	layerSize = sizeof( MSLCompModeLayer );
+//	size_t		localOffset = inOffset;
+//	for (MSLCompModeRecipeStep * step in self.steps)	{
+//		[step dumpLayerDataToBuffer:outBuffer texToGeo:inTexToGeo atOffset:localOffset];
+//		localOffset += layerSize;
+//	}
+//}
+
+- (void) dumpTexToGeoProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
 	if (outBuffer == nil)
 		return;
 	if ( (inOffset + self.minProjectionMatrixBufferLength) > outBuffer.length )	{
@@ -81,7 +101,21 @@
 	const size_t	matrixSize = sizeof( simd_float4x4 );
 	size_t			localOffset = inOffset;
 	for (MSLCompModeRecipeStep * step in self.steps)	{
-		[step dumpProjectionMatrixToBuffer:outBuffer atOffset:localOffset];
+		[step dumpTexToGeoMatrixToBuffer:outBuffer atOffset:localOffset];
+		localOffset += matrixSize;
+	}
+}
+- (void) dumpGeoToTexProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+	if (outBuffer == nil)
+		return;
+	if ( (inOffset + self.minProjectionMatrixBufferLength) > outBuffer.length )	{
+		NSLog(@"ERR: attempted out of bounds write, %s",__func__);
+		return;
+	}
+	const size_t	matrixSize = sizeof( simd_float4x4 );
+	size_t			localOffset = inOffset;
+	for (MSLCompModeRecipeStep * step in self.steps)	{
+		[step dumpGeoToTexMatrixToBuffer:outBuffer atOffset:localOffset];
 		localOffset += matrixSize;
 	}
 }

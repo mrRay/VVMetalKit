@@ -8,7 +8,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 
-#import <MSLCompModes/MSLCompModeSceneShaderTypes.h>
+#import <MSLCompModes/MSLCompModeSceneAShaderTypes.h>
 
 @protocol VVMTLTextureImage;
 @class MSLCompMode;
@@ -19,7 +19,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 /*		this class represents a single step (a single "layer", which is really a single "quad").
-		it is a data structure class- it doesn't really interact with much directly, and mainly just stores values
+		it is a data structure class- it doesn't really interact with much directly, and mainly just stores values that it generates from higher-level parameters
 */
 
 
@@ -27,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface MSLCompModeRecipeStep : NSObject <NSCopying>	{
 	@public
-	MSLCompModeQuadVertex		verts[4];	//	coordinate order is BL - TL - BR - TR.  THE ORDER MATTERS, homography matrix is calculated using the position cords (WHICH NEED TO BE IN THIS ORDER) & srcRect/flipH/flipV vals (from which the points are extracted in the expected order)
+	MSLCompModeQuadVertex		verts[4];	//	coordinate order is BL - TL - BR - TR.  THE ORDER MATTERS, homography matrices are calculated using the position cords (WHICH NEED TO BE IN THIS ORDER) & srcRect/flipH/flipV vals (from which the points are extracted in the expected order).
 }
 
 //	setting this also populates the 'texCoord' members of the verts automatically using the 'srcRect', 'flipH', and 'flipV' properties of the img
@@ -37,16 +37,22 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) populateVertexPositionsWithRect:(NSRect)n;
 - (void) populateVertexPositionsWithRectFlippedVertically:(NSRect)n;
 //	if you don't use this then the vertex opacities will default to 1.0
-- (void) populateVertexOpacities:(float)n;
+//- (void) populateVertexOpacities:(float)n;
 
 - (BOOL) populateCompModeWithName:(NSString *)n;
 - (BOOL) populateCompModeWithIndex:(uint16_t)n;
 - (BOOL) populateWithCompMode:(MSLCompMode *)n;
 
 //	copies the vertex data stored locally to the passed buffer at the passed offset
-- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
-//	calculates the projection matrix necessary to display the specified region of the texture as a quad with the supplied coordinates and writes it to the passed buffer at the passed offset
-- (void) dumpProjectionMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes;
+//- (void) dumpLayerDataToBuffer:(id<MTLBuffer>)outBuffer texToGeo:(BOOL)inTexToGeo atOffset:(size_t)inOffset;
+
+//	calculates the projection matrix necessary to display the specified region of the receiver's 'img' texture as a quad with the receiver's 'verts' coordinates and writes it to the passed buffer at the passed offset
+- (void) dumpTexToGeoMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes;
+- (void) dumpGeoToTexMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes;
+
+@property (assign,readwrite) float opacity;	//	this gets written to the struct
+@property (assign,readwrite) uint16_t compModeIndex;	//	this gets written to the struct
 
 @end
 

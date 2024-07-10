@@ -2,7 +2,7 @@
 //  MSLCompModeScene.h
 //  MSLCompModes
 //
-//  Created by testadmin on 5/18/23.
+//  Created by testadmin on 7/10/24.
 //
 
 #import <Foundation/Foundation.h>
@@ -10,6 +10,7 @@
 #import <VVMetalKit/VVMetalKit.h>
 
 @class MSLCompModeRecipe;
+@class MSLCompModeResource;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -28,8 +29,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));;
 - (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));;
 
-
-
+@property (strong,readwrite,nullable) MSLCompModeRecipe * recipe;
+@property (readwrite) NSRect canvasBounds;	//	the region of the canvas that we're rendering
+@property (strong,readwrite) MSLCompModeResource * resource;
 
 @end
 

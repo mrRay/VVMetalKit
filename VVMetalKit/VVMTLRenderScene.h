@@ -33,4 +33,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inFlipH, BOOL inFlipV, id<MTLDevice> inDevice);
+
+
+
+
 NS_ASSUME_NONNULL_END

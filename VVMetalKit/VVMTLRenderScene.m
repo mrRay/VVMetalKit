@@ -9,6 +9,7 @@
 
 #import "VVMTLTextureImage.h"
 #import "VVMTLPool.h"
+#import "VVMacros.h"
 
 
 
@@ -123,3 +124,54 @@
 
 @end
 
+
+
+
+
+id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inFlipH, BOOL inFlipV, id<MTLDevice> inDevice)	{
+	double			left = VVMINX(inCanvasBounds);
+	double			right = VVMAXX(inCanvasBounds);
+	double			top = VVMAXY(inCanvasBounds);
+	double			bottom = VVMINY(inCanvasBounds);
+	double			far = 1.0;
+	double			near = -1.0;
+	if (inFlipV)	{
+		//top = 0.0;
+		//bottom = renderSize.height;
+		top = VVMINY(inCanvasBounds);
+		bottom = VVMAXY(inCanvasBounds);
+	}
+	if (inFlipH)	{
+		//right = 0.0;
+		//left = renderSize.width;
+		right = VVMINX(inCanvasBounds);
+		left = VVMAXX(inCanvasBounds);
+	}
+	matrix_float4x4			mvp = simd_matrix_from_rows(
+		//	old and busted
+		//simd_make_float4( 2.0/(right-left), 0.0, 0.0, -1.0*(right+left)/(right-left) ),
+		//simd_make_float4( 0.0, 2.0/(top-bottom), 0.0, -1.0*(top+bottom)/(top-bottom) ),
+		//simd_make_float4( 0.0, 0.0, -2.0/(far-near), -1.0*(far+near)/(far-near) ),
+		//simd_make_float4( 0.0, 0.0, 0.0, 1.0 )
+		
+		//	left-handed coordinate ortho!
+		//simd_make_float4(	2.0/(right-left),	0.0,				0.0,				(right+left)/(left-right) ),
+		//simd_make_float4(	0.0,				2.0/(top-bottom),	0.0,				(top+bottom)/(bottom-top) ),
+		//simd_make_float4(	0.0,				0.0,				2.0/(far-near),	(near)/(near-far) ),
+		//simd_make_float4(	0.0,				0.0,				0.0,				1.0 )
+		
+		//	right-handed coordinate ortho!
+		simd_make_float4(	2.0/(right-left),	0.0,				0.0,				(right+left)/(left-right) ),
+		simd_make_float4(	0.0,				2.0/(top-bottom),	0.0,				(top+bottom)/(bottom-top) ),
+		simd_make_float4(	0.0,				0.0,				-2.0/(far-near),	(near)/(near-far) ),
+		simd_make_float4(	0.0,				0.0,				0.0,				1.0 )
+		
+	);
+	
+	id<MTLBuffer>		returnMe = [inDevice
+		newBufferWithBytes:&mvp
+		length:sizeof(mvp)
+		options:MTLResourceStorageModeShared];
+	
+	return returnMe;
+}

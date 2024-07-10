@@ -254,6 +254,11 @@ static inline VVRECT VVRectIntegralNormalizeSize(VVRECT inRect)	{
 
 
 
+#define ROUNDAUPTOMULTOFB(A,B) ((((A)%(B))==0) ? (A) : ((A) + ((B)-((A)%(B)))))
+
+
+
+
 
 
 #endif /* VVMacros_h */

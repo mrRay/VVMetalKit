@@ -1,14 +1,15 @@
 #ifndef SizingTool_h
 #define SizingTool_h
 
-//#include <VVMetalKit/SizingToolTypes.h>
-#import <TargetConditionals.h>
+//#include <stdio.h>
+//#include <stdbool.h>
+//#import <TargetConditionals.h>
+
 #if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
 #include <VVMetalKitTouch/SizingToolTypes.h>
 #else
 #include <VVMetalKit/SizingToolTypes.h>
 #endif
-//#include "SizingToolTypes.h"
 
 
 #ifdef __METAL_VERSION__

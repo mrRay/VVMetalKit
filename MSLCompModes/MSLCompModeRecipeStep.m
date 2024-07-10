@@ -17,9 +17,17 @@
 //	expects to be passed a ptr to a float[2] describing the x,y location of the point
 static inline float ComputeDistance(float *pt1, float *pt2);
 //	i think i originally found these on an openframeworks forum a long time ago?
+//	calculates the transform matrix necessary to apply a perspective transform that moves the quad described by 's' to the quad described by 'd'
 //	's' is a ptr to four float[2]s (four x/y locations)
 void FindHomography(float *s, float *d, float homography[16]);
 static inline void GaussianElimination(float *input, int in);
+
+
+
+
+@interface MSLCompModeRecipeStep ()
+- (void) _dumpMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes texToGeo:(BOOL)inTexToGeo;
+@end
 
 
 
@@ -49,9 +57,7 @@ static inline void GaussianElimination(float *input, int in);
 			if (myVert->texCoord[j] != otherVert->texCoord[j])
 				return NO;
 		}
-		if (myVert->opacity != otherVert->opacity
-		|| myVert->texIndex != otherVert->texIndex
-		|| myVert->compModeIndex != otherVert->compModeIndex)
+		if (myVert->layerIndex != otherVert->layerIndex)
 		{
 			return NO;
 		}
@@ -65,13 +71,13 @@ static inline void GaussianElimination(float *input, int in);
 - (BOOL) isMSLCompModeRecipeStep	{
 	return YES;
 }
-- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
-	//NSLog(@"%s ... %d",__func__,inOffset);
+- (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes	{
+	//NSLog(@"%s ... %d",__func__,inOffsetInBytes);
 	//[self calculateProjectionMatrix];
 	//	don't check, just dump- the recipe would have already checked...
 	uint8_t			*baseWPtr = outBuffer.contents;
-	uint8_t			*wPtr = baseWPtr + inOffset;
-	size_t			localOffset = inOffset;
+	uint8_t			*wPtr = baseWPtr + inOffsetInBytes;
+	size_t			localOffset = inOffsetInBytes;
 	size_t			vertexSize = sizeof(MSLCompModeQuadVertex);
 	for (int i=0; i<4; ++i)	{
 		memcpy( wPtr, &verts[i], vertexSize );
@@ -79,19 +85,34 @@ static inline void GaussianElimination(float *input, int in);
 		localOffset += vertexSize;
 	}
 }
-- (void) dumpProjectionMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset	{
+//- (void) dumpLayerDataToBuffer:(id<MTLBuffer>)outBuffer texToGeo:(BOOL)inTexToGeo atOffset:(size_t)inOffsetInBytes	{
+//	MSLCompModeLayer		*layerPtr = (MSLCompModeLayer*)((uint8_t*)outBuffer.contents + inOffsetInBytes);
+//	//layerPtr->opacity = 
+//	//layerPtr->texIndex = 
+//	//layerPtr->compModeIndex = 
+//	[self _dumpMatrixToBuffer:outBuffer atOffset:inOffsetInBytes texToGeo:inTexToGeo];
+//}
+- (void) dumpTexToGeoMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes	{
+	//NSLog(@"%s",__func__);
+	[self _dumpMatrixToBuffer:outBuffer atOffset:inOffsetInBytes texToGeo:YES];
+}
+- (void) dumpGeoToTexMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes	{
+	//NSLog(@"%s",__func__);
+	[self _dumpMatrixToBuffer:outBuffer atOffset:inOffsetInBytes texToGeo:NO];
+}
+- (void) _dumpMatrixToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffsetInBytes texToGeo:(BOOL)inTexToGeo	{
 	//NSLog(@"%s",__func__);
 	const float			geoCoords[] = {
-		verts[0].position.x, verts[0].position.y,
-		verts[1].position.x, verts[1].position.y,
-		verts[2].position.x, verts[2].position.y,
-		verts[3].position.x, verts[3].position.y,
+		verts[0].position.x, verts[0].position.y,	//	BL
+		verts[1].position.x, verts[1].position.y,	//	TL
+		verts[2].position.x, verts[2].position.y,	//	BR
+		verts[3].position.x, verts[3].position.y,	//	TR
 	};
 	const float			texCoords[] = {
-		verts[0].texCoord.x, verts[0].texCoord.y,
-		verts[1].texCoord.x, verts[1].texCoord.y,
-		verts[2].texCoord.x, verts[2].texCoord.y,
-		verts[3].texCoord.x, verts[3].texCoord.y,
+		verts[0].texCoord.x, verts[0].texCoord.y,	//	BL
+		verts[1].texCoord.x, verts[1].texCoord.y,	//	TL
+		verts[2].texCoord.x, verts[2].texCoord.y,	//	BR
+		verts[3].texCoord.x, verts[3].texCoord.y,	//	TR
 	};
 	
 	//	make sure that none of the geometry coords are "too close" (we get undefined results if the verts are on top of one another)
@@ -119,11 +140,16 @@ static inline void GaussianElimination(float *input, int in);
 	}
 	
 	//	calculate the local projection matrix, writing it to the buffer at the specified location
-	simd_float4x4		*outWPtr = (simd_float4x4 *)((uint8_t*)outBuffer.contents + inOffset);
+	simd_float4x4		*outWPtr = (simd_float4x4 *)((uint8_t*)outBuffer.contents + inOffsetInBytes);
 	
 	//	calculate the homography- the projection transform necessary to make "texCoords" appear at "geoCoords"
 	float		matrix[16];
-	FindHomography( (float*)texCoords, (float*)geoCoords, matrix );
+	if (inTexToGeo)	{
+		FindHomography( (float*)texCoords, (float*)geoCoords, matrix );
+	}
+	else	{
+		FindHomography( (float*)geoCoords, (float*)texCoords, matrix );
+	}
 	
 	*outWPtr = simd_matrix(
 		simd_make_float4( *(matrix+0), *(matrix+1), *(matrix+2), *(matrix+3) ),
@@ -207,12 +233,12 @@ static inline void GaussianElimination(float *input, int in);
 	tmpPoint = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_BR);
 	verts[3].position = simd_make_float2( tmpPoint.x, tmpPoint.y );
 }
-- (void) populateVertexOpacities:(float)n	{
-	float		tmpFloat = fmax(0, fmin(1, n));
-	for (int i=0; i<4; ++i)	{
-		verts[i].opacity = tmpFloat;
-	}
-}
+//- (void) populateVertexOpacities:(float)n	{
+//	float		tmpFloat = fmax(0, fmin(1, n));
+//	for (int i=0; i<4; ++i)	{
+//		verts[i].opacity = tmpFloat;
+//	}
+//}
 
 - (BOOL) populateCompModeWithName:(NSString *)n	{
 	//NSLog(@"%s ... %@",__func__,n);
@@ -223,28 +249,20 @@ static inline void GaussianElimination(float *input, int in);
 		NSLog(@"ERR: unable to find comp mode named \"%@\" in %s",n,__func__);
 		return NO;
 	}
-	uint16_t		compModeIndex = compMode.compModeIndex;
-	for (int i=0; i<4; ++i)	{
-		verts[i].compModeIndex = compModeIndex;
-	}
+	self.compModeIndex = compMode.compModeIndex;
 	return YES;
 }
 - (BOOL) populateCompModeWithIndex:(uint16_t)n	{
 	MSLCompMode		*compMode = [MSLCompModeController.global compModeWithIndex:n];
 	if (compMode == nil)
 		return NO;
-	for (int i=0; i<4; ++i)	{
-		verts[i].compModeIndex = n;
-	}
+	self.compModeIndex = n;
 	return YES;
 }
 - (BOOL) populateWithCompMode:(MSLCompMode *)n	{
 	if (n == nil)
 		return NO;
-	uint16_t		compModeIndex = n.compModeIndex;
-	for (int i=0; i<4; ++i)	{
-		verts[i].compModeIndex = compModeIndex;
-	}
+	self.compModeIndex = n.compModeIndex;
 	return YES;
 }
 

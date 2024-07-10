@@ -1,16 +1,16 @@
 //
-//  MSLCompModeControllerResource.m
+//  MSLCompModeResource.m
 //  MSLCompModes
 //
 //  Created by testadmin on 5/18/23.
 //
 
-#import "MSLCompModeControllerResource.h"
+#import "MSLCompModeResource.h"
 
 
 
 
-@interface MSLCompModeControllerResource ()
+@interface MSLCompModeResource ()
 @property (readwrite,strong) id<MTLLibrary> lib;
 @property (readwrite,strong) id<MTLFunction> vtxFunc;
 @property (readwrite,strong) id<MTLFunction> frgFunc;
@@ -21,11 +21,11 @@
 
 
 
-@implementation MSLCompModeControllerResource
+@implementation MSLCompModeResource
 
 
 + (instancetype) createWithDevice:(id<MTLDevice>)inDevice shaderSrc:(NSString *)inSrc	{
-	return [[MSLCompModeControllerResource alloc] initWithDevice:inDevice shaderSrc:inSrc];
+	return [[MSLCompModeResource alloc] initWithDevice:inDevice shaderSrc:inSrc];
 }
 
 

@@ -22,11 +22,17 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 @interface MSLCompModeRecipe : NSObject <NSCopying>
+
 @property (strong,readonly) NSMutableArray<MSLCompModeRecipeStep*> * steps;
 @property (readonly) size_t minVertexBufferLength;
 @property (readonly) size_t minProjectionMatrixBufferLength;
+
 - (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
-- (void) dumpProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+//- (void) dumpLayerDataToBuffer:(id<MTLBuffer>)outBuffer texToGeo:(BOOL)inTexToGeo atOffset:(size_t)inOffset;
+
+- (void) dumpTexToGeoProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+- (void) dumpGeoToTexProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
+
 @end
 
 

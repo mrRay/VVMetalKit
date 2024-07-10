@@ -12,9 +12,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-/*		represents a comp mode on disk
+/*		Data container class, represents a comp mode on disk.
+		- RAII, parses function declarations and function contents on init from file at provided URL
 		- comp modes are generally tracked in-app "by name", which is derived from the name of the file ('name' property)
-		- calculates function declarations and function contents on init
+		- the 'isEqual:' method only compares the 'name' properties for equality!
 */
 
 
@@ -27,7 +28,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (instancetype) initWithURL:(NSURL *)n;
 
 @property (strong,readonly) NSURL * url;	//	filepath to the comp mode as a NSURL
-@property (strong,readonly) NSString * name;	//	last filepath component, minus extension
+@property (strong,readonly) NSString * name;	//	last filepath component, minus extension. may have whitespace!
 @property (strong,readonly) NSString * funcName;	//	the name of the function (usually "name" with any whitespace chars stripped)
 @property (strong,readonly) NSString * functionDeclarations;	//	the function declarations as they'll be added to the shader source code
 @property (strong,readonly) NSString * functions;	//	the function contents as they'll be added to the shader source code
