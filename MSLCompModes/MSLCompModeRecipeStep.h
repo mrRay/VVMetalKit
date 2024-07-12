@@ -8,7 +8,7 @@
 #import <Cocoa/Cocoa.h>
 #import <Metal/Metal.h>
 
-#import <MSLCompModes/MSLCompModeSceneAShaderTypes.h>
+#import <MSLCompModes/MSLCompModeSceneShaderTypes.h>
 
 @protocol VVMTLTextureImage;
 @class MSLCompMode;

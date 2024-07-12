@@ -23,8 +23,9 @@ FOUNDATION_EXPORT const unsigned char MSLCompModesVersionString[];
 #import <MSLCompModes/MSLCompModeResourceController.h>
 #import <MSLCompModes/MSLCompModeScene.h>
 #import <MSLCompModes/MSLCompModeSceneA.h>
-//#import <MSLCompModes/MSLCompModeSceneB.h>
-#import <MSLCompModes/MSLCompModeSceneAShaderTypes.h>
+#import <MSLCompModes/MSLCompModeSceneB.h>
+//#import <MSLCompModes/MSLCompModeSceneAShaderTypes.h>
+//#import <MSLCompModes/MSLCompModeSceneBShaderTypes.h>
 //#import <MSLCompModes/MSLCompModeNSStringAdditions.h>
 
 

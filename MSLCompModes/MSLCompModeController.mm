@@ -109,7 +109,6 @@ typedef struct	{
 typedef struct {
 	float4		gl_FragCoord;
 	float4		_VVCanvasRect;
-	float4		baseCanvasColor;
 } MSLCompModeFragData;
 
 
@@ -135,7 +134,7 @@ vertex MSLCompModeSceneRasterizerData MSLCompModeControllerVtxFunc(
 	
 	//	the homography projection matrix we calculated converts tex coords (the 'position' member of the vertex struct isn't actually used except when calculating the homography)
 	constant MSLCompModeLayer	*targetLayer = (inLayers + returnMe.layerIndex);
-	constant float4x4		*homographyProjMatrix = &targetLayer->texToGeoTrans;
+	constant float4x4		*homographyProjMatrix = &targetLayer->utilityTransform;
 	returnMe.position = *inMVP * *homographyProjMatrix * float4(inVerts[vertexID].texCoord, 0, 1);
 	
 	return returnMe;
@@ -147,18 +146,17 @@ vertex MSLCompModeSceneRasterizerData MSLCompModeControllerVtxFunc(
 fragment float4 MSLCompModeControllerFrgFunc(
 	MSLCompModeSceneRasterizerData inRasterData [[ stage_in ]],
 	
-	device MSLCompModeLayer * layers [[ buffer( MSLCompModeSceneA_FS_Index_Layers ) ]],
+	device MSLCompModeLayer * inLayers [[ buffer( MSLCompModeSceneA_FS_Index_Layers ) ]],
 	device MSLCompModeSceneTexture * textures [[ buffer( MSLCompModeSceneA_FS_Index_Textures ) ]],
 	
 	constant MSLCompModeJob * job [[ buffer( MSLCompModeSceneA_FS_Index_Job ) ]],
-	//constant float4 * canvasRect [[ buffer( MSLCompModeSceneA_FS_Index_Job ) ]],	//	(x, y, width, height)
 	
 	float4 baseCanvasColor [[ color(0) ]] )
 {
-	MSLCompModeFragData		fragRenderData = { inRasterData.position, job->canvasRect, baseCanvasColor };
+	MSLCompModeFragData		fragRenderData = { inRasterData.position, job->canvasRect };
 	fragRenderData.gl_FragCoord.y = fragRenderData._VVCanvasRect.w - fragRenderData.gl_FragCoord.y;
 	
-	device MSLCompModeLayer		*layerPtr = layers + inRasterData.layerIndex;
+	device MSLCompModeLayer		*layerPtr = inLayers + inRasterData.layerIndex;
 	float		layerOpacity = layerPtr->opacity;
 	if (layerOpacity == 0.0)
 		return baseCanvasColor;
@@ -181,7 +179,7 @@ PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
 		return float4(0,0,1,1);
 	}
 	
-	//	figure out if this is the "bottom" layer or not, and get a ptr to the vertex this fragment is currently rendering
+	//	figure out if this is the "bottom" layer or not, and call the appropriate composition function pointer
 	bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
 	if (isBottomLayer)	{
 		return CompositeBottomFuncPtr( layerColor, layerOpacity, fragRenderData );
@@ -201,6 +199,7 @@ PUT_FUNCTION_DEFINITIONS_HERE
 )";
 		NSError				*nsErr = nil;
 		NSMutableString		*shaderBaseString = [[NSString stringWithUTF8String:shaderBaseCStr] mutableCopy];
+		
 		[shaderBaseString
 			replaceOccurrencesOfString:@"PUT_FUNCTION_DECLARATIONS_HERE"
 			withString:shaderFunctionDeclarations
@@ -217,16 +216,29 @@ PUT_FUNCTION_DEFINITIONS_HERE
 			options:NSLiteralSearch
 			range:NSMakeRange(0,shaderBaseString.length)];
 		
+		NSBundle			*libBundle = nil;
+		NSURL				*libBundleURL = nil;
+		
 		//	the shader #includes "MSLCompModeSceneAShaderTypes.h", which we have to manually load into a string 
-		NSBundle			*libBundle = [NSBundle bundleForClass:[MSLCompModeController class]];
-		NSURL				*libBundleURL = libBundle.bundleURL;
-		NSURL				*shaderTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"MSLCompModeSceneAShaderTypes.h"];
-		NSString			*shaderTypeData = [NSString stringWithContentsOfFile:shaderTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
-		//NSLog(@"shaderTypeData is %@",shaderTypeData);
+		libBundle = [NSBundle bundleForClass:[MSLCompModeController class]];
+		libBundleURL = libBundle.bundleURL;
+		NSURL				*shaderATypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"MSLCompModeSceneAShaderTypes.h"];
+		NSString			*shaderATypeData = [NSString stringWithContentsOfFile:shaderATypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
+		//NSLog(@"shaderATypeData is %@",shaderATypeData);
 		[shaderBaseString replaceOccurrencesOfString:@"#include \"MSLCompModeSceneAShaderTypes.h\""
+			withString:shaderATypeData
+			options:NSLiteralSearch
+			range:NSMakeRange(0,shaderBaseString.length)];
+		
+		//	the shader #includes "MSLCompModeSceneShaderTypes.h", which we have to manually load into a string...
+		NSURL				*shaderTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"MSLCompModeSceneShaderTypes.h"];
+		NSString			*shaderTypeData = [NSString stringWithContentsOfFile:shaderTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
+		//NSLog(@"shaderBTypeData is %@",shaderBTypeData);
+		[shaderBaseString replaceOccurrencesOfString:@"#include \"MSLCompModeSceneShaderTypes.h\""
 			withString:shaderTypeData
 			options:NSLiteralSearch
 			range:NSMakeRange(0,shaderBaseString.length)];
+		
 		/*
 		//	the shader #includes "SizingTool_metal.h", which we have to manually load into a string
 		libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
@@ -254,7 +266,7 @@ PUT_FUNCTION_DEFINITIONS_HERE
 	};
 }
 - (void) _populateResourceControllerB	{
-	/*
+	
 	_rsrcCtrlrB = [MSLCompModeResourceController create];
 	_rsrcCtrlrB.reloadBlock = ^(NSArray<MSLCompMode*> *inModes)	{
 		//	if we don't actually have any modes, respond appropriately...
@@ -279,25 +291,212 @@ PUT_FUNCTION_DEFINITIONS_HERE
 		
 		//	this is the base string for the shader (as a multi-line c++ string).  we're going to modify it until we've got the final shader
 		const char		*shaderBaseCStr = R"(
+#include <metal_stdlib>
+using namespace metal;
+
+#include "MSLCompModeSceneBShaderTypes.h"
+
+
+
+
+typedef struct	{
+	float4			position [[ position ]];
+} MSLCompModeSceneRasterizerData;
+
+
+typedef struct	{
+	texture2d<float, access::sample>		texture;	//	has an implicit id of 0
+} MSLCompModeSceneTexture;
+
+typedef struct {
+	float4		gl_FragCoord;
+	float4		_VVCanvasRect;
+} MSLCompModeFragData;
+
+
+
+
+static inline float MaxX(thread GRect & inRect)	{
+	if (inRect.size.width > 0.)
+		return inRect.origin.x + inRect.size.width;
+	else
+		return inRect.origin.x;
+}
+static inline float MinX(thread GRect & inRect)	{
+	if (inRect.size.width > 0.)
+		return inRect.origin.x;
+	else
+		return inRect.origin.x + inRect.size.width;
+}
+static inline float MaxY(thread GRect & inRect)	{
+	if (inRect.size.height > 0.)
+		return inRect.origin.y + inRect.size.height;
+	else
+		return inRect.origin.y;
+}
+static inline float MinY(thread GRect & inRect)	{
+	if (inRect.size.height > 0.)
+		return inRect.origin.y;
+	else
+		return inRect.origin.y + inRect.size.height;
+}
+
+static inline bool PointInRect(GPoint inPoint, GRect inRect)	{
+	if (inPoint.x < MinX(inRect) || inPoint.x > MaxX(inRect))
+		return false;
+	if (inPoint.y < MinY(inRect) || inPoint.y > MaxY(inRect))
+		return false;
+	return true;
+}
+
+
+
+
+PUT_FUNCTION_DECLARATIONS_HERE
+
+
+
+
+vertex MSLCompModeSceneRasterizerData MSLCompModeControllerVtxFunc(
+	uint vertexID [[ vertex_id ]],
+	constant MSLCompModeQuadVertex * inVerts [[ buffer( MSLCompModeSceneB_VS_Index_Verts ) ]],
+	constant float4x4 * inMVP [[ buffer( MSLCompModeSceneB_VS_Index_MVPMatrix ) ]]
+	)
+{
+	MSLCompModeSceneRasterizerData		returnMe;
+	
+	//	this shader's only drawing a single, full-screen quad to trigger every fragment in the color atachment
+	
+	//	the homography projection matrix we calculated converts tex coords (the 'position' member of the vertex struct isn't actually used except when calculating the homography)
+	returnMe.position = *inMVP * float4(inVerts[vertexID].position, 0, 1);
+	
+	return returnMe;
+}
+
+
+
+
+fragment float4 MSLCompModeControllerFrgFunc(
+	MSLCompModeSceneRasterizerData inRasterData [[ stage_in ]],
+	
+	device MSLCompModeLayer * inLayers [[ buffer( MSLCompModeSceneB_FS_Index_Layers ) ]],
+	device MSLCompModeSceneTexture * textures [[ buffer( MSLCompModeSceneB_FS_Index_Textures ) ]],
+	
+	constant MSLCompModeJob * job [[ buffer( MSLCompModeSceneB_FS_Index_Job ) ]])
+{
+	//	assemble the structure we'll pass to the comp modes we need to check...
+	MSLCompModeFragData		fragRenderData = { inRasterData.position, job->canvasRect };
+	fragRenderData.gl_FragCoord.y = fragRenderData._VVCanvasRect.w - fragRenderData.gl_FragCoord.y;
+	
+	//	run through the layers, BACKWARDS, calculating composition color at this fragment
+	float4		baseCanvasColor = float4(0., 0., 0., 0.);
+	for (int i=(job->layerCount-1); i>=0; --i)	{
+		device MSLCompModeLayer		*layerPtr = inLayers + i;
+		
+		//	first of all, if the layer's opacity is 0, we can skip it.
+		float		layerOpacity = layerPtr->opacity;
+		if (layerOpacity <= 0.)	{
+			continue;
+		}
+		
+		//	convert the local fragment coords to texture coords using the 'utilityTransform'
+		device float4x4		*homographyProjMatrix = &layerPtr->utilityTransform;
+		float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * fragRenderData.gl_FragCoord;
+		
+		//	if this point is NOT within the layer's srcRect for this texture, we can skip composition...
+		if ( !PointInRect( (GPoint){ layerTexCoordsAtThisFrag.x, layerTexCoordsAtThisFrag.y }, layerPtr->srcRect ) )	{
+			continue;
+		}
+		
+		//	get a ptr to the texture we're going to sample, sample the texture at the coords for this fragment
+		device MSLCompModeSceneTexture		*texStructPtr = textures + layerPtr->texIndex;
+		constexpr sampler		sampler( mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel );
+		float4		layerColor = texStructPtr->texture.sample( sampler, layerTexCoordsAtThisFrag.xy );
+		
+		//	populate function pointers for the two different kinds of composition functions based on the comp mode of the vertex we're rendering
+		float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
+		float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
+		
+		switch (layerPtr->compModeIndex)	{
+PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
+		}
+		
+		//	if something's wrong, just skip this layer
+		if (CompositeTopAndBottomFuncPtr == nullptr || CompositeBottomFuncPtr == nullptr)	{
+			continue;
+		}
+		
+		//	figure out if this is the "bottom" layer or not, and call the appropriate composition function pointer
+		bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
+		if (isBottomLayer)	{
+			baseCanvasColor = CompositeBottomFuncPtr( layerColor, layerOpacity, fragRenderData );
+		}
+		else	{
+			baseCanvasColor = CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity, fragRenderData );
+		}
+	}
+	
+	return baseCanvasColor;
+	
+}
+
+
+
+
+PUT_FUNCTION_DEFINITIONS_HERE
+
 )";
 		NSError				*nsErr = nil;
 		NSMutableString		*shaderBaseString = [[NSString stringWithUTF8String:shaderBaseCStr] mutableCopy];
 		
+		[shaderBaseString
+			replaceOccurrencesOfString:@"PUT_FUNCTION_DECLARATIONS_HERE"
+			withString:shaderFunctionDeclarations
+			options:NSLiteralSearch
+			range:NSMakeRange(0,shaderBaseString.length)];
+		[shaderBaseString
+			replaceOccurrencesOfString:@"PUT_FUNCTION_DEFINITIONS_HERE"
+			withString:shaderFunctionDefinitions
+			options:NSLiteralSearch
+			range:NSMakeRange(0,shaderBaseString.length)];
+		[shaderBaseString
+			replaceOccurrencesOfString:@"PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE"
+			withString:shaderCompModeSwitchCases
+			options:NSLiteralSearch
+			range:NSMakeRange(0,shaderBaseString.length)];
 		
-		XXX(PUT_REPLACE_COMMANDS_HERE);
-		
-		
-		//	the shader #includes "MSLCompModeSceneAShaderTypes.h", which we have to manually load into a string 
+		//	the shader #includes "MSLCompModeSceneBShaderTypes.h", which we have to manually load into a string 
 		NSBundle			*libBundle = [NSBundle bundleForClass:[MSLCompModeController class]];
 		NSURL				*libBundleURL = libBundle.bundleURL;
-		NSURL				*shaderTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"MSLCompModeSceneAShaderTypes.h"];
+		NSURL				*shaderBTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"MSLCompModeSceneBShaderTypes.h"];
+		NSString			*shaderBTypeData = [NSString stringWithContentsOfFile:shaderBTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
+		//NSLog(@"shaderBTypeData is %@",shaderBTypeData);
+		[shaderBaseString replaceOccurrencesOfString:@"#include \"MSLCompModeSceneBShaderTypes.h\""
+			withString:shaderBTypeData
+			options:NSLiteralSearch
+			range:NSMakeRange(0,shaderBaseString.length)];
+		
+		//	the shader #includes "MSLCompModeSceneShaderTypes.h", which we have to manually load into a string...
+		NSURL				*shaderTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"MSLCompModeSceneShaderTypes.h"];
 		NSString			*shaderTypeData = [NSString stringWithContentsOfFile:shaderTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
-		//NSLog(@"shaderTypeData is %@",shaderTypeData);
-		[shaderBaseString replaceOccurrencesOfString:@"#include \"MSLCompModeSceneAShaderTypes.h\""
+		//NSLog(@"shaderBTypeData is %@",shaderBTypeData);
+		[shaderBaseString replaceOccurrencesOfString:@"#include \"MSLCompModeSceneShaderTypes.h\""
 			withString:shaderTypeData
 			options:NSLiteralSearch
 			range:NSMakeRange(0,shaderBaseString.length)];
 		
+		/*
+		//	the shader #includes "SizingTool_metal.h", which we have to manually load into a string
+		libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
+		libBundleURL = libBundle.bundleURL;
+		NSURL				*sizingToolMetalTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"SizingTool_metal.h"];
+		NSString			*sizingToolMetalTypeData = [NSString stringWithContentsOfFile:sizingToolMetalTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
+		//NSLog(@"sizingToolMetalTypeData is %@",sizingToolMetalTypeData);
+		[shaderBaseString replaceOccurrencesOfString:@"#include <VVMetalKit/SizingTool_metal.h>"
+			withString:sizingToolMetalTypeData
+			options:NSLiteralSearch
+			range:NSMakeRange(0,shaderBaseString.length)];
+		*/
 		//	the shader #includes "SizingToolTypes.h", which we have to manually load into a string
 		libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
 		libBundleURL = libBundle.bundleURL;
@@ -312,7 +511,7 @@ PUT_FUNCTION_DEFINITIONS_HERE
 		return [NSString stringWithString:shaderBaseString];
 		
 	};
-	*/
+	
 }
 
 

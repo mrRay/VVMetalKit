@@ -1,18 +1,18 @@
 //
-//  MSLCompModeSceneA.m
+//  MSLCompModeSceneB.m
 //  MSLCompModes
 //
-//  Created by testadmin on 5/18/23.
+//  Created by testadmin on 7/10/24.
 //
 
-#import "MSLCompModeSceneA.h"
+#import "MSLCompModeSceneB.h"
 #import "MSLCompModeController.h"
 #import "MSLCompModeResourceController.h"
 #import "MSLCompModeResource.h"
 #import "MSLCompModeRecipeStep.h"
 #import "MSLCompModeRecipe.h"
 
-#import "MSLCompModeSceneAShaderTypes.h"
+#import "MSLCompModeSceneBShaderTypes.h"
 
 #import "VVMacros.h"
 
@@ -27,7 +27,7 @@
 
 
 
-@implementation MSLCompModeSceneA
+@implementation MSLCompModeSceneB
 
 
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice	{
@@ -42,7 +42,7 @@
 	//NSLog(@"%s",__func__);
 	
 	//	we're 'scene A', so get 'rsrcCtrlrA' from the global comp mode controller, and get our resource from that
-	MSLCompModeResourceController		*rsrcCtrlr = MSLCompModeController.global.rsrcCtrlrA;
+	MSLCompModeResourceController		*rsrcCtrlr = MSLCompModeController.global.rsrcCtrlrB;
 	self.resource = [rsrcCtrlr resourceForDevice:self.device];
 	//	we can get our PSO from the resources object
 	self.renderPSO = self.resource.pso_8bit;
@@ -62,6 +62,7 @@
 		return;
 	}
 	
+	CGSize			renderSize = self.renderSize;
 	MSLCompModeRecipe		*localRecipe = self.recipe;
 	uint16_t		maxLayerCount = localRecipe.steps.count;
 	
@@ -75,21 +76,16 @@
 	}
 	
 	[self.renderEncoder useResource:localMVPBuffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
-	[self.renderEncoder setVertexBuffer:localMVPBuffer offset:0 atIndex:MSLCompModeSceneA_VS_Index_MVPMatrix];
+	[self.renderEncoder setVertexBuffer:localMVPBuffer offset:0 atIndex:MSLCompModeSceneB_VS_Index_MVPMatrix];
 	
 	
 	//	this part:
-	//	- populates 'vertexBuffer'
 	//	- populates 'layersBuffer', attaches it to the shader
 	//	- assembles an array of textures (one for each "layer") used by the recipe (to be added to the shader later via argument buffer encoder)
-	size_t		vertexBufferSize = sizeof(MSLCompModeQuadVertex) * 4 * maxLayerCount;
 	size_t		layersBufferSize = sizeof(MSLCompModeLayer) * maxLayerCount;
-	id<VVMTLBuffer>		vertexBuffer = [VVMTLPool.global bufferWithLength:ROUNDAUPTOMULTOFB(vertexBufferSize, 64) storage:MTLStorageModeManaged];
 	id<VVMTLBuffer>		layersBuffer = [VVMTLPool.global bufferWithLength:ROUNDAUPTOMULTOFB(layersBufferSize, 64) storage:MTLStorageModeManaged];
 	NSMutableArray<id<VVMTLTextureImage>>		*recipeTextures = [[NSMutableArray alloc] init];
 	
-	MSLCompModeQuadVertex		*baseQuadPtr = (MSLCompModeQuadVertex*)vertexBuffer.buffer.contents;
-	MSLCompModeQuadVertex		*quadPtr = baseQuadPtr;
 	MSLCompModeLayer		*baseLayerPtr = (MSLCompModeLayer*)layersBuffer.buffer.contents;
 	MSLCompModeLayer		*layerPtr = baseLayerPtr;
 	
@@ -101,7 +97,6 @@
 		for (int i=0; i<4; ++i)	{
 			step->verts[i].layerIndex = tmpLayerIndex;
 		}
-		memcpy( quadPtr, step->verts, (sizeof(MSLCompModeQuadVertex)*4) );
 		
 		//	find the index of the texture in the array of recipe textures (adding it if necessary).  an index of -1 means "no image".
 		id<VVMTLTextureImage>		stepImg = step.img;
@@ -123,7 +118,7 @@
 		size_t		layerPtrOffsetInBytes = (layerPtr - baseLayerPtr) * sizeof(MSLCompModeLayer);
 		
 		//	populate the 'layerPtr' struct in the buffer
-		[step dumpTexToGeoMatrixToBuffer:layersBuffer.buffer atOffset:layerPtrOffsetInBytes];
+		[step dumpGeoToTexMatrixToBuffer:layersBuffer.buffer atOffset:layerPtrOffsetInBytes];
 		NSRect		srcRect = (stepImg==nil) ? NSZeroRect : stepImg.srcRect;
 		layerPtr->srcRect = (GRect){ (GPoint){ srcRect.origin.x, srcRect.origin.y }, (GSize){ srcRect.size.width, srcRect.size.height } };
 		layerPtr->opacity = step.opacity;
@@ -131,21 +126,15 @@
 		layerPtr->compModeIndex = step.compModeIndex;
 		
 		//	update stride ptrs/indexes
-		quadPtr += 4;
 		++layerPtr;
 		
 		++tmpLayerIndex;
 	}
 	
-	[vertexBuffer.buffer didModifyRange:NSMakeRange(0,vertexBufferSize)];
 	[layersBuffer.buffer didModifyRange:NSMakeRange(0,layersBufferSize)];
 	
-	[self.renderEncoder useResource:vertexBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
-	[self.renderEncoder setVertexBuffer:vertexBuffer.buffer offset:0 atIndex:MSLCompModeSceneA_VS_Index_Verts];
-	
-	[self.renderEncoder useResource:layersBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex|MTLRenderStageFragment];
-	[self.renderEncoder setVertexBuffer:layersBuffer.buffer offset:0 atIndex:MSLCompModeSceneA_VS_Index_Layers];
-	[self.renderEncoder setFragmentBuffer:layersBuffer.buffer offset:0 atIndex:MSLCompModeSceneA_FS_Index_Layers];
+	[self.renderEncoder useResource:layersBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageFragment];
+	[self.renderEncoder setFragmentBuffer:layersBuffer.buffer offset:0 atIndex:MSLCompModeSceneB_FS_Index_Layers];
 	
 	
 	uint16_t		actualLayerCount = tmpLayerIndex;
@@ -153,9 +142,27 @@
 	
 	
 	//	this part:
+	//	- populates 'vertexBuffer'
+	size_t		vertexBufferSize = sizeof(MSLCompModeQuadVertex) * 4;
+	id<VVMTLBuffer>		vertexBuffer = [VVMTLPool.global bufferWithLength:ROUNDAUPTOMULTOFB(vertexBufferSize, 64) storage:MTLStorageModeManaged];
+	
+	MSLCompModeQuadVertex		*baseQuadPtr = (MSLCompModeQuadVertex*)vertexBuffer.buffer.contents;
+	MSLCompModeQuadVertex		*quadPtr = baseQuadPtr;
+	(*(quadPtr+0)).position = simd_make_float2(0., 0.);
+	(*(quadPtr+1)).position = simd_make_float2(0., renderSize.height);
+	(*(quadPtr+2)).position = simd_make_float2(renderSize.width, 0.);
+	(*(quadPtr+3)).position = simd_make_float2(renderSize.width, renderSize.height);
+	
+	[vertexBuffer.buffer didModifyRange:NSMakeRange(0,vertexBufferSize)];
+	
+	[self.renderEncoder useResource:vertexBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
+	[self.renderEncoder setVertexBuffer:vertexBuffer.buffer offset:0 atIndex:MSLCompModeSceneB_VS_Index_Verts];
+	
+	
+	//	this part:
 	//	- makes the argument encoder for passing textures to the shader, and populates it with the array of textures we assembled earlier
 	id<MTLFunction>		localFragFunc = localResource.frgFunc;
-	id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:MSLCompModeSceneA_FS_Index_Textures];
+	id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:MSLCompModeSceneB_FS_Index_Textures];
 	size_t		texStructLength = argEncoder.encodedLength;
 	size_t		texArrayBufferSize = texStructLength * actualImageCount;
 	id<MTLBuffer>		texArrayBuffer = [self.device newBufferWithLength:texArrayBufferSize options:MTLResourceStorageModeShared];
@@ -171,7 +178,7 @@
 	}
 	
 	//[self.renderEncoder useResource:texArrayBuffer usage:MTLResourceUsageRead stages:MTLRenderStageFragment];
-	[self.renderEncoder setFragmentBuffer:texArrayBuffer offset:0 atIndex:MSLCompModeSceneA_FS_Index_Textures];
+	[self.renderEncoder setFragmentBuffer:texArrayBuffer offset:0 atIndex:MSLCompModeSceneB_FS_Index_Textures];
 	
 	
 	//	this part:
@@ -181,24 +188,24 @@
 	id<VVMTLBuffer>		jobBuffer = [VVMTLPool.global bufferWithLength:ROUNDAUPTOMULTOFB(jobBufferSize, 64) storage:MTLStorageModeManaged];
 	MSLCompModeJob		*baseJobPtr = (MSLCompModeJob*)jobBuffer.buffer.contents;
 	
-	CGSize				renderSize = self.renderSize;
 	baseJobPtr->canvasRect = (vector_float4)simd_make_float4(0.0, 0.0, renderSize.width, renderSize.height);
 	baseJobPtr->layerCount = (layerPtr - baseLayerPtr);
 	
 	[jobBuffer.buffer didModifyRange:NSMakeRange(0,jobBufferSize)];
 	
 	[self.renderEncoder useResource:jobBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageFragment];
-	[self.renderEncoder setFragmentBuffer:jobBuffer.buffer offset:0 atIndex:MSLCompModeSceneA_FS_Index_Job];
+	[self.renderEncoder setFragmentBuffer:jobBuffer.buffer offset:0 atIndex:MSLCompModeSceneB_FS_Index_Job];
 	
 	
 	//	this part:
 	//	- populates index buffer used to draw the vertices in one shot
-	size_t		indexBufferSize = sizeof(uint16_t) * 5 * maxLayerCount;
+	size_t		quadCount = 1;
+	size_t		indexBufferSize = sizeof(uint16_t) * 5 * quadCount;
 	id<VVMTLBuffer>		indexBuffer = [VVMTLPool.global bufferWithLength:ROUNDAUPTOMULTOFB(indexBufferSize, 64) storage:MTLStorageModeManaged];
 	uint16_t		*indexBasePtr = (uint16_t*)indexBuffer.buffer.contents;
 	uint16_t		*indexPtr = indexBasePtr;
 	
-	for (int i=0; i<actualLayerCount; ++i)	{
+	for (int i=0; i<quadCount; ++i)	{
 		int		localBaseCount = 4 * i;
 		*(indexPtr + 0) = (localBaseCount + 0);
 		*(indexPtr + 1) = (localBaseCount + 1);
@@ -216,7 +223,7 @@
 	//	draw the vertices
 	[self.renderEncoder
 		drawIndexedPrimitives:MTLPrimitiveTypeTriangleStrip
-		indexCount:((void*)indexPtr - (void*)indexBasePtr)/sizeof(uint16_t)
+		indexCount:5
 		indexType:MTLIndexTypeUInt16
 		indexBuffer:indexBuffer.buffer
 		indexBufferOffset:0];

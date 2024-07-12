@@ -58,6 +58,9 @@
 		1A48197A2816C7D600CE2D00 /* BicubicInterpolation.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A6A02D82AF3DDC4003B12BF /* CMVMTLDrawObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */; };
 		1A6A02D92AF3DDC4003B12BF /* CMVMTLDrawObject.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A6A02D72AF3DDC4003B12BF /* CMVMTLDrawObject.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A87498F2C4198BE0092F0F9 /* MSLCompModeSceneB.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A87498D2C4198BE0092F0F9 /* MSLCompModeSceneB.m */; };
+		1A8749902C4198BE0092F0F9 /* MSLCompModeSceneB.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A87498E2C4198BE0092F0F9 /* MSLCompModeSceneB.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A8749922C419F380092F0F9 /* MSLCompModeSceneShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A8749912C419F380092F0F9 /* MSLCompModeSceneShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A89211E2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A976B612A461D4C00C654FA /* VVMTLImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A976B6D2A461D4C00C654FA /* VVMTLRecycleable.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A976B642A461D4C00C654FA /* VVMTLRecycleable.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -181,6 +184,9 @@
 		1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = BicubicInterpolation.h; sourceTree = "<group>"; };
 		1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CMVMTLDrawObject.m; sourceTree = "<group>"; };
 		1A6A02D72AF3DDC4003B12BF /* CMVMTLDrawObject.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CMVMTLDrawObject.h; sourceTree = "<group>"; };
+		1A87498D2C4198BE0092F0F9 /* MSLCompModeSceneB.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeSceneB.m; sourceTree = "<group>"; };
+		1A87498E2C4198BE0092F0F9 /* MSLCompModeSceneB.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MSLCompModeSceneB.h; sourceTree = "<group>"; };
+		1A8749912C419F380092F0F9 /* MSLCompModeSceneShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeSceneShaderTypes.h; sourceTree = "<group>"; };
 		1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CustomMetalViewShaderTypes.h; sourceTree = "<group>"; };
 		1A976B612A461D4C00C654FA /* VVMTLImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVMTLImage.h; sourceTree = "<group>"; };
 		1A976B642A461D4C00C654FA /* VVMTLRecycleable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVMTLRecycleable.h; sourceTree = "<group>"; };
@@ -385,9 +391,12 @@
 				1A379F542C3EC78200B51B4E /* MSLCompModeResourceController.m */,
 				1AAC5A502C3EF8AD00EC28CD /* MSLCompModeScene.h */,
 				1AAC5A512C3EF8AD00EC28CD /* MSLCompModeScene.m */,
+				1A8749912C419F380092F0F9 /* MSLCompModeSceneShaderTypes.h */,
 				1A061DC12A165E6B00980D41 /* MSLCompModeSceneA.h */,
 				1A061DC22A165E6B00980D41 /* MSLCompModeSceneA.m */,
 				1A061DC72A165E8500980D41 /* MSLCompModeSceneAShaderTypes.h */,
+				1A87498E2C4198BE0092F0F9 /* MSLCompModeSceneB.h */,
+				1A87498D2C4198BE0092F0F9 /* MSLCompModeSceneB.m */,
 				1A97EA4A2C3F1EF4007A47DD /* MSLCompModeSceneBShaderTypes.h */,
 				1AED793A2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h */,
 				1AED793B2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m */,
@@ -479,7 +488,9 @@
 				1A379F562C3EC78200B51B4E /* MSLCompModeResourceController.h in Headers */,
 				1AED790E2A1524D6004C0126 /* MSLCompModes.h in Headers */,
 				1AAC5A522C3EF8AD00EC28CD /* MSLCompModeScene.h in Headers */,
+				1A8749922C419F380092F0F9 /* MSLCompModeSceneShaderTypes.h in Headers */,
 				1A061DC32A165E6B00980D41 /* MSLCompModeSceneA.h in Headers */,
+				1A8749902C4198BE0092F0F9 /* MSLCompModeSceneB.h in Headers */,
 				1A061DC82A165E8800980D41 /* MSLCompModeSceneAShaderTypes.h in Headers */,
 				1A97EA4B2C3F1F0E007A47DD /* MSLCompModeSceneBShaderTypes.h in Headers */,
 				1AED793C2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h in Headers */,
@@ -664,6 +675,7 @@
 				1AED79252A152517004C0126 /* MSLCompModeController.mm in Sources */,
 				1AED79292A15252C004C0126 /* MSLCompModeRecipeStep.m in Sources */,
 				1AAC5A532C3EF8AD00EC28CD /* MSLCompModeScene.m in Sources */,
+				1A87498F2C4198BE0092F0F9 /* MSLCompModeSceneB.m in Sources */,
 				1AED792D2A152539004C0126 /* MSLCompModeRecipe.m in Sources */,
 				1AED79212A152510004C0126 /* MSLCompMode.mm in Sources */,
 				1A2906662A16CAB700DD24AB /* MSLCompModeResource.m in Sources */,
