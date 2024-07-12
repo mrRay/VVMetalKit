@@ -196,7 +196,8 @@
 	MSLCompModeJob		*baseJobPtr = (MSLCompModeJob*)jobBuffer.buffer.contents;
 	
 	baseJobPtr->canvasRect = (vector_float4)simd_make_float4(canvasBounds.origin.x, canvasBounds.origin.y, canvasBounds.size.width, canvasBounds.size.height);
-	baseJobPtr->layerCount = (layerPtr - baseLayerPtr);
+	//baseJobPtr->layerCount = (layerPtr - baseLayerPtr);
+	baseJobPtr->layerCount = actualLayerCount;
 	
 	[jobBuffer.buffer didModifyRange:NSMakeRange(0,jobBufferSize)];
 	
