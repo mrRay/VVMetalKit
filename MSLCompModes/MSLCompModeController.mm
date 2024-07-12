@@ -101,7 +101,6 @@ typedef struct	{
 	float2			texCoord [[ sample_perspective ]];	//	interpolated & normalized
 } MSLCompModeSceneRasterizerData;
 
-
 typedef struct	{
 	texture2d<float, access::sample>		texture;	//	has an implicit id of 0
 } MSLCompModeSceneTexture;
@@ -301,8 +300,8 @@ using namespace metal;
 
 typedef struct	{
 	float4			position [[ position ]];
+	float2			texCoord [[ sample_perspective ]];	//	interpolated & normalized
 } MSLCompModeSceneRasterizerData;
-
 
 typedef struct	{
 	texture2d<float, access::sample>		texture;	//	has an implicit id of 0
@@ -365,10 +364,15 @@ vertex MSLCompModeSceneRasterizerData MSLCompModeControllerVtxFunc(
 {
 	MSLCompModeSceneRasterizerData		returnMe;
 	
-	//	this shader's only drawing a single, full-screen quad to trigger every fragment in the color atachment
+	//	the MVP is an orthogonal transform that incldues the 'canvasBounds' property of MSLCompModeScene. we're 
+	//	drawing a single, full-frame quad, and the texture coordinates of the vertexes are the same as the vertex 
+	//	position geometry.  this lets us have the vertex shader do the texture coordinate interpolation- and the 
+	//	fragment shader can just read the 'texCoord' property from the rasterizer data, which will be the 
+	//	coordinates in "canvas" coordinate space that need to be rendered at that fragment.
 	
-	//	the homography projection matrix we calculated converts tex coords (the 'position' member of the vertex struct isn't actually used except when calculating the homography)
 	returnMe.position = *inMVP * float4(inVerts[vertexID].position, 0, 1);
+	
+	returnMe.texCoord = inVerts[vertexID].texCoord;
 	
 	return returnMe;
 }
@@ -388,9 +392,10 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	MSLCompModeFragData		fragRenderData = { inRasterData.position, job->canvasRect };
 	fragRenderData.gl_FragCoord.y = fragRenderData._VVCanvasRect.w - fragRenderData.gl_FragCoord.y;
 	
-	//	run through the layers, BACKWARDS, calculating composition color at this fragment
+	//	run through the layers, calculating composition color at this fragment
 	float4		baseCanvasColor = float4(0., 0., 0., 0.);
-	for (int i=(job->layerCount-1); i>=0; --i)	{
+	for (int i=0; i<job->layerCount; ++i)
+	{
 		device MSLCompModeLayer		*layerPtr = inLayers + i;
 		
 		//	first of all, if the layer's opacity is 0, we can skip it.
@@ -401,7 +406,8 @@ fragment float4 MSLCompModeControllerFrgFunc(
 		
 		//	convert the local fragment coords to texture coords using the 'utilityTransform'
 		device float4x4		*homographyProjMatrix = &layerPtr->utilityTransform;
-		float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * fragRenderData.gl_FragCoord;
+		//float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * fragRenderData.gl_FragCoord;
+		float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * float4(inRasterData.texCoord.xy, 0., 1.);
 		
 		//	if this point is NOT within the layer's srcRect for this texture, we can skip composition...
 		if ( !PointInRect( (GPoint){ layerTexCoordsAtThisFrag.x, layerTexCoordsAtThisFrag.y }, layerPtr->srcRect ) )	{

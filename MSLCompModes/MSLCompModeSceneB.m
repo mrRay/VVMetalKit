@@ -63,6 +63,7 @@
 	}
 	
 	CGSize			renderSize = self.renderSize;
+	NSRect			canvasBounds = self.canvasBounds;
 	MSLCompModeRecipe		*localRecipe = self.recipe;
 	uint16_t		maxLayerCount = localRecipe.steps.count;
 	
@@ -71,7 +72,7 @@
 	//	- attaches it to the shader
 	id<MTLBuffer>		localMVPBuffer = self.mvpBuffer;
 	if (localMVPBuffer == nil)	{
-		localMVPBuffer = CreateOrthogonalMVPBufferForCanvas(self.canvasBounds, NO, NO, self.device);
+		localMVPBuffer = CreateOrthogonalMVPBufferForCanvas(canvasBounds, NO, NO, self.device);
 		self.mvpBuffer = localMVPBuffer;
 	}
 	
@@ -148,10 +149,16 @@
 	
 	MSLCompModeQuadVertex		*baseQuadPtr = (MSLCompModeQuadVertex*)vertexBuffer.buffer.contents;
 	MSLCompModeQuadVertex		*quadPtr = baseQuadPtr;
+	
 	(*(quadPtr+0)).position = simd_make_float2(0., 0.);
 	(*(quadPtr+1)).position = simd_make_float2(0., renderSize.height);
 	(*(quadPtr+2)).position = simd_make_float2(renderSize.width, 0.);
 	(*(quadPtr+3)).position = simd_make_float2(renderSize.width, renderSize.height);
+	
+	(*(quadPtr+0)).texCoord = simd_make_float2(0., 0.);
+	(*(quadPtr+1)).texCoord = simd_make_float2(0., renderSize.height);
+	(*(quadPtr+2)).texCoord = simd_make_float2(renderSize.width, 0.);
+	(*(quadPtr+3)).texCoord = simd_make_float2(renderSize.width, renderSize.height);
 	
 	[vertexBuffer.buffer didModifyRange:NSMakeRange(0,vertexBufferSize)];
 	
@@ -188,7 +195,7 @@
 	id<VVMTLBuffer>		jobBuffer = [VVMTLPool.global bufferWithLength:ROUNDAUPTOMULTOFB(jobBufferSize, 64) storage:MTLStorageModeManaged];
 	MSLCompModeJob		*baseJobPtr = (MSLCompModeJob*)jobBuffer.buffer.contents;
 	
-	baseJobPtr->canvasRect = (vector_float4)simd_make_float4(0.0, 0.0, renderSize.width, renderSize.height);
+	baseJobPtr->canvasRect = (vector_float4)simd_make_float4(canvasBounds.origin.x, canvasBounds.origin.y, canvasBounds.size.width, canvasBounds.size.height);
 	baseJobPtr->layerCount = (layerPtr - baseLayerPtr);
 	
 	[jobBuffer.buffer didModifyRange:NSMakeRange(0,jobBufferSize)];

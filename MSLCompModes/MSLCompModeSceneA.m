@@ -62,6 +62,7 @@
 		return;
 	}
 	
+	NSRect			canvasBounds = self.canvasBounds;
 	MSLCompModeRecipe		*localRecipe = self.recipe;
 	uint16_t		maxLayerCount = localRecipe.steps.count;
 	
@@ -70,7 +71,7 @@
 	//	- attaches it to the shader
 	id<MTLBuffer>		localMVPBuffer = self.mvpBuffer;
 	if (localMVPBuffer == nil)	{
-		localMVPBuffer = CreateOrthogonalMVPBufferForCanvas(self.canvasBounds, NO, NO, self.device);
+		localMVPBuffer = CreateOrthogonalMVPBufferForCanvas(canvasBounds, NO, NO, self.device);
 		self.mvpBuffer = localMVPBuffer;
 	}
 	
@@ -182,7 +183,7 @@
 	MSLCompModeJob		*baseJobPtr = (MSLCompModeJob*)jobBuffer.buffer.contents;
 	
 	CGSize				renderSize = self.renderSize;
-	baseJobPtr->canvasRect = (vector_float4)simd_make_float4(0.0, 0.0, renderSize.width, renderSize.height);
+	baseJobPtr->canvasRect = (vector_float4)simd_make_float4(canvasBounds.origin.x, canvasBounds.origin.y, canvasBounds.size.width, canvasBounds.size.height);
 	baseJobPtr->layerCount = (layerPtr - baseLayerPtr);
 	
 	[jobBuffer.buffer didModifyRange:NSMakeRange(0,jobBufferSize)];
