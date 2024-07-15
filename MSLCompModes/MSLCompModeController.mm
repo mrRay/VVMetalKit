@@ -62,6 +62,7 @@ NSString * const kMSLCompModeReloadNotificationName = @"kMSLCompModeReloadNotifi
 
 
 - (void) _populateResourceControllerA	{
+	
 	_rsrcCtrlrA = [MSLCompModeResourceController create];
 	_rsrcCtrlrA.reloadBlock = ^(NSArray<MSLCompMode*> *inModes)	{
 		//	if we don't actually have any modes, respond appropriately...
@@ -165,27 +166,29 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	constexpr sampler		sampler( mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel );
 	float4		layerColor = texStructPtr->texture.sample( sampler, inRasterData.texCoord );
 	
+	//	UPDATE: these function pointers cause a metal compiler error (non-recoverable?) on some (older) hardware (with AMD GPUs).
 	//	populate function pointers for the two different kinds of composition functions based on the comp mode of the vertex we're rendering
-	float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
-	float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
+	//float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
+	//float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
+	
+	bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
 	
 	switch (layerPtr->compModeIndex)	{
 PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
 	}
 	
 	//	if something's wrong, just return opaque green for this fragment
-	if (CompositeTopAndBottomFuncPtr == nullptr || CompositeBottomFuncPtr == nullptr)	{
-		return float4(0,0,1,1);
-	}
+	//if (CompositeTopAndBottomFuncPtr == nullptr || CompositeBottomFuncPtr == nullptr)	{
+	//	return float4(0,0,1,1);
+	//}
 	
 	//	figure out if this is the "bottom" layer or not, and call the appropriate composition function pointer
-	bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
-	if (isBottomLayer)	{
-		return CompositeBottomFuncPtr( layerColor, layerOpacity, fragRenderData );
-	}
-	else	{
-		return CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity, fragRenderData );
-	}
+	//if (isBottomLayer)	{
+	//	return CompositeBottomFuncPtr( layerColor, layerOpacity, fragRenderData );
+	//}
+	//else	{
+	//	return CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity, fragRenderData );
+	//}
 	
 	return baseCanvasColor;
 }
@@ -238,18 +241,18 @@ PUT_FUNCTION_DEFINITIONS_HERE
 			options:NSLiteralSearch
 			range:NSMakeRange(0,shaderBaseString.length)];
 		
-		/*
+		
 		//	the shader #includes "SizingTool_metal.h", which we have to manually load into a string
-		libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
-		libBundleURL = libBundle.bundleURL;
-		NSURL				*sizingToolMetalTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"SizingTool_metal.h"];
-		NSString			*sizingToolMetalTypeData = [NSString stringWithContentsOfFile:sizingToolMetalTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
+		//libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
+		//libBundleURL = libBundle.bundleURL;
+		//NSURL				*sizingToolMetalTypeDataURL = [[libBundleURL URLByAppendingPathComponent:@"Headers"] URLByAppendingPathComponent:@"SizingTool_metal.h"];
+		//NSString			*sizingToolMetalTypeData = [NSString stringWithContentsOfFile:sizingToolMetalTypeDataURL.path encoding:NSUTF8StringEncoding error:&nsErr];
 		//NSLog(@"sizingToolMetalTypeData is %@",sizingToolMetalTypeData);
-		[shaderBaseString replaceOccurrencesOfString:@"#include <VVMetalKit/SizingTool_metal.h>"
-			withString:sizingToolMetalTypeData
-			options:NSLiteralSearch
-			range:NSMakeRange(0,shaderBaseString.length)];
-		*/
+		//[shaderBaseString replaceOccurrencesOfString:@"#include <VVMetalKit/SizingTool_metal.h>"
+		//	withString:sizingToolMetalTypeData
+		//	options:NSLiteralSearch
+		//	range:NSMakeRange(0,shaderBaseString.length)];
+		
 		//	the shader #includes "SizingToolTypes.h", which we have to manually load into a string
 		libBundle = [NSBundle bundleForClass:[VVMTLPool class]];
 		libBundleURL = libBundle.bundleURL;
@@ -263,6 +266,7 @@ PUT_FUNCTION_DEFINITIONS_HERE
 		
 		return [NSString stringWithString:shaderBaseString];
 	};
+	
 }
 - (void) _populateResourceControllerB	{
 	
@@ -388,6 +392,7 @@ fragment float4 MSLCompModeControllerFrgFunc(
 	
 	constant MSLCompModeJob * job [[ buffer( MSLCompModeSceneB_FS_Index_Job ) ]])
 {
+	
 	//	assemble the structure we'll pass to the comp modes we need to check...
 	MSLCompModeFragData		fragRenderData = { inRasterData.position, job->canvasRect };
 	fragRenderData.gl_FragCoord.y = fragRenderData._VVCanvasRect.w - fragRenderData.gl_FragCoord.y;
@@ -419,27 +424,11 @@ fragment float4 MSLCompModeControllerFrgFunc(
 		constexpr sampler		sampler( mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel );
 		float4		layerColor = texStructPtr->texture.sample( sampler, layerTexCoordsAtThisFrag.xy );
 		
-		//	populate function pointers for the two different kinds of composition functions based on the comp mode of the vertex we're rendering
-		float4 (*CompositeTopAndBottomFuncPtr)(thread float4 &, thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
-		float4 (*CompositeBottomFuncPtr)(thread float4 &, thread float &, thread MSLCompModeFragData &) = nullptr;
-		
+		bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
 		switch (layerPtr->compModeIndex)	{
 PUT_SWITCH_CASES_TO_FUNC_PTRS_HERE
 		}
 		
-		//	if something's wrong, just skip this layer
-		if (CompositeTopAndBottomFuncPtr == nullptr || CompositeBottomFuncPtr == nullptr)	{
-			continue;
-		}
-		
-		//	figure out if this is the "bottom" layer or not, and call the appropriate composition function pointer
-		bool		isBottomLayer = (baseCanvasColor.r == 0. && baseCanvasColor.g == 0. && baseCanvasColor.b == 0. && baseCanvasColor.a == 0.);
-		if (isBottomLayer)	{
-			baseCanvasColor = CompositeBottomFuncPtr( layerColor, layerOpacity, fragRenderData );
-		}
-		else	{
-			baseCanvasColor = CompositeTopAndBottomFuncPtr( baseCanvasColor, layerColor, layerOpacity, fragRenderData );
-		}
 	}
 	
 	return baseCanvasColor;

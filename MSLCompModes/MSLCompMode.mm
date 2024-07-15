@@ -122,12 +122,31 @@ float4 BBBB(thread float4 & inTop, thread float & inTopAlpha, thread MSLCompMode
 @synthesize compModeIndex=_compModeIndex;
 - (void) setCompModeIndex:(uint16_t)n	{
 	_compModeIndex = n;
-	
+	NSString		*tmpString = nil;
+	/*
 	const char		*caseCStr = R"(	case CCCC:
 		CompositeBottomFuncPtr = BBBB;
 		CompositeTopAndBottomFuncPtr = AAAA;
 		break;)";
-	NSString		*tmpString = [NSString stringWithUTF8String:caseCStr];
+	tmpString = [NSString stringWithUTF8String:caseCStr];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_funcName]];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_funcName]];
+	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"CCCC" withString:[NSString stringWithFormat:@"%d",_compModeIndex]];
+	
+	_compModeSwitchStatementFuncPtrs = (tmpString==nil) ? @"" : tmpString;
+	*/
+	const char		*tmpCStr = R"(
+		case CCCC:
+		{
+			if (isBottomLayer)	{
+				baseCanvasColor = BBBB(layerColor, layerOpacity, fragRenderData);
+			}
+			else	{
+				baseCanvasColor = AAAA(baseCanvasColor,layerColor,layerOpacity,fragRenderData);
+			}
+		}
+		break;)";
+	tmpString = [NSString stringWithUTF8String:tmpCStr];
 	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"AAAA" withString:[NSString stringWithFormat:@"%@_CompositeTopAndBottom",_funcName]];
 	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"BBBB" withString:[NSString stringWithFormat:@"%@_Bottom",_funcName]];
 	tmpString = [tmpString stringByReplacingOccurrencesOfString:@"CCCC" withString:[NSString stringWithFormat:@"%d",_compModeIndex]];
