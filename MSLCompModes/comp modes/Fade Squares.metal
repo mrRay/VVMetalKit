@@ -44,10 +44,12 @@ float4 CompositeTopAndBottom(thread float4 & bottom, thread float4 & top, thread
 }
 
 
-float4 CompositeBottom(thread float4 & bottom, thread float & topAlpha, thread MSLCompModeFragData & fragData)	{
+float4 CompositeBottom(thread float4 & bottom, thread float & topAlpha, thread MSLCompModeFragData & fragData)
+{
+	float4		background = float4(0.0);
 	float2		p = fragData.gl_FragCoord.xy / fragData._VVCanvasRect.zw;
-	float4		darkenedBottom = float4(fragData._VVCanvasRect.a) * fragData._VVCanvasRect;
-	darkenedBottom.a = fragData._VVCanvasRect.a;
+	float4		darkenedBottom = float4(background.a) * background;
+	darkenedBottom.a = background.a;
 	float4		returnMe = darkenedBottom;
 	float2 		squares = float2(floor(fragData._VVCanvasRect.z / 80.0),floor(fragData._VVCanvasRect.w / 80.0));
 	squares.x = (squares.x < 4.0) ? floor(fragData._VVCanvasRect.z / 20.0) : squares.x;
