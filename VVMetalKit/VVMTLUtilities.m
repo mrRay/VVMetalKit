@@ -118,7 +118,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	id<VVMTLTextureImage>		texToSample = [VVMTLPool.global textureForExistingTexture:inMTLTex];
 	//	if the storage mode is currently sent to private, we need to copy the texture to a texture that is CPU-accessible
 	if (inMTLTex.storageMode == MTLStorageModePrivate)	{
-		NSLog(@"ERR: passed texture cannot be accessed by GPU, %s",__func__);
+		NSLog(@"ERR: passed texture cannot be accessed by CPU, %s",__func__);
 		//	we want the copy we make to have the same pixel format and stuff, it just needs to be buffer-backed
 		VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 			createWithWidth:inMTLTex.width
@@ -139,10 +139,12 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 			allowScaling:NO
 			sizingMode:SizingModeCopy
 			inCommandBuffer:cmdBuffer];
-		//id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-		//[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
-		//[blitEncoder endEncoding];
-		[cmdBuffer commit];
+        
+		id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+		[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
+		[blitEncoder endEncoding];
+		
+        [cmdBuffer commit];
 		[cmdBuffer waitUntilCompleted];
 		
 		texToSample = bufferBackedTex;
