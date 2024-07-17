@@ -28,10 +28,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly) size_t minProjectionMatrixBufferLength;
 
 - (void) dumpVertexDataToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
-//- (void) dumpLayerDataToBuffer:(id<MTLBuffer>)outBuffer texToGeo:(BOOL)inTexToGeo atOffset:(size_t)inOffset;
-
-- (void) dumpTexToGeoProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
-- (void) dumpGeoToTexProjectionMatricesToBuffer:(id<MTLBuffer>)outBuffer atOffset:(size_t)inOffset;
 
 @end
 

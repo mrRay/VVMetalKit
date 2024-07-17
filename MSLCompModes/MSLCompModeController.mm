@@ -411,8 +411,10 @@ fragment float4 MSLCompModeControllerFrgFunc(
 		
 		//	convert the local fragment coords to texture coords using the 'utilityTransform'
 		device float4x4		*homographyProjMatrix = &layerPtr->utilityTransform;
-		//float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * fragRenderData.gl_FragCoord;
-		float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * float4(inRasterData.texCoord.xy, 0., 1.);
+		float4		canvasCoords = fragRenderData.gl_FragCoord;
+		float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * canvasCoords;
+		layerTexCoordsAtThisFrag = float4(layerTexCoordsAtThisFrag.x/layerTexCoordsAtThisFrag.w, layerTexCoordsAtThisFrag.y/layerTexCoordsAtThisFrag.w, layerTexCoordsAtThisFrag.z, layerTexCoordsAtThisFrag.w);
+		//float4		layerTexCoordsAtThisFrag = *homographyProjMatrix * float4(inRasterData.texCoord.xy, 0., 1.);
 		
 		//	if this point is NOT within the layer's srcRect for this texture, we can skip composition...
 		if ( !PointInRect( (GPoint){ layerTexCoordsAtThisFrag.x, layerTexCoordsAtThisFrag.y }, layerPtr->srcRect ) )	{
