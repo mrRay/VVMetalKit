@@ -150,15 +150,23 @@
 	MSLCompModeQuadVertex		*baseQuadPtr = (MSLCompModeQuadVertex*)vertexBuffer.buffer.contents;
 	MSLCompModeQuadVertex		*quadPtr = baseQuadPtr;
 	
-	(*(quadPtr+0)).position = simd_make_float2(0., 0.);
-	(*(quadPtr+1)).position = simd_make_float2(0., renderSize.height);
-	(*(quadPtr+2)).position = simd_make_float2(renderSize.width, 0.);
-	(*(quadPtr+3)).position = simd_make_float2(renderSize.width, renderSize.height);
-	
-	(*(quadPtr+0)).texCoord = simd_make_float2(0., 0.);
-	(*(quadPtr+1)).texCoord = simd_make_float2(0., renderSize.height);
-	(*(quadPtr+2)).texCoord = simd_make_float2(renderSize.width, 0.);
-	(*(quadPtr+3)).texCoord = simd_make_float2(renderSize.width, renderSize.height);
+	NSPoint		tmpPoint;
+	tmpPoint = VVRectGetAnchorPoint(canvasBounds, VVRectAnchor_BL);
+	quadPtr = baseQuadPtr + 0;
+	quadPtr->position = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	quadPtr->texCoord = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	tmpPoint = VVRectGetAnchorPoint(canvasBounds, VVRectAnchor_TL);
+	quadPtr = baseQuadPtr + 1;
+	quadPtr->position = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	quadPtr->texCoord = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	tmpPoint = VVRectGetAnchorPoint(canvasBounds, VVRectAnchor_BR);
+	quadPtr = baseQuadPtr + 2;
+	quadPtr->position = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	quadPtr->texCoord = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	tmpPoint = VVRectGetAnchorPoint(canvasBounds, VVRectAnchor_TR);
+	quadPtr = baseQuadPtr + 3;
+	quadPtr->position = simd_make_float2(tmpPoint.x, tmpPoint.y);
+	quadPtr->texCoord = simd_make_float2(tmpPoint.x, tmpPoint.y);
 	
 	[vertexBuffer.buffer didModifyRange:NSMakeRange(0,vertexBufferSize)];
 	

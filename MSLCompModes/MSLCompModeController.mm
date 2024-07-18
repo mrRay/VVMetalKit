@@ -394,8 +394,7 @@ fragment float4 MSLCompModeControllerFrgFunc(
 {
 	
 	//	assemble the structure we'll pass to the comp modes we need to check...
-	MSLCompModeFragData		fragRenderData = { inRasterData.position, job->canvasRect };
-	fragRenderData.gl_FragCoord.y = fragRenderData._VVCanvasRect.w - fragRenderData.gl_FragCoord.y;
+	MSLCompModeFragData		fragRenderData = { float4(inRasterData.texCoord, 0., 1.), job->canvasRect };
 	
 	//	run through the layers, calculating composition color at this fragment
 	float4		baseCanvasColor = float4(0., 0., 0., 0.);
