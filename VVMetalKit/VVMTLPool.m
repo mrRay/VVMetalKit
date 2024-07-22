@@ -311,15 +311,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (id<VVMTLTextureImage>) rgb10a2BufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
 	if (backingBuffer == nil)	{
@@ -370,15 +370,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (id<VVMTLTextureImage>) uyvyBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	VVMTLBuffer			*backingBuffer = (VVMTLBuffer*)[self bufferWithLengthNoCopy:bpr*s.height storage:MTLStorageModeManaged basePtr:b bufferDeallocator:d];
 	if (backingBuffer == nil)	{
@@ -459,15 +459,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 //- (id<VVMTLTextureImage>) rgbaFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
 //	/*
-//	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-//
+//		// ACCESS NOTES
 //	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-//	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-//	[blitEncoder endEncoding];
-//	[cmdBuffer commit];
-//	[cmdBuffer waitUntilCompleted];
+//		// modified CPU, need to push changes to GPU:
+//	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+//		// modified GPU, need to pull changes to CPU:
+//	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+//		// cmd buffer that owns the blit encoder must complete before data is valid!
 //	[self timestampThis:VVMTLTextureImage];
-//	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+//	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
 //	returnMe.preferDeletion = YES;
@@ -475,15 +475,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 //- (id<VVMTLTextureImage>) rgbaBufferBackedFloatTexSized:(NSSize)n	{
 //	/*
-//	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-//
+//		// ACCESS NOTES
 //	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-//	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-//	[blitEncoder endEncoding];
-//	[cmdBuffer commit];
-//	[cmdBuffer waitUntilCompleted];
+//		// modified CPU, need to push changes to GPU:
+//	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+//		// modified GPU, need to pull changes to CPU:
+//	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+//		// cmd buffer that owns the blit encoder must complete before data is valid!
 //	[self timestampThis:VVMTLTextureImage];
-//	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+//	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 //	*/
 //	
 //	returnMe.preferDeletion = YES;
@@ -491,15 +491,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d	{
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	size_t				targetLength = bpr * s.height;
 	if (targetLength % 4096 != 0)
@@ -540,15 +540,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr	{
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	
 	size_t				targetLength = bpr * s.height;
@@ -567,13 +567,9 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	if (returnMe != nil)	{
 		//	copy the data into the passed buffer
 		memcpy(returnMe.buffer.buffer.contents, b, targetLength);
-		//	blit
-		id<MTLCommandBuffer>			cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
-		id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-		[blitEncoder synchronizeResource:returnMe.buffer.buffer];
-		[blitEncoder endEncoding];
-		[cmdBuffer commit];
-		[cmdBuffer waitUntilCompleted];
+		
+		[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,targetLength)];
+		
 		//	timestamp, and return
 		[self timestampThis:returnMe];
 		return returnMe;
@@ -609,15 +605,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt bytesPerRow:(uint32_t)bpr	{
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	
 	size_t			targetLength = bpr * s.height;
@@ -712,15 +708,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 - (id<VVMTLTextureImage>) bufferBackedLum8TexSized:(NSSize)n	{
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	uint32_t		bytesPerRow = 8 * round(n.width) / 8;
 	id<VVMTLTextureImage>		returnMe = [self
@@ -806,15 +802,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	if (n == nil)
 		return nil;
 	/*
-	WHEN YOU NEED TO ACCESS THE CONTENTS OF THIS TEXTURE FROM THE CPU, DO THIS:
-
+		// ACCESS NOTES
 	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:VVMTLTextureImage.buffer.buffer];
-	[blitEncoder endEncoding];
-	[cmdBuffer commit];
-	[cmdBuffer waitUntilCompleted];
+		// modified CPU, need to push changes to GPU:
+	[VVMTLTextureImage.buffer.buffer didModifyRange:XXX];
+		// modified GPU, need to pull changes to CPU:
+	[blitEncoder synchronizeResource::VVMTLTextureImage.buffer.buffer]
+		// cmd buffer that owns the blit encoder must complete before data is valid!
 	[self timestampThis:VVMTLTextureImage];
-	float		*contents = (float *)[VVMTLTextureImage.buffer.buffer contents];
+	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	
 	//	this only works if the bitmap's underlying data ptr is 4096-byte aligned!

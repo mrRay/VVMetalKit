@@ -399,9 +399,11 @@ CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize
 		allowScaling:NO
 		sizingMode:SizingModeFit
 		inCommandBuffer:cmdBuffer];
-	//id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	//[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
-	//[blitEncoder endEncoding];
+	
+	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+	[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
+	[blitEncoder endEncoding];
+	
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];
 	
@@ -575,6 +577,8 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 				wBytesPerRow += (16 - (wBytesPerRow % 16));
 			}
 			
+			size_t			totalBytesWritten = wBytesPerRow * rawSize.height;
+			
 			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
 				bufferBackedTexSized:rawSize
 				pixelFormat:MTLPixelFormatRGBA8Unorm
@@ -595,12 +599,8 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 			
 			vImagePermuteChannels_ARGB8888(&rImg, &wImg, remapPatterns[remapPatternIdx], 0);
 			
-			id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
-			id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-			[blitEncoder synchronizeResource:returnMe.buffer.buffer];
-			[blitEncoder endEncoding];
-			[cmdBuffer commit];
-			[cmdBuffer waitUntilCompleted];
+			[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesWritten)];
+			
 			[VVMTLPool.global timestampThis:returnMe];
 			return returnMe;
 			
@@ -641,6 +641,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		//	allocate a buffer-backed texture of the appropriate dimensions
 		size_t			bytesPerRow = sizeof(uint8_t) * 4 * targetSize.width;
 		bytesPerRow = ROUNDUPTOMULTOF16(bytesPerRow);
+		size_t			totalBytesWritten = bytesPerRow * targetSize.height;
 		id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
 			bufferBackedTexSized:targetSize
 			pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
@@ -667,14 +668,10 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		//CGBitmapContextUnpremultiply(ctx);		//	commented out b/c it's a big perf hit!
 		
 		CGContextRelease(ctx);
-		//	make a blit encoder, synchronize the resource
-		id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
-		id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-		[blitEncoder synchronizeResource:returnMe.buffer.buffer];
-		[blitEncoder endEncoding];
-		[cmdBuffer commit];
-		[cmdBuffer waitUntilCompleted];
+		
+		[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesWritten)];
 		[VVMTLPool.global timestampThis:returnMe];
+		
 		return returnMe;
 	}
 }
