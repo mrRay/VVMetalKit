@@ -26,6 +26,7 @@
 
 #define A_HAS_B(a,b) (((a)&(b))==(b))
 #define MAX_MTLTEXTUREIMAGE_LIFETIME 30
+#define ROUNDAUPTOMULTOFB(A,B) ((((A)%(B))==0) ? (A) : ((A) + ((B)-((A)%(B)))))
 
 static NSUInteger TEXINDEX = 0;
 //static os_unfair_lock TEXINDEXLOCK = OS_UNFAIR_LOCK_INIT;
@@ -813,6 +814,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	
+	
 	//	this only works if the bitmap's underlying data ptr is 4096-byte aligned!
 	//id<VVMTLTextureImage>		returnMe = [self
 	//	bufferBackedTexSized:n.size
@@ -825,13 +827,45 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	//	}];
 	
 	
-	id<VVMTLTextureImage>		returnMe = [self
-		bufferBackedTexSized:n.size
-		//pixelFormat:MTLPixelFormatRGBA8Unorm_sRGB
-		pixelFormat:MTLPixelFormatRGBA8Unorm
-		basePtr:n.bitmapData
-		bytesPerRow:(uint32_t)n.bytesPerRow];
+	uint32_t		imgDataBytesPerRow = n.bytesPerRow;
+	uint32_t		imgBytesPerRow = n.size.width * (1 * 4);
+	MTLPixelFormat		dstPxlFmt = MTLPixelFormatRGBA8Unorm;
+	//MTLPixelFormat		dstPxlFmt = MTLPixelFormatRGBA8Unorm_sRGB;
+	NSUInteger		linearAlignment = [RenderProperties.global.device minimumLinearTextureAlignmentForPixelFormat:dstPxlFmt];
+	uint32_t		bufferBytesPerRow = ROUNDAUPTOMULTOFB(imgBytesPerRow,linearAlignment);
+	NSSize			bitmapSize = n.size;
+	
+	id<VVMTLTextureImage>		returnMe = nil;
+	
+	if (imgDataBytesPerRow == bufferBytesPerRow)	{
+		returnMe = [self
+			bufferBackedTexSized:bitmapSize
+			pixelFormat:dstPxlFmt
+			basePtr:n.bitmapData
+			bytesPerRow:bufferBytesPerRow];
+	}
+	else	{
+		returnMe = [self
+			bufferBackedTexSized:bitmapSize
+			pixelFormat:dstPxlFmt
+			bytesPerRow:bufferBytesPerRow];
+		
+		size_t		totalBytesToWrite = bufferBytesPerRow * bitmapSize.height;
+		
+		void		*rPtr = n.bitmapData;
+		void		*wPtr = [returnMe.buffer.buffer contents];
+		
+		for (int i=0; i<bitmapSize.height; ++i)	{
+			memcpy(wPtr, rPtr, imgBytesPerRow);
+			rPtr += imgDataBytesPerRow;
+			wPtr += bufferBytesPerRow;
+		}
+		
+		[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesToWrite)];
+	}
+	
 	returnMe.flipV = YES;
+	
 	return returnMe;
 }
 

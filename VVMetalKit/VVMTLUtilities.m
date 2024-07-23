@@ -424,17 +424,13 @@ id<VVMTLTextureImage> CreateTextureFromCGImage(CGImageRef inImg)	{
 id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize targetSize)	{
 	//NSLog(@"%s ... %@, %@",__func__,inImg,NSStringFromSize(targetSize));
 	//NSLog(@"%s ... %@",__func__,NSStringFromSize(targetSize));
-	NSSize			rawSize = (inImg==NULL) ? NSZeroSize : NSMakeSize(CGImageGetWidth(inImg), CGImageGetHeight(inImg));
-	//NSLog(@"\t\trawSize is %@",NSStringFromSize(rawSize));
+	if (inImg == NULL)
+		return nil;
 	
-	BOOL				directUploadOK = YES;
-	CGBitmapInfo		newImgInfo = CGImageGetBitmapInfo(inImg);
-	CGImageAlphaInfo	calculatedAlphaInfo = newImgInfo & kCGBitmapAlphaInfoMask;
-	CGImageByteOrderInfo	calculatedByteOrderInfo = newImgInfo & kCGBitmapByteOrderMask;
-	CGImagePixelFormatInfo	calculatedPxlFmtInfo = CGImageGetPixelFormatInfo(inImg);
-	size_t				bytesPerRow = CGImageGetBytesPerRow(inImg);
-	
-	
+	CGBitmapInfo		calculatedImgInfo = CGImageGetBitmapInfo(inImg);
+	CGImageAlphaInfo		calculatedAlphaInfo = calculatedImgInfo & kCGBitmapAlphaInfoMask;
+	CGImageByteOrderInfo		calculatedByteOrderInfo = calculatedImgInfo & kCGBitmapByteOrderMask;
+	CGImagePixelFormatInfo		calculatedPxlFmtInfo = CGImageGetPixelFormatInfo(inImg);
 	/*
 	NSString * (^StringFromByteOrder)(CGImageByteOrderInfo) = ^(CGImageByteOrderInfo inInfo)	{
 		switch (inInfo)	{
@@ -471,27 +467,20 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		}
 		return @"Unknown CGImageAlphaInfo";
 	};
-	//NSLog(@"\t\tpixel format is %@",StringFromPxlFmt(calculatedPxlFmtInfo));
+	NSLog(@"\t\tpixel format is %@",StringFromPxlFmt(calculatedPxlFmtInfo));
 	NSLog(@"\t\tbyte order is %@",StringFromByteOrder(calculatedByteOrderInfo));
 	NSLog(@"\t\talpha info is %@",StringFromAlphaInfo(calculatedAlphaInfo));
 	*/
 	
 	
 	
-	//	the "default" byte order (kCGImageByteOrderDefault) is per-platform, and thus is alwasy big-endian on macOS
-	//	however, m1s- and intel machines- are little-endian!
+	NSSize		rawSize = NSMakeSize(CGImageGetWidth(inImg), CGImageGetHeight(inImg));
+	//NSLog(@"\t\trawSize is %@",NSStringFromSize(rawSize));
 	
-	if (A_HAS_B(newImgInfo, kCGBitmapFloatComponents))	{
-		directUploadOK = NO;
-	}
+	BOOL		directUploadOK = YES;	//	if YES, the data is okay to upload directly to a texture
+	MTLPixelFormat		dstPxlFmt = MTLPixelFormatRGBA8Unorm;
 	
-	if (calculatedPxlFmtInfo != kCGImagePixelFormatPacked)	{
-		directUploadOK = NO;
-	}
-	
-	//	we can use some big-endian formats directly if we dump their data into BGRA textures (instead of RGBA)
-	BOOL		uploadAsBGRA = NO;
-	BOOL		remapBeforeUpload = NO;
+	BOOL		remapBeforeUpload = NO;	//	only used if 'directUploadOK' is YES- if this is also YES then the data has to be remapped to be interpreted correctly
 	uint8_t		remapPatterns[3][4] = {
 		{ 0, 1, 2, 3 }, //	RGBX -> RGBX
 		{ 3, 2, 1, 0 },	//	XBGR -> RGBX
@@ -499,181 +488,224 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	};
 	uint8_t		remapPatternIdx = 0;
 	
-	switch (calculatedByteOrderInfo)	{
-    case kCGImageByteOrderMask:
-    	break;
-    case kCGImageByteOrder16Little:
-    case kCGImageByteOrder16Big:
-    	directUploadOK = NO;
-    	break;
-    case kCGImageByteOrder32Little:
-    	{
-    		switch (calculatedAlphaInfo)	{
-			case kCGImageAlphaNone:
-			case kCGImageAlphaPremultipliedLast:	//	RGBA -> ABGR
-			case kCGImageAlphaLast:	//	RGBA -> ABGR
-			case kCGImageAlphaNoneSkipLast:	//	RGBX -> XBGR
-				remapBeforeUpload = YES;
-				remapPatternIdx = 1;
-				break;
-			case kCGImageAlphaOnly:	//	A
-				directUploadOK = NO;
-				break;
-			case kCGImageAlphaPremultipliedFirst:	//	ARGB -> BGRA
-			case kCGImageAlphaFirst:	//	ARGB -> BGRA
-			case kCGImageAlphaNoneSkipFirst:	//	XRGB -> BGRX
-				uploadAsBGRA = YES;
-				break;
-    		}
-    	}
-    	break;
-    case kCGImageByteOrder32Big:
-    case kCGImageByteOrderDefault:
-    	{
-    		switch (calculatedAlphaInfo)	{
-			case kCGImageAlphaNone:
-			case kCGImageAlphaPremultipliedFirst:	//	ARGB
-			case kCGImageAlphaFirst:	//	ARGB
-			case kCGImageAlphaNoneSkipFirst:	//	XRGB
-				remapBeforeUpload = YES;
-				remapPatternIdx = 2;
-				break;
-			case kCGImageAlphaOnly:	//	A
-				directUploadOK = NO;
-				break;
-			case kCGImageAlphaPremultipliedLast:	//	RGBA
-			case kCGImageAlphaLast:	//	RGBA
-			case kCGImageAlphaNoneSkipLast:	//	RGBX
-				//	intentionally blank, can be uploaded directly as RGBA
-				break;
-    		}
-    	}
-    	break;
-	}
 	
-	if (!NSEqualSizes(targetSize,rawSize))	{
+	//	let's rule out 'direct upload' for a couple obvious cases right away: floating-point images, images that aren't packed (planar), and RGB images (no corresponding texture type!)
+	if (A_HAS_B(calculatedImgInfo, kCGBitmapFloatComponents))	{
+		directUploadOK = NO;
+	}
+	if (calculatedPxlFmtInfo != kCGImagePixelFormatPacked)	{
+		directUploadOK = NO;
+	}
+	if (calculatedAlphaInfo == kCGImageAlphaNone)	{
 		directUploadOK = NO;
 	}
 	
 	
-	if (bytesPerRow % 16 != 0 && directUploadOK)	{
-		remapBeforeUpload = YES;
-		//	don't set the remapPatternIdx here- it defaults to 0, which is what we want if it's just RGBX with a funky bytesPerRow, but if it's not 0 then we've already set the relevant remapPatternIdx and don't want to overwrite it...
+	//	determine the bytes per row of the memory backing the CGImage
+	uint32_t		imgDataBytesPerRow = (uint32_t)CGImageGetBytesPerRow(inImg);
+	//	calculate the bytes per row of image data- this is basically the "minimum bytes per row", with no padding.  if we need to copy image data, this is the amount per row we need to copy.
+	uint32_t		imgBytesPerRow = rawSize.width * (1 * 4);
+	switch (calculatedAlphaInfo)	{
+		case kCGImageAlphaPremultipliedLast:
+		case kCGImageAlphaLast:
+		case kCGImageAlphaNoneSkipLast:
+		case kCGImageAlphaPremultipliedFirst:
+		case kCGImageAlphaFirst:
+		case kCGImageAlphaNoneSkipFirst:
+			break;
+		case kCGImageAlphaNone:					//	RGB
+			imgBytesPerRow = rawSize.width * (1 * 3);
+			break;
+		case kCGImageAlphaOnly:					//	A (UL as R8)
+			imgBytesPerRow = rawSize.width;
+			break;
 	}
 	
-	//	if the direct upload is OK, just copy the data right out of the image and upload it
+	//	take a closer look at the image's properties, figure out if it's still okay upload directly, what kind of texture it needs to upload to, whether or not its channels need to be remapped, etc...
 	if (directUploadOK)	{
-		//NSLog(@"direct upload!");
+		switch (calculatedByteOrderInfo)	{
+			case kCGImageByteOrderMask:
+			case kCGImageByteOrder16Little:
+			case kCGImageByteOrder16Big:
+				directUploadOK = NO;
+				break;
+			case kCGImageByteOrder32Little:	{
+				
+				switch (calculatedAlphaInfo)	{
+					case kCGImageAlphaNone:					//	RGB (never encountered, we check for kCGImageAlphaNone earlier)
+						directUploadOK = NO;
+						break;
+					case kCGImageAlphaPremultipliedLast:	//	RGBA -> remap to ABGR (UL as RGBA)
+					case kCGImageAlphaLast:					//	RGBA -> remap to ABGR (UL as RGBA)
+					case kCGImageAlphaNoneSkipLast:			//	RGBX -> remap to XBGR (UL as RGBA)
+						dstPxlFmt = MTLPixelFormatRGBA8Unorm;
+						remapBeforeUpload = YES;
+						remapPatternIdx = 1;
+						break;
+					case kCGImageAlphaOnly:					//	A (UL as R8)
+						dstPxlFmt = MTLPixelFormatR8Unorm;
+						break;
+					case kCGImageAlphaPremultipliedFirst:	//	ARGB (UL as BGRA)
+					case kCGImageAlphaFirst:				//	ARGB (UL as BGRA)
+					case kCGImageAlphaNoneSkipFirst:		//	XRGB (UL as BGRA)
+						dstPxlFmt = MTLPixelFormatBGRA8Unorm;
+						break;
+				}
+				
+				break;
+			}
+			case kCGImageByteOrderDefault:
+			case kCGImageByteOrder32Big:	{
+				
+				switch (calculatedAlphaInfo)	{
+					case kCGImageAlphaNone:					//	RGB (never encountered, we check for kCGImageAlphaNone earlier)
+						directUploadOK = NO;
+						break;
+					case kCGImageAlphaPremultipliedLast:	//	RGBA (UL as RGBA)
+					case kCGImageAlphaLast:					//	RGBA (UL as RGBA)
+					case kCGImageAlphaNoneSkipLast:			//	RGBX (UL as RGBA)
+						dstPxlFmt = MTLPixelFormatRGBA8Unorm;
+						break;
+					case kCGImageAlphaOnly:					//	A (UL as R8)
+						dstPxlFmt = MTLPixelFormatR8Unorm;
+						break;
+					case kCGImageAlphaPremultipliedFirst:	//	ARGB (UL as BGRA)
+					case kCGImageAlphaFirst:				//	ARGB (UL as BGRA)
+					case kCGImageAlphaNoneSkipFirst:		//	XRGB (UL as BGRA)
+						dstPxlFmt = MTLPixelFormatBGRA8Unorm;
+						break;
+				}
+				
+				break;
+			}
+		}
+	}
+	
+	
+	if (directUploadOK)	{
+		NSUInteger		linearAlignment = [RenderProperties.global.device minimumLinearTextureAlignmentForPixelFormat:dstPxlFmt];
+		uint32_t		bufferBytesPerRow = ROUNDAUPTOMULTOFB(imgBytesPerRow,linearAlignment);
+		
+		//if (imgBytesPerRow != bufferBytesPerRow)	{
+		//	remapBeforeUpload = YES;
+		//	remapPatternIdx = 0;
+		//}
+		
 		NSData		*frameData = (__bridge_transfer NSData *)CGDataProviderCopyData(CGImageGetDataProvider(inImg));
 		if (frameData == nil)	{
 			return nil;
 		}
 		
-		//	if we have to remap before upload, we're allocating a buffer-backed texture and using the Accelerate framework to remap the channels (on the CPU) before uploading it to a texture
+		void		*basePtr = (void *)frameData.bytes;
+		
+		//	if we have to remap before upload...
 		if (remapBeforeUpload)	{
-			//NSLog(@"remapping using index %d",remapPatternIdx);
-			uint32_t		wBytesPerRow = sizeof(uint8_t) * 4 * targetSize.width;
-			if (wBytesPerRow % 16 != 0)	{
-				wBytesPerRow += (16 - (wBytesPerRow % 16));
-			}
-			
-			size_t			totalBytesWritten = wBytesPerRow * rawSize.height;
-			
 			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
 				bufferBackedTexSized:rawSize
-				pixelFormat:MTLPixelFormatRGBA8Unorm
-				bytesPerRow:wBytesPerRow];
+				pixelFormat:dstPxlFmt
+				bytesPerRow:bufferBytesPerRow];
+			
+			size_t		totalBytesToWrite = bufferBytesPerRow * rawSize.height;
 			void		*wPtr = [returnMe.buffer.buffer contents];
 			
 			vImage_Buffer		rImg;
-			rImg.data = (void*)frameData.bytes;
-			rImg.width = targetSize.width;
-			rImg.height = targetSize.height;
-			rImg.rowBytes = bytesPerRow;
+			rImg.data = basePtr;
+			rImg.width = rawSize.width;
+			rImg.height = rawSize.height;
+			rImg.rowBytes = imgDataBytesPerRow;
 			
 			vImage_Buffer		wImg;
 			wImg.data = wPtr;
-			wImg.width = targetSize.width;
-			wImg.height = targetSize.height;
-			wImg.rowBytes = returnMe.bytesPerRow;
+			wImg.width = rawSize.width;
+			wImg.height = rawSize.height;
+			wImg.rowBytes = bufferBytesPerRow;
 			
 			vImagePermuteChannels_ARGB8888(&rImg, &wImg, remapPatterns[remapPatternIdx], 0);
 			
-			[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesWritten)];
+			[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesToWrite)];
 			
 			[VVMTLPool.global timestampThis:returnMe];
 			return returnMe;
-			
-			
 		}
+		//	else if the img's bytes per row doesn't match the buffer's bytes per row (we don't have to check this during remap because the remap API lets us take this into account)
+		else if (imgDataBytesPerRow != bufferBytesPerRow)	{
+			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
+				bufferBackedTexSized:rawSize
+				pixelFormat:dstPxlFmt
+				bytesPerRow:bufferBytesPerRow];
+			
+			size_t		totalBytesToWrite = bufferBytesPerRow * rawSize.height;
+			uint8_t		*wPtr = (uint8_t*)[returnMe.buffer.buffer contents];
+			uint8_t		*rPtr = (uint8_t*)basePtr;
+			
+			for (int i=0; i<rawSize.height; ++i)	{
+				memcpy(wPtr, rPtr, imgBytesPerRow);
+				wPtr += bufferBytesPerRow;
+				rPtr += imgDataBytesPerRow;
+			}
+			
+			[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesToWrite)];
+			
+			[VVMTLPool.global timestampThis:returnMe];
+			return returnMe;
+		}
+		//	else we can just blast the pixel data pretty much directly to the texture
 		else	{
-			void		*basePtr = (void *)frameData.bytes;
-			id<VVMTLTextureImage>		newFrameImgBuffer = nil;
-			if ((uint64_t)basePtr % 4096 == 0)	{
-				newFrameImgBuffer = [VVMTLPool.global
-					bufferBackedTexSized:rawSize
-					pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
-					basePtr:basePtr
-					bytesPerRow:(uint32_t)bytesPerRow
-					bufferDeallocator:^(void *pointer, NSUInteger length)	{
-						NSData		*tmpData = frameData;
-						tmpData = nil;
-					}];
-				frameData = nil;
-			}
-			else	{
-				newFrameImgBuffer = [VVMTLPool.global
-					bufferBackedTexSized:rawSize
-					pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
-					basePtr:basePtr
-					bytesPerRow:(uint32_t)bytesPerRow];
-				frameData = nil;
-			}
-			//NSLog(@"newFrameImgBuffer is %@",newFrameImgBuffer);
-			
-			return newFrameImgBuffer;
+			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
+				bufferBackedTexSized:rawSize
+				pixelFormat:dstPxlFmt
+				basePtr:basePtr
+				bytesPerRow:imgDataBytesPerRow
+				bufferDeallocator:^(void *pointer, NSUInteger length)	{
+					NSData * tmpData = frameData;
+					tmpData = nil;
+				}];
+			frameData = nil;
+			return returnMe;
 		}
-		
 	}
-	//	else the direct upload isn't OK- i have to draw the image into a context which is backing a texture
-	else	{
-		//NSLog(@"redraw!");
-		//	allocate a buffer-backed texture of the appropriate dimensions
-		size_t			bytesPerRow = sizeof(uint8_t) * 4 * targetSize.width;
-		bytesPerRow = ROUNDUPTOMULTOF16(bytesPerRow);
-		size_t			totalBytesWritten = bytesPerRow * targetSize.height;
-		id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
-			bufferBackedTexSized:targetSize
-			pixelFormat:(uploadAsBGRA) ? MTLPixelFormatBGRA8Unorm : MTLPixelFormatRGBA8Unorm
-			bytesPerRow:(uint32_t)bytesPerRow];
-		//	make a CGBitmapContext backed by the same buffer that backs our texture
-		void			*bufferDataPtr = returnMe.buffer.buffer.contents;
-		CGContextRef	ctx = CGBitmapContextCreate(
-			bufferDataPtr,
-			(long)targetSize.width,
-			(long)targetSize.height,
-			8,
-			bytesPerRow,
-			RenderProperties.global.colorSpace,
-			kCGImageAlphaPremultipliedLast);
-		if (ctx == NULL)	{
-			NSLog(@"\t\tERR: ctx null in %s",__func__);
-			return nil;
-		}
-		//	draw the image in the bitmap context, flush it
-		CGContextDrawImage(ctx, CGRectMake(0,0,targetSize.width,targetSize.height), inImg);
-		CGContextFlush(ctx);
-		
-		//	the bitmap context we just drew into has premultiplied alpha, so we need to un-premultiply before uploading it
-		//CGBitmapContextUnpremultiply(ctx);		//	commented out b/c it's a big perf hit!
-		
-		CGContextRelease(ctx);
-		
-		[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesWritten)];
-		[VVMTLPool.global timestampThis:returnMe];
-		
-		return returnMe;
+	
+	//	...if we're here, the 'direct upload' approach is NOT okay: we need to draw the CGImageRef into a bitmap backed by a texture we own and control
+	
+	dstPxlFmt = MTLPixelFormatRGBA8Unorm;
+	
+	NSUInteger		linearAlignment = [RenderProperties.global.device minimumLinearTextureAlignmentForPixelFormat:dstPxlFmt];
+	size_t		bufferBytesPerRow = targetSize.width * (1 * 4);
+	bufferBytesPerRow = ROUNDAUPTOMULTOFB(bufferBytesPerRow,linearAlignment);
+	size_t		totalBytesToWrite = bufferBytesPerRow * targetSize.height;
+	
+	id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
+		bufferBackedTexSized:targetSize
+		pixelFormat:dstPxlFmt
+		bytesPerRow:bufferBytesPerRow];
+	
+	//	make a CGContextRef that will use our buffer/texture as its backing
+	CGContextRef		ctx = CGBitmapContextCreate(
+		(void*)returnMe.buffer.buffer.contents,
+		(long)targetSize.width,
+		(long)targetSize.height,
+		0,
+		bufferBytesPerRow,
+		RenderProperties.global.colorSpace,
+		kCGImageAlphaPremultipliedLast);
+	if (ctx == NULL)	{
+		NSLog(@"ERR: ctx NULL in %s",__func__);
+		return nil;
 	}
+	
+	//	draw the image in the bitmap context, flush it
+	CGContextDrawImage(ctx, CGRectMake(0,0,targetSize.width,targetSize.height), inImg);
+	CGContextFlush(ctx);
+	
+	//	the bitmap context we just drew into has premultiplied alpha, so we need to un-premultiply before uploading it
+	//CGBitmapContextUnpremultiply(ctx);		//	commented out b/c it's a big perf hit!
+	
+	CGContextRelease(ctx);
+	
+	[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesToWrite)];
+	[VVMTLPool.global timestampThis:returnMe];
+	
+	return nil;
 }
 
 
