@@ -62,7 +62,7 @@
 		return;
 	}
 	
-	CGSize			renderSize = self.renderSize;
+	//CGSize			renderSize = self.renderSize;
 	NSRect			canvasBounds = self.canvasBounds;
 	MSLCompModeRecipe		*localRecipe = self.recipe;
 	uint16_t		maxLayerCount = localRecipe.steps.count;

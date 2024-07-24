@@ -584,7 +584,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	
 	if (directUploadOK)	{
 		NSUInteger		linearAlignment = [RenderProperties.global.device minimumLinearTextureAlignmentForPixelFormat:dstPxlFmt];
-		uint32_t		bufferBytesPerRow = ROUNDAUPTOMULTOFB(imgBytesPerRow,linearAlignment);
+		uint32_t		bufferBytesPerRow = (uint32_t)ROUNDAUPTOMULTOFB(imgBytesPerRow,linearAlignment);
 		
 		//if (imgBytesPerRow != bufferBytesPerRow)	{
 		//	remapBeforeUpload = YES;
@@ -711,7 +711,7 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
 		bufferBackedTexSized:targetSize
 		pixelFormat:dstPxlFmt
-		bytesPerRow:bufferBytesPerRow];
+		bytesPerRow:(uint32_t)bufferBytesPerRow];
 	
 	//	make a CGContextRef that will use our buffer/texture as its backing
 	CGContextRef		ctx = CGBitmapContextCreate(

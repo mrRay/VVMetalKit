@@ -827,12 +827,12 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	//	}];
 	
 	
-	uint32_t		imgDataBytesPerRow = n.bytesPerRow;
+	uint32_t		imgDataBytesPerRow = (uint32_t)n.bytesPerRow;
 	uint32_t		imgBytesPerRow = n.size.width * (1 * 4);
 	MTLPixelFormat		dstPxlFmt = MTLPixelFormatRGBA8Unorm;
 	//MTLPixelFormat		dstPxlFmt = MTLPixelFormatRGBA8Unorm_sRGB;
 	NSUInteger		linearAlignment = [RenderProperties.global.device minimumLinearTextureAlignmentForPixelFormat:dstPxlFmt];
-	uint32_t		bufferBytesPerRow = ROUNDAUPTOMULTOFB(imgBytesPerRow,linearAlignment);
+	uint32_t		bufferBytesPerRow = (uint32_t)ROUNDAUPTOMULTOFB(imgBytesPerRow,linearAlignment);
 	NSSize			bitmapSize = n.size;
 	
 	id<VVMTLTextureImage>		returnMe = nil;
