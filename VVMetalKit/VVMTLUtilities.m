@@ -629,6 +629,38 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		}
 		//	else if the img's bytes per row doesn't match the buffer's bytes per row (we don't have to check this during remap because the remap API lets us take this into account)
 		else if (imgDataBytesPerRow != bufferBytesPerRow)	{
+			#define DIRECT_UPLOAD_TEX 0
+#if DIRECT_UPLOAD_TEX==1
+			NSLog(@"****");
+			VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+				createWithWidth:rawSize.width
+				height:rawSize.height
+				pixelFormat:dstPxlFmt
+				storage:MTLStorageModeManaged
+				usage:MTLTextureUsageShaderRead
+				bytesPerRow:0];
+			desc.mtlBufferBacking = NO;
+			desc.iosfcBacking = NO;
+			desc.cvpbBacking = NO;
+			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global textureForDescriptor:desc];
+			[returnMe.texture
+				replaceRegion:MTLRegionMake2D(0,0,rawSize.width,rawSize.height)
+				mipmapLevel:0
+				withBytes:basePtr
+				bytesPerRow:imgDataBytesPerRow];
+			
+			id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+			
+			id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+			[blitEncoder synchronizeResource:returnMe.texture];
+			[blitEncoder endEncoding];
+			
+			[cmdBuffer commit];
+			[cmdBuffer waitUntilCompleted];
+			
+			[VVMTLPool.global timestampThis:returnMe];
+			return returnMe;
+#else
 			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
 				bufferBackedTexSized:rawSize
 				pixelFormat:dstPxlFmt
@@ -648,6 +680,8 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 			
 			[VVMTLPool.global timestampThis:returnMe];
 			return returnMe;
+#endif
+			
 		}
 		//	else we can just blast the pixel data pretty much directly to the texture
 		else	{
