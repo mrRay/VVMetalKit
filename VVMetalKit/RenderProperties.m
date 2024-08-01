@@ -19,6 +19,7 @@ RenderProperties			*_globalRenderProperties = nil;
 @property (strong) id<MTLCommandQueue> bgCmdQueue;
 @property (strong) id<MTLCommandQueue> displayCmdQueue;
 @property (strong) id<MTLLibrary> defaultLibrary;
+@property (assign,readwrite) NSSize max2DTextureSize;
 @end
 
 
@@ -64,6 +65,14 @@ RenderProperties			*_globalRenderProperties = nil;
 		self.renderQueue = [self.device newCommandQueue];
 		self.bgCmdQueue = [self.device newCommandQueue];
 		self.displayCmdQueue = [self.device newCommandQueue];
+		
+		self.max2DTextureSize = NSMakeSize(16384,16384);
+		//[device supportsFamily:MTLGPUFamilyMac2]
+		//	maxSize = NSMakeSize(16384,16384);
+		//[device supportsFamily:MTLGPUFamilyApple7]
+		//[device supportsFamily:MTLGPUFamilyApple8]
+		//[device supportsFamily:MTLGPUFamilyApple9]
+		//[device supportsFamily:MTLGPUFamilyMetal3]
 	//}
 }
 

@@ -25,6 +25,8 @@ extern NSString * const kRenderPropertiesChangedNotificationName;
 //	STRONG REF (retains the passed colorspace), defaults to kCGColorSpaceSRGB
 @property (readwrite,nullable) CGColorSpaceRef colorSpace;
 
+@property (assign,readonly) NSSize max2DTextureSize;
+
 - (void) configureWithDevice:(id<MTLDevice>)n;
 
 @end
