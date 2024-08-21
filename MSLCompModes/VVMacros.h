@@ -101,9 +101,22 @@ typedef NS_ENUM(NSUInteger, VVRectAnchor)	{
 };
 
 
+//	Returns the coordinations of the point in the passed rect that corresponds to the passed anchor position.
 static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor);
+//	Makes a rect with the passed size, positioned such that the passed point will by located in the passed anchor position. A call equivalent to `NSMakeRect(0,0,10,10);` would be `VVMakeAnchoredRect(NSMakePoint(0,0), NSMakeSize(10,10), VVRectAnchor_BL);`
 static inline VVRECT VVMakeAnchoredRect(VVPOINT inPt, VVSIZE inSize, VVRectAnchor inAnchor);
+//	Changes the passed rect's size to a new value. The geometric origin of the size change is the passed anchor.
 static inline VVRECT VVRectAnchorSetFrameSize(VVRECT inRect, VVSIZE newSize, VVRectAnchor inAnchor);
+//	Adjusts the passed rect's size by the passed dimensions. The geometric origin of the size change is the passed anchor.
+static inline VVRECT VVRectAnchorAdjustFrameSize(VVRECT inRect, double inDeltaX, double inDeltaY, VVRectAnchor inAnchor);
+//	Returns the anchor located on the opposite side of the rect from the passed anchor (with the exception of Center, which returns Center);
+static inline VVRectAnchor VVRectAnchorGetOpposite(VVRectAnchor inAnchor);
+//	Returns an array of NSNumber instances that correspond to VVRectAnchor enum values. Returns constituent anchors for compound anchors- passing this TL would return [TM,LM], passing it Center would return [LM,TM,RM,BM], etc.
+static inline NSArray<NSNumber*> * VVRectAnchorGetConstituentAnchors(VVRectAnchor inAnchor);
+//	Returns a human-readable string describing the passed anchor
+static inline NSString * NSStringFromVVRectAnchor(VVRectAnchor n);
+//	Calculates the VVRectAnchor value that most closely corresponds to the passed string
+static inline VVRectAnchor VVRectAnchorFromNSString(NSString *n);
 
 
 static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor)	{
@@ -176,11 +189,111 @@ static inline VVRECT VVRectAnchorSetFrameSize(VVRECT inRect, VVSIZE newSize, VVR
 	VVPOINT			anchorPoint = VVRectGetAnchorPoint(inRect, inAnchor);
 	return VVMakeAnchoredRect(anchorPoint, newSize, inAnchor);
 }
+static inline VVRECT VVRectAnchorAdjustFrameSize(VVRECT inRect, double inDeltaX, double inDeltaY, VVRectAnchor inAnchor)	{
+	VVSIZE			newSize = VVMAKESIZE(inRect.size.width + inDeltaX, inRect.size.height + inDeltaY);
+	VVPOINT			anchorPoint = VVRectGetAnchorPoint(inRect, inAnchor);
+	return VVMakeAnchoredRect(anchorPoint, newSize, inAnchor);
+}
+static inline VVRectAnchor VVRectAnchorGetOpposite(VVRectAnchor inAnchor)	{
+	switch (inAnchor)	{
+	case VVRectAnchor_Center:	return VVRectAnchor_Center;
+	case VVRectAnchor_TL:	return VVRectAnchor_BR;
+	case VVRectAnchor_TR:	return VVRectAnchor_BL;
+	case VVRectAnchor_BL:	return VVRectAnchor_TR;
+	case VVRectAnchor_BR:	return VVRectAnchor_TL;
+	case VVRectAnchor_TM:	return VVRectAnchor_BM;
+	case VVRectAnchor_RM:	return VVRectAnchor_LM;
+	case VVRectAnchor_BM:	return VVRectAnchor_TM;
+	case VVRectAnchor_LM:	return VVRectAnchor_RM;
+	}
+	
+	return VVRectAnchor_Center;
+}
+static inline NSArray<NSNumber*> * VVRectAnchorGetConstituentAnchors(VVRectAnchor inAnchor)	{
+	NSMutableArray<NSNumber*>		*anchors = [NSMutableArray arrayWithCapacity:0];
+	switch (inAnchor)	{
+	case VVRectAnchor_Center:
+		[anchors addObject:@(VVRectAnchor_LM)];
+		[anchors addObject:@(VVRectAnchor_RM)];
+		[anchors addObject:@(VVRectAnchor_TM)];
+		[anchors addObject:@(VVRectAnchor_BM)];
+		break;
+	case VVRectAnchor_TL:
+		[anchors addObject:@(VVRectAnchor_TM)];
+		[anchors addObject:@(VVRectAnchor_LM)];
+		break;
+	case VVRectAnchor_TR:
+		[anchors addObject:@(VVRectAnchor_TM)];
+		[anchors addObject:@(VVRectAnchor_RM)];
+		break;
+	case VVRectAnchor_BL:
+		[anchors addObject:@(VVRectAnchor_BM)];
+		[anchors addObject:@(VVRectAnchor_LM)];
+		break;
+	case VVRectAnchor_BR:
+		[anchors addObject:@(VVRectAnchor_BM)];
+		[anchors addObject:@(VVRectAnchor_RM)];
+		break;
+	case VVRectAnchor_TM:
+		[anchors addObject:@(VVRectAnchor_TM)];
+		break;
+	case VVRectAnchor_RM:
+		[anchors addObject:@(VVRectAnchor_RM)];
+		break;
+	case VVRectAnchor_BM:
+		[anchors addObject:@(VVRectAnchor_BM)];
+		break;
+	case VVRectAnchor_LM:
+		[anchors addObject:@(VVRectAnchor_LM)];
+		break;
+	}
+	return [NSArray arrayWithArray:anchors];
+}
+static inline NSString * NSStringFromVVRectAnchor(VVRectAnchor n)	{
+	switch (n)	{
+		case VVRectAnchor_Center:	return @"Center";
+		case VVRectAnchor_TL:	return @"Top-Left";
+		case VVRectAnchor_TR:	return @"Top-Right";
+		case VVRectAnchor_BL:	return @"Bottom-Left";
+		case VVRectAnchor_BR:	return @"Bottom-Right";
+		case VVRectAnchor_TM:	return @"Top-Middle";
+		case VVRectAnchor_RM:	return @"Right-Middle";
+		case VVRectAnchor_BM:	return @"Bottom-Middle";
+		case VVRectAnchor_LM:	return @"Left-Middle";
+	}
+	return nil;
+}
+static inline VVRectAnchor VVRectAnchorFromNSString(NSString *n)	{
+	if (n == nil)
+		return VVRectAnchor_Center;
+	VVRectAnchor		anchors[] = {
+		VVRectAnchor_Center,
+		VVRectAnchor_TL,
+		VVRectAnchor_TR,
+		VVRectAnchor_BL,
+		VVRectAnchor_BR,
+		VVRectAnchor_TM,
+		VVRectAnchor_RM,
+		VVRectAnchor_BM,
+		VVRectAnchor_LM
+	};
+	for (int i=0; i<sizeof(anchors)/sizeof(VVRectAnchor); ++i)	{
+		NSString	*tmpStr = NSStringFromVVRectAnchor(anchors[i]);
+		if (tmpStr == nil)
+			continue;
+		if ([n isEqualToString:tmpStr])	{
+			return anchors[i];
+		}
+	}
+	return VVRectAnchor_Center;
+}
 
 
 
 
+//	The returned rect will have the same exact dimensions as the passed rect, but the returend rect is guaranteed to have a width and height that are both >= 0
 static inline VVRECT VVRectNormalizeSize(VVRECT inRect);
+//	Same as 'VVRectNormalizeSize()', but it also rounds everything (both origin and size) to the nearest integer value
 static inline VVRECT VVRectIntegralNormalizeSize(VVRECT inRect);
 
 
@@ -212,6 +325,44 @@ static inline VVRECT VVRectIntegralNormalizeSize(VVRECT inRect)	{
 		returnMe.origin.y = round(returnMe.origin.y + returnMe.size.height);
 		returnMe.size.height = round(fabs(returnMe.size.height));
 	}
+	return returnMe;
+}
+
+
+
+
+///	- Description: "Converts" the passed point from values that describe its location in a bottom-left coordinate space to values that describe that same location in a coordinate space that has its origin in the top-left corner of the passed bounds.
+///	- Parameters:
+///		- inPoint: The point to convert
+///		- inBounds: The bounds in which the point will be converted. 'inBounds' describes a region in a bottom-left coordinate space.
+///	- Returns: The same location, expressed in a coordinate space that has its origin in the top-left corner of 'inBounds'
+static inline VVPOINT ConvertPointBLtoTL(VVPOINT inPoint, VVRECT inBounds);
+static inline VVPOINT ConvertPointTLtoBL(VVPOINT inPoint, VVRECT inBounds);
+
+static inline VVRECT ConvertRectBLtoTL(VVRECT inRect, VVRECT inBounds);
+static inline VVRECT ConvertRectTLtoBL(VVRECT inRect, VVRECT inBounds);
+
+static inline VVPOINT ConvertPointBLtoTL(VVPOINT inPoint, VVRECT inBounds)	{
+	VVPOINT		boundsTopLeft = VVRectGetAnchorPoint(inBounds, VVRectAnchor_TL);
+	VVPOINT		returnMe = NSMakePoint( (inPoint.x - boundsTopLeft.x), (boundsTopLeft.y - inPoint.y) );
+	return returnMe;
+}
+static inline VVPOINT ConvertPointTLtoBL(VVPOINT inPoint, VVRECT inBounds)	{
+	VVPOINT		boundsTopLeft = VVRectGetAnchorPoint(inBounds, VVRectAnchor_TL);
+	VVPOINT		returnMe = NSMakePoint( (boundsTopLeft.x + inPoint.x), (boundsTopLeft.y - inPoint.y) );
+	return returnMe;
+}
+
+static inline VVRECT ConvertRectBLtoTL(VVRECT inRect, VVRECT inBounds)	{
+	VVPOINT		rectTopLeft = VVRectGetAnchorPoint(inRect, VVRectAnchor_TL);
+	VVRECT		returnMe = inRect;
+	returnMe.origin = ConvertPointBLtoTL(rectTopLeft, inBounds);
+	return returnMe;
+}
+static inline VVRECT ConvertRectTLtoBL(VVRECT inRect, VVRECT inBounds)	{
+	VVPOINT		rectBottomLeft = VVRectGetAnchorPoint(inRect, VVRectAnchor_TL);
+	VVRECT		returnMe = inRect;
+	returnMe.origin = ConvertPointTLtoBL(rectBottomLeft, inBounds);
 	return returnMe;
 }
 

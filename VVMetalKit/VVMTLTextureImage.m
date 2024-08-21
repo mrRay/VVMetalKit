@@ -210,14 +210,21 @@
 	n->srcRectCart.size.width = round(tmpRect.size.width);
 	n->srcRectCart.size.height = round(tmpRect.size.height);
 	
-	n->srcRectMtl.origin.x = n->srcRectCart.origin.x;
-	n->srcRectMtl.size.width = n->srcRectCart.size.width;
-	n->srcRectMtl.size.height = n->srcRectCart.size.height;
-	NSPoint		topLeftCornerCartesian = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
-	n->srcRectMtl.origin.y = round(self.height - topLeftCornerCartesian.y);
+	NSRect		texBounds = NSMakeRect(0,0,self.width,self.height);
+	NSRect		tlRect = ConvertRectBLtoTL(tmpRect, texBounds);
+	n->srcRectMtl.origin.x = round(tlRect.origin.x);
+	n->srcRectMtl.origin.y = round(tlRect.origin.y);
+	n->srcRectMtl.size.width = round(tlRect.size.width);
+	n->srcRectMtl.size.height = round(tlRect.size.height);
 	
-	n->flipV = self.flipV;
-	n->flipH = self.flipH;
+	//n->srcRectMtl.origin.x = n->srcRectCart.origin.x;
+	//n->srcRectMtl.size.width = n->srcRectCart.size.width;
+	//n->srcRectMtl.size.height = n->srcRectCart.size.height;
+	//NSPoint		topLeftCornerCartesian = VVRectGetAnchorPoint(tmpRect, VVRectAnchor_TL);
+	//n->srcRectMtl.origin.y = round(self.height - topLeftCornerCartesian.y);
+	
+	n->flipV = (self.flipV == YES);
+	n->flipH = (self.flipH == YES);
 }
 
 - (CIImage *) createCIImageWithColorSpace:(CGColorSpaceRef)cs	{
