@@ -30,7 +30,7 @@ kernel void CopierMTLSceneFunc(
 		normCoords_dst_tl.x = 1.0 - normCoords_dst_tl.x;
 	
 	//	the srcRect coords use the bottom-left as the origin- convert this to a rect using the top-left origin coordinate system
-	GRect		srcRect_bl = geoBuffer->srcRectCart;
+	//GRect		srcRect_bl = geoBuffer->srcRectCart;
 	//GRect		srcRect_tl = MakeRect( srcRect_bl.origin.x, srcTexture.get_height()-(srcRect_bl.origin.y+srcRect_bl.size.height), srcRect_bl.size.width, srcRect_bl.size.height );
 	GRect		srcRect_tl = geoBuffer->srcRectMtl;
 	
