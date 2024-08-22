@@ -338,7 +338,7 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 			
 			//returnMe[1] = 0.;
 			//returnMe[2] = 0.;
-			returnMe[3] = 1.;
+			//returnMe[3] = 1.;
 			
 		}
 		break;
@@ -619,7 +619,8 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 			
 			float4		tmpVals;
 			tmpVals.rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709) * fadeToBlackMultiplier.rgb;
-			tmpVals.a = 1.0;
+			//tmpVals.a = 1.0;
+			tmpVals.a = rawVals.a * fadeToBlackMultiplier.a;
 			*normRGB = tmpVals;
 			
 			//*normRGB.rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709) * fadeToBlackMultiplier.rgb;
