@@ -13,6 +13,7 @@
 #import "SizingTool_c.h"
 #import "SizingTool_objc.h"
 #import "VVMTLRenderScene.h"
+#import <Metal/Metal.h>
 
 
 
@@ -171,16 +172,24 @@
 		NSLog(@"ERR: current drawable tex nil in %s",__func__);
 		return;
 	}
-	passDescriptor.colorAttachments[0].texture = currentDrawable.texture;
+	
+	MTLRenderPassDescriptor		*localDesc = [passDescriptor copy];
+	
+	localDesc.colorAttachments[0].texture = currentDrawable.texture;
+	if (localDesc.colorAttachments[0].texture == nil)	{
+		return;
+	}
 	
 	//	make a render encoder, configure it
-	id<MTLRenderCommandEncoder>		renderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:passDescriptor];
+	id<MTLRenderCommandEncoder>		renderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:localDesc];
 	if (self.label != nil)
 		renderEncoder.label = self.label;
 	else
 		renderEncoder.label = [NSString stringWithFormat:@"%@ encoder",self.className];
 	[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, viewportSize.x, viewportSize.y, -1.f, 1.f }];
 	[renderEncoder setRenderPipelineState:localPSO];
+	
+	localDesc = nil;
 	
 	//	if there's an image buffer...
 	if (localImgBuffer != nil)	{

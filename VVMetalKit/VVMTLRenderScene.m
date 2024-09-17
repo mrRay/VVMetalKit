@@ -75,14 +75,16 @@
 	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks
 	[super _renderSetup];
 	
+	MTLRenderPassDescriptor		*localDesc = [self.renderPassDescriptor copy];
+	
 	//	configure the render pass descriptor to use the attachment texture
 	if (self.renderTarget != nil)	{
-		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
+		MTLRenderPassColorAttachmentDescriptor		*attachDesc = localDesc.colorAttachments[0];
 		attachDesc.texture = self.renderTarget.texture;
 	}
 	
 	//	make a render encoder
-	self.renderEncoder = [self.commandBuffer renderCommandEncoderWithDescriptor:self.renderPassDescriptor];
+	self.renderEncoder = [self.commandBuffer renderCommandEncoderWithDescriptor:localDesc];
 	
 	//	configure the viewport
 	CGSize			tmpSize = self.renderSize;
@@ -91,6 +93,8 @@
 	//	set the pipeline state
 	if (self.renderPSO != nil)
 		[self.renderEncoder setRenderPipelineState:self.renderPSO];
+	
+	localDesc = nil;
 }
 - (void) _renderTeardown	{
 	//	if there's a color attachment, make sure it's retained through the end of the command buffer

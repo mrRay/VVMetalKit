@@ -69,6 +69,9 @@
 	return YES;
 }
 - (BOOL) renderBlackFrameToTexture:(id<VVMTLTextureImage>)inTex inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+	if (inTex == nil)
+		return NO;
+	
 	//	configure the render pass descriptor to use the attachment texture
 	MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
 	attachDesc.texture = inTex.texture;
