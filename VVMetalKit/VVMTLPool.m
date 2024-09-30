@@ -134,6 +134,14 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		if (bytesPerRow == 0)	{
 			NSSize			adjustedImgSize = NSMakeSize(recast.width, recast.height);
 			bytesPerRow = BytesPerRowFromMTLPixelFormatAndSize(recast.pfmt, &adjustedImgSize);
+			
+			if (recast.mtlBufferBacking || recast.iosfcBacking || recast.cvpbBacking)	{
+				NSUInteger		tmpAlignment = [self.device minimumTextureBufferAlignmentForPixelFormat:recast.pfmt];
+				if (tmpAlignment > 0)	{
+					bytesPerRow = ROUNDAUPTOMULTOFB(bytesPerRow,tmpAlignment);
+				}
+			}
+			
 			recast.bytesPerRow = bytesPerRow;
 		}
 		
