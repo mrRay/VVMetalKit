@@ -126,6 +126,7 @@
 		1AED793C2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED793A2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h */; };
 		1AED793D2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AED793B2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m */; };
 		1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1AFC446E2CAD8EB300EF3FEB /* VVMTLTextureImageShaderFuncs.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AFC446D2CAD8D5A00EF3FEB /* VVMTLTextureImageShaderFuncs.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -237,6 +238,7 @@
 		1AED792B2A152539004C0126 /* MSLCompModeRecipe.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeRecipe.m; sourceTree = "<group>"; };
 		1AED793A2A152BC0004C0126 /* MSLCompModeNSStringAdditions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeNSStringAdditions.h; sourceTree = "<group>"; };
 		1AED793B2A152BC0004C0126 /* MSLCompModeNSStringAdditions.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeNSStringAdditions.m; sourceTree = "<group>"; };
+		1AFC446D2CAD8D5A00EF3FEB /* VVMTLTextureImageShaderFuncs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageShaderFuncs.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -331,6 +333,7 @@
 				1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */,
 				1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */,
 				1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */,
+				1AFC446D2CAD8D5A00EF3FEB /* VVMTLTextureImageShaderFuncs.h */,
 				1A0FBEDD260E257600FF39BB /* RenderProperties.h */,
 				1A0FBEDE260E257600FF39BB /* RenderProperties.m */,
 				1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */,
@@ -420,6 +423,7 @@
 				1ABE245F2A4DE8B400317187 /* VVMTLTextureImageView.h in Headers */,
 				1ABE24662A4DE90A00317187 /* VVMTLTextureImageRectViewShaderTypes.h in Headers */,
 				1ABE24652A4DE90400317187 /* VVMTLTextureImageShaderTypes.h in Headers */,
+				1AFC446E2CAD8EB300EF3FEB /* VVMTLTextureImageShaderFuncs.h in Headers */,
 				1A4819792816C7D600CE2D00 /* BicubicInterpolation.h in Headers */,
 				1A4819732816C7AD00CE2D00 /* BilinearInterpolation.h in Headers */,
 				1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */,
