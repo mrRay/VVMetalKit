@@ -1134,14 +1134,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	VVMTLTextureImageDescriptor		*desc = (VVMTLTextureImageDescriptor*)n.descriptor;
 	NSString		*tmpString = [NSString
-		stringWithFormat:@"%@ (%ld) %ldx%ld %d.%d.%d",
+		stringWithFormat:@"%@ (%ld) %ldx%ld %d.%d.%d %d",
 		NSStringFromMTLPixelFormat(desc.pfmt),
 		(unsigned long)TEXINDEX,
 		(unsigned long)desc.width,
 		(unsigned long)desc.height,
 		desc.mtlBufferBacking,
 		desc.iosfcBacking,
-		desc.cvpbBacking];
+		desc.cvpbBacking,
+		n.flipV];
 	n.texture.label = tmpString;
 	++TEXINDEX;
 	

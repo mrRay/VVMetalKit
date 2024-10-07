@@ -16,6 +16,7 @@
 #ifdef __METAL_VERSION__
 
 
+//	'normSampleLoc' is normalized and uses a cartesian coordinate space
 static inline float4 NormSampleImage(texture2d<float, access::sample> inSampler, constant VVMTLTextureImageStruct * inImgData, thread GPoint * normSampleLoc)	{
 	if (is_null_texture(inSampler))
 		return float4(0,0,0,1);
@@ -25,7 +26,7 @@ static inline float4 NormSampleImage(texture2d<float, access::sample> inSampler,
 	//	pixel-based coords, metal coordinate system
 	GRect		sampleRegion_pxl_mcs = inImgData->srcRectMtl;
 	
-	//	sample location is already normalized- account for flippedness
+	//	sample location is already normalized- account for flippedness and conversion to the metal coordinate space
 	GPoint		sampleLoc = { normSampleLoc->x, 1.0-normSampleLoc->y };
 	if (inImgData->flipV)	{
 		sampleLoc.y = 1.0 - sampleLoc.y;
