@@ -208,6 +208,9 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			}
 			
 		}	//	pools for loop
+		if (_cvTexCache != NULL)	{
+			CVMetalTextureCacheFlush(_cvTexCache,0);
+		}
 	}	//	@synchronized
 }
 
