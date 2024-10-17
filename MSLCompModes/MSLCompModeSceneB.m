@@ -41,7 +41,7 @@
 - (void) compModeReloadNotification:(NSNotification *)note	{
 	//NSLog(@"%s",__func__);
 	
-	//	we're 'scene A', so get 'rsrcCtrlrA' from the global comp mode controller, and get our resource from that
+	//	we're 'scene B', so get 'rsrcCtrlrB' from the global comp mode controller, and get our resource from that
 	MSLCompModeResourceController		*rsrcCtrlr = MSLCompModeController.global.rsrcCtrlrB;
 	self.resource = [rsrcCtrlr resourceForDevice:self.device];
 	//	we can get our PSO from the resources object

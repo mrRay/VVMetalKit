@@ -88,6 +88,8 @@
 		1ABE24652A4DE90400317187 /* VVMTLTextureImageShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ABE24662A4DE90A00317187 /* VVMTLTextureImageRectViewShaderTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24612A4DE8CC00317187 /* VVMTLTextureImageRectViewShaderTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE390F2CB5985900E0819B /* VVMTLPerspRenderScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE390D2CB5985900E0819B /* VVMTLPerspRenderScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ABE39102CB5985900E0819B /* VVMTLPerspRenderScene.mm in Sources */ = {isa = PBXBuildFile; fileRef = 1ABE390E2CB5985900E0819B /* VVMTLPerspRenderScene.mm */; };
 		1AC4AC132A5EFB9D00119888 /* VVMTLLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC4AC142A5EFB9D00119888 /* VVMTLLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */; };
 		1AC4AC232A5EFED900119888 /* VVMTLTextureLUT.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC212A5EFED900119888 /* VVMTLTextureLUT.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -113,6 +115,8 @@
 		1AC82CED27FF2901009A9989 /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
 		1AC82CEE27FF2901009A9989 /* VVColorConversions.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A199DF1279F6A2B00EE9ACB /* VVColorConversions.metal */; };
 		1AC82CEF27FF2901009A9989 /* SwizzleMTLScene.metal in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDA260E244000FF39BB /* SwizzleMTLScene.metal */; };
+		1ACE29A22CC0329000735675 /* AAPLMathUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1ACE29A32CC0329000735675 /* AAPLMathUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */; };
 		1AE5D72526165A470064DC1C /* SizingTool_c.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AE5D72326165A470064DC1C /* SizingTool_c.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AED790E2A1524D6004C0126 /* MSLCompModes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED790D2A1524D6004C0126 /* MSLCompModes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AED79202A152510004C0126 /* MSLCompMode.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AED791E2A152510004C0126 /* MSLCompMode.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -218,12 +222,16 @@
 		1ABE24622A4DE8E600317187 /* VVMTLTextureImageRectView.metal */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.metal; path = VVMTLTextureImageRectView.metal; sourceTree = "<group>"; };
 		1ABE24642A4DE90000317187 /* VVMTLTextureImageShaderTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageShaderTypes.h; sourceTree = "<group>"; };
 		1ABE24672A4DF47200317187 /* VVMTLScene_priv.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLScene_priv.h; sourceTree = "<group>"; };
+		1ABE390D2CB5985900E0819B /* VVMTLPerspRenderScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLPerspRenderScene.h; sourceTree = "<group>"; };
+		1ABE390E2CB5985900E0819B /* VVMTLPerspRenderScene.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = VVMTLPerspRenderScene.mm; sourceTree = "<group>"; };
 		1AC4AC122A5EFB9D00119888 /* VVMTLLUT.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLLUT.h; sourceTree = "<group>"; };
 		1AC4AC212A5EFED900119888 /* VVMTLTextureLUT.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureLUT.h; sourceTree = "<group>"; };
 		1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureLUT.m; sourceTree = "<group>"; };
 		1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureLUTDescriptor.h; sourceTree = "<group>"; };
 		1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureLUTDescriptor.m; sourceTree = "<group>"; };
 		1AC82CF827FF2901009A9989 /* VVMetalKitTouch.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = VVMetalKitTouch.framework; sourceTree = BUILT_PRODUCTS_DIR; };
+		1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAPLMathUtilities.h; sourceTree = "<group>"; };
+		1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AAPLMathUtilities.m; sourceTree = "<group>"; };
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
 		1AE5D72326165A470064DC1C /* SizingTool_c.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_c.h; sourceTree = "<group>"; };
 		1AED790B2A1524D6004C0126 /* MSLCompModes.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = MSLCompModes.framework; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -326,6 +334,8 @@
 				1ABE24562A4DE88B00317187 /* VVMTLRenderScene.m */,
 				1A06925A2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h */,
 				1A06925B2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m */,
+				1ABE390D2CB5985900E0819B /* VVMTLPerspRenderScene.h */,
+				1ABE390E2CB5985900E0819B /* VVMTLPerspRenderScene.mm */,
 				1ABE24592A4DE8A500317187 /* VVMTLTextureImageRectView.h */,
 				1ABE245A2A4DE8A500317187 /* VVMTLTextureImageRectView.m */,
 				1ABE245D2A4DE8B400317187 /* VVMTLTextureImageView.h */,
@@ -361,6 +371,8 @@
 				1A4819722816C7AD00CE2D00 /* BilinearInterpolation.h */,
 				1A4819782816C7D600CE2D00 /* BicubicInterpolation.h */,
 				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
+				1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */,
+				1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */,
 			);
 			path = VVMetalKit;
 			sourceTree = "<group>";
@@ -444,6 +456,7 @@
 				1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */,
 				1AC4AC132A5EFB9D00119888 /* VVMTLLUT.h in Headers */,
 				1A06925C2AF2649700A2DA9F /* VVMTLOrthoRenderScene.h in Headers */,
+				1ABE390F2CB5985900E0819B /* VVMTLPerspRenderScene.h in Headers */,
 				1A976B6D2A461D4C00C654FA /* VVMTLRecycleable.h in Headers */,
 				1A20CF012A46213B00F2EDBB /* VVMTLRecyclingPool.h in Headers */,
 				1A20CF032A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h in Headers */,
@@ -454,6 +467,7 @@
 				1AC4AC272A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h in Headers */,
 				1A20CF0E2A4A1A3700F2EDBB /* VVMTLPool.h in Headers */,
 				1A0AEA982A55B6F6003BBFBE /* VVMTLUtilities.h in Headers */,
+				1ACE29A22CC0329000735675 /* AAPLMathUtilities.h in Headers */,
 				1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -631,6 +645,7 @@
 				1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */,
 				1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */,
 				1A6A02D82AF3DDC4003B12BF /* CMVMTLDrawObject.m in Sources */,
+				1ACE29A32CC0329000735675 /* AAPLMathUtilities.m in Sources */,
 				1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */,
 				1A9924052A4DA41F00F5094D /* VVMTLBuffer.m in Sources */,
 				1ABE24502A4DE87500317187 /* VVMTLScene.m in Sources */,
@@ -652,6 +667,7 @@
 				1AC4AC282A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m in Sources */,
 				1ABE24632A4DE8E600317187 /* VVMTLTextureImageRectView.metal in Sources */,
 				1A20CF0B2A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.m in Sources */,
+				1ABE39102CB5985900E0819B /* VVMTLPerspRenderScene.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -363,7 +363,7 @@ char get_line_intersection(
 		CMVSimpleVertex		*wPtr = baseGeoVert + i;
 		
 		tmpPoint = VVRectGetAnchorPoint(inRect, *(geoRPtr+i));
-		wPtr->position = simd_make_float2(tmpPoint.x, tmpPoint.y);
+		wPtr->position = simd_make_float4(tmpPoint.x, tmpPoint.y, 0., 1.);
 		
 		tmpPoint = VVRectGetAnchorPoint(inImgSrcRect, *(texRPtr+i));
 		wPtr->texCoord = simd_make_float2(tmpPoint.x, tmpPoint.y);
@@ -512,7 +512,7 @@ char get_line_intersection(
 	for (int i=0; i<4; ++i)	{
 		NSPoint		tmpPoint = VVRectGetAnchorPoint( inRect, anchorsToFetch[i] );
 		vtxPtr->color = colorsVec;
-		vtxPtr->position = simd_make_float2( tmpPoint.x, tmpPoint.y );
+		vtxPtr->position = simd_make_float4( tmpPoint.x, tmpPoint.y, 0., 1. );
 		vtxPtr->texIndex = -1;
 		
 		*indexPtr = baseIndexOffset + i;
@@ -659,7 +659,7 @@ char get_line_intersection(
 				NSPoint			*rPtr = inPoints + i;
 				CMVSimpleVertex		*wPtr = baseGeoVert + i;
 				
-				wPtr->position = simd_make_float2( rPtr->x, rPtr->y );
+				wPtr->position = simd_make_float4( rPtr->x, rPtr->y, 0., 1. );
 				wPtr->color = colors_vec;
 				wPtr->texIndex = -1;
 			}
@@ -848,13 +848,13 @@ char get_line_intersection(
 				VVLWSegment		*rPtr = tmpSegments + i;
 				CMVSimpleVertex		*wPtr = baseGeoVert + (2 * i);
 				
-				wPtr->position = simd_make_float2( rPtr->p.x, rPtr->p.y );
+				wPtr->position = simd_make_float4( rPtr->p.x, rPtr->p.y, 0., 1. );
 				wPtr->color = colors_vec;
 				wPtr->texIndex = -1;
 				
 				++wPtr;
 				
-				wPtr->position = simd_make_float2( rPtr->q.x, rPtr->q.y );
+				wPtr->position = simd_make_float4( rPtr->q.x, rPtr->q.y, 0., 1. );
 				wPtr->color = colors_vec;
 				wPtr->texIndex = -1;
 				
@@ -862,13 +862,13 @@ char get_line_intersection(
 				
 				//	if this is the last segment, we need to copy 'r' and 's', too!
 				if (i == lastSegmentIndex)	{
-					wPtr->position = simd_make_float2( rPtr->r.x, rPtr->r.y );
+					wPtr->position = simd_make_float4( rPtr->r.x, rPtr->r.y, 0., 1. );
 					wPtr->color = colors_vec;
 					wPtr->texIndex = -1;
 					
 					++wPtr;
 					
-					wPtr->position = simd_make_float2( rPtr->s.x, rPtr->s.y );
+					wPtr->position = simd_make_float4( rPtr->s.x, rPtr->s.y, 0., 1. );
 					wPtr->color = colors_vec;
 					wPtr->texIndex = -1;
 					
@@ -1017,7 +1017,7 @@ char get_line_intersection(
 	
 	//	populate structs in the geometry buffer using the passed array of points
 	for (int i=0; i<inPointsCount; ++i)	{
-		baseGeoVert->position = simd_make_float2( pointPtr->x, pointPtr->y );
+		baseGeoVert->position = simd_make_float4( pointPtr->x, pointPtr->y, 0., 1. );
 		baseGeoVert->color = colors_vec;
 		baseGeoVert->texIndex = -1;
 		

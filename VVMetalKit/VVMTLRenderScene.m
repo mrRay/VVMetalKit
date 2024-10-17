@@ -7,6 +7,7 @@
 
 #import "VVMTLRenderScene.h"
 
+#import <VVMetalKit/AAPLMathUtilities.h>
 #import "VVMTLTextureImage.h"
 #import "VVMTLPool.h"
 #import "VVMacros.h"
@@ -37,7 +38,8 @@
 		self.renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
 		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
 		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
-		attachDesc.loadAction = MTLLoadActionDontCare;
+		//attachDesc.loadAction = MTLLoadActionDontCare;
+		attachDesc.loadAction = MTLLoadActionClear;
 		
 		self.renderPSODesc = [[MTLRenderPipelineDescriptor alloc] init];
 		//self.renderPSODesc.vertexFunction = vertFunc;
@@ -88,7 +90,7 @@
 	
 	//	configure the viewport
 	CGSize			tmpSize = self.renderSize;
-	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -1.f, 1.f }];
+	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -10.f, 10.f }];
 	
 	//	set the pipeline state
 	if (self.renderPSO != nil)
@@ -151,26 +153,8 @@ id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inF
 		right = VVMINX(inCanvasBounds);
 		left = VVMAXX(inCanvasBounds);
 	}
-	matrix_float4x4			mvp = simd_matrix_from_rows(
-		//	old and busted
-		//simd_make_float4( 2.0/(right-left), 0.0, 0.0, -1.0*(right+left)/(right-left) ),
-		//simd_make_float4( 0.0, 2.0/(top-bottom), 0.0, -1.0*(top+bottom)/(top-bottom) ),
-		//simd_make_float4( 0.0, 0.0, -2.0/(far-near), -1.0*(far+near)/(far-near) ),
-		//simd_make_float4( 0.0, 0.0, 0.0, 1.0 )
-		
-		//	left-handed coordinate ortho!
-		//simd_make_float4(	2.0/(right-left),	0.0,				0.0,				(right+left)/(left-right) ),
-		//simd_make_float4(	0.0,				2.0/(top-bottom),	0.0,				(top+bottom)/(bottom-top) ),
-		//simd_make_float4(	0.0,				0.0,				2.0/(far-near),	(near)/(near-far) ),
-		//simd_make_float4(	0.0,				0.0,				0.0,				1.0 )
-		
-		//	right-handed coordinate ortho!
-		simd_make_float4(	2.0/(right-left),	0.0,				0.0,				(right+left)/(left-right) ),
-		simd_make_float4(	0.0,				2.0/(top-bottom),	0.0,				(top+bottom)/(bottom-top) ),
-		simd_make_float4(	0.0,				0.0,				-2.0/(far-near),	(near)/(near-far) ),
-		simd_make_float4(	0.0,				0.0,				0.0,				1.0 )
-		
-	);
+	
+	matrix_float4x4		mvp = matrix_ortho_left_hand(left, right, bottom, top, near, far);
 	
 	id<MTLBuffer>		returnMe = [inDevice
 		newBufferWithBytes:&mvp
@@ -179,3 +163,7 @@ id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inF
 	
 	return returnMe;
 }
+
+
+
+

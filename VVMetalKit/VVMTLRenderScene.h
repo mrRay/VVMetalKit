@@ -32,8 +32,16 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+#if defined __cplusplus
+extern "C"	{
+#endif
 
 id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inFlipH, BOOL inFlipV, id<MTLDevice> inDevice);
+
+
+#if defined __cplusplus
+}
+#endif
 
 
 
