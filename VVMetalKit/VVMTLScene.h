@@ -26,7 +26,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice;
 
 - (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
+- (id<VVMTLTextureImage>) createAndRenderWithDepthToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
 - (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb;
+- (void) renderToTexture:(id<VVMTLTextureImage>)n depthBuffer:(id<VVMTLTextureImage>)d inCommandBuffer:(id<MTLCommandBuffer>)cb;
 
 /*		do all the rendering here.  when this method is called on a subclass, a pass 
 descriptor and render encoder MUST already exist and have been configured.  do NOT end 
@@ -42,6 +44,7 @@ encoding or commit the cmd buffer in this method.			*/
 @property (strong) NSString * label;
 
 @property (readonly,nonatomic) id<VVMTLTextureImage> renderTarget;
+@property (readonly,nonatomic) id<VVMTLTextureImage> depthTarget;
 @property (readwrite,nonatomic) NSSize renderSize;
 @property (readwrite,nonatomic) CGColorSpaceRef colorSpace;
 

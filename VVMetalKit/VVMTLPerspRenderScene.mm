@@ -8,7 +8,7 @@
 #import "VVMTLPerspRenderScene.h"
 
 #include "CustomMetalViewShaderTypes.h"
-#import <VVMetalKit/SizingTool_objc.h>
+#import <VVMetalKit/VVMetalKit.h>
 //#import "AAPLTransforms.h"
 #import <VVMetalKit/AAPLMathUtilities.h>
 
@@ -25,6 +25,15 @@ using namespace simd;
 
 @implementation VVMTLPerspRenderScene
 
+- (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice	{
+	self = [super initWithDevice:inDevice];
+	if (self != nil)	{
+		
+		//	depth attachment pixel format- but only use this if we're working with depth...
+		self.renderPSODesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+	}
+	return self;
+}
 - (void) _renderSetup	{
 	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks, configures the pass descriptor, makes an encoder and has it load the PSO (which must be prepared before this- likely on init?)
 	[super _renderSetup];
@@ -44,7 +53,6 @@ using namespace simd;
 		//NSLog(@"******** canvasSizedWithinUnity is %@",NSStringFromRect(canvasSizedWithinUnity));
 		//self.mvpBuffer = CreatePerspectiveMVPBufferForCanvas(canvasSizedWithinUnity, YES, NO, self.device );
 	}
-	
 }
 
 - (void) renderCallback	{

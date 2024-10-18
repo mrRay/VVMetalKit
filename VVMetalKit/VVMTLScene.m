@@ -69,15 +69,32 @@
 	[self renderToTexture:returnMe inCommandBuffer:cb];
 	return returnMe;
 }
+- (id<VVMTLTextureImage>) createAndRenderWithDepthToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+	VVMTLPool			*pool = [VVMTLPool global];
+	if (pool == nil)
+		return nil;
+	
+	id<VVMTLTextureImage>		returnMe = [pool bgra8TexSized:inSize];
+	if (returnMe == nil)
+		return nil;
+	id<VVMTLTextureImage>		tmpDepth = [pool depthTexSized:inSize];
+	[self renderToTexture:returnMe depthBuffer:tmpDepth inCommandBuffer:cb];
+	return returnMe;
+}
 - (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb	{
+	[self renderToTexture:n depthBuffer:nil inCommandBuffer:cb];
+}
+- (void) renderToTexture:(id<VVMTLTextureImage>)n depthBuffer:(id<VVMTLTextureImage>)d inCommandBuffer:(id<MTLCommandBuffer>)cb	{
 	self.renderSize = (n==nil) ? CGSizeMake(1,1) : CGSizeMake(n.width, n.height);
 	
 	self.renderTarget = n;
+	self.depthTarget = d;
 	self.commandBuffer = cb;
 	
 	[self _renderCallback];
 	
 	self.commandBuffer = nil;
+	self.depthTarget = nil;
 	self.renderTarget = nil;
 }
 

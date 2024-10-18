@@ -15,6 +15,7 @@
 @property (strong,nonatomic) id<MTLCommandBuffer> commandBuffer;
 
 @property (strong,nonatomic) id<VVMTLTextureImage> renderTarget;
+@property (strong,nonatomic) id<VVMTLTextureImage> depthTarget;
 
 - (void) _renderCallback;
 - (void) _renderSetup;

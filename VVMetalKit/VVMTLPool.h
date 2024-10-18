@@ -66,6 +66,8 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) lum8TexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) bufferBackedLum8TexSized:(NSSize)n;
 
+- (id<VVMTLTextureImage>) depthTexSized:(NSSize)n;
+
 - (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;
 //- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;
 - (id<VVMTLTextureImage>) createFromNSImage:(NSImage *)n;

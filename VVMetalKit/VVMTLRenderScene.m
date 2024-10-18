@@ -17,6 +17,7 @@
 
 @interface VVMTLRenderScene ()
 @property (strong,nonatomic) MTLRenderPassDescriptor * renderPassDescriptor;
+@property (strong,nonatomic) MTLDepthStencilDescriptor * depthDesc;
 @property (readwrite,nonatomic) id<MTLRenderCommandEncoder> renderEncoder;
 @end
 
@@ -40,6 +41,8 @@
 		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
 		//attachDesc.loadAction = MTLLoadActionDontCare;
 		attachDesc.loadAction = MTLLoadActionClear;
+		self.renderPassDescriptor.depthAttachment.clearDepth = 1.0;
+		self.renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
 		
 		self.renderPSODesc = [[MTLRenderPipelineDescriptor alloc] init];
 		//self.renderPSODesc.vertexFunction = vertFunc;
@@ -63,6 +66,15 @@
 		//self.renderPSODesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
 		//self.renderPSODesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 		//self.renderPSODesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+		
+		//	depth attachment pixel format- but only use this if we're working with depth...
+		//self.renderPSODesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
+		
+		self.depthDesc = [MTLDepthStencilDescriptor new];
+		self.depthDesc.depthCompareFunction = MTLCompareFunctionLessEqual;
+		self.depthDesc.depthWriteEnabled = YES;
+		
+		self.depthState = [self.device newDepthStencilStateWithDescriptor:self.depthDesc];
 	}
 	return self;
 }
@@ -83,6 +95,9 @@
 	if (self.renderTarget != nil)	{
 		MTLRenderPassColorAttachmentDescriptor		*attachDesc = localDesc.colorAttachments[0];
 		attachDesc.texture = self.renderTarget.texture;
+	}
+	if (self.depthTarget != nil)	{
+		localDesc.depthAttachment.texture = self.depthTarget.texture;
 	}
 	
 	//	make a render encoder

@@ -772,6 +772,7 @@ NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n)	{
 	case MTLPixelFormatBC6H_RGBUfloat:	return @"BC6UF";
 	case MTLPixelFormatBC6H_RGBFloat:	return @"BC6F";
 	case MTLPixelFormatBC7_RGBAUnorm:	return @"BC7";
+	case MTLPixelFormatDepth32Float:	return @"Depth32";
 	default:							return @"???";
 	}
 	return @"???";
@@ -811,6 +812,7 @@ BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt)	{
 	case MTLPixelFormatBC6H_RGBFloat:
 	case MTLPixelFormatBC6H_RGBUfloat:
 	case MTLPixelFormatRGBA32Float:
+	case MTLPixelFormatDepth32Float:
 		return YES;
 	default:
 		return NO;
@@ -935,6 +937,7 @@ size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inou
 		bytesPerRow = size.width * 16 * 4 / 8;
 		break;
 	case MTLPixelFormatRGBA32Float:
+	case MTLPixelFormatDepth32Float:
 		bytesPerRow = size.width * 32 * 4 / 8;
 		break;
 	case MTLPixelFormatBC1_RGBA:
@@ -1018,6 +1021,7 @@ OSType BestGuessCVPixelFormatTypeForMTLPixelFormat(MTLPixelFormat inPF)	{
 		cvPixelFormat = kCVPixelFormatType_64RGBAHalf;
 		break;
 	case MTLPixelFormatRGBA32Float:
+	case MTLPixelFormatDepth32Float:
 		cvPixelFormat = kCVPixelFormatType_128RGBAFloat;
 		break;
 	

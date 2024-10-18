@@ -738,6 +738,20 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	return returnMe;
 }
 
+- (id<VVMTLTextureImage>) depthTexSized:(NSSize)n	{
+	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+		createWithWidth:round(n.width)
+		height:round(n.height)
+		pixelFormat:MTLPixelFormatDepth32Float
+		storage:MTLStorageModePrivate
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+		bytesPerRow:0];
+	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+
 - (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize	{
 	if (inRef == NULL)
 		return nil;
