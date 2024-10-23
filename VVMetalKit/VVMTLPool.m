@@ -739,13 +739,34 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 - (id<VVMTLTextureImage>) depthTexSized:(NSSize)n	{
-	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
-		createWithWidth:round(n.width)
-		height:round(n.height)
-		pixelFormat:MTLPixelFormatDepth32Float
-		storage:MTLStorageModePrivate
-		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
-		bytesPerRow:0];
+	
+	BOOL		supportsMemoryless = NO;
+	if ([_device supportsFamily:MTLGPUFamilyApple8] || [_device supportsFamily:MTLGPUFamilyApple7])
+		supportsMemoryless = YES;
+	
+	VVMTLTextureImageDescriptor		*desc = nil;
+	if (supportsMemoryless)	{
+		desc = [VVMTLTextureImageDescriptor
+			createWithWidth:round(n.width)
+			height:round(n.height)
+			pixelFormat:MTLPixelFormatDepth32Float
+			//pixelFormat:MTLPixelFormatDepth32Float_Stencil8
+			//storage:MTLStorageModePrivate
+			storage:MTLStorageModeMemoryless
+			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			usage:MTLTextureUsageRenderTarget
+			bytesPerRow:0];
+	}
+	else	{
+		desc = [VVMTLTextureImageDescriptor
+			createWithWidth:round(n.width)
+			height:round(n.height)
+			pixelFormat:MTLPixelFormatDepth32Float
+			storage:MTLStorageModePrivate
+			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			usage:MTLTextureUsageRenderTarget
+			bytesPerRow:0];
+	}
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	[self timestampThis:returnMe];
@@ -1186,6 +1207,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		case MTLPixelFormatBC7_RGBAUnorm:
 		case MTLPixelFormatBC6H_RGBUfloat:
 		case MTLPixelFormatBC6H_RGBFloat:
+		case MTLPixelFormatDepth32Float_Stencil8:
 			//	intentionally blank- do nothing, these pixel formats are "okay"
 			break;
 		default:

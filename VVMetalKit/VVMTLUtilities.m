@@ -773,6 +773,7 @@ NSString * NSStringFromMTLPixelFormat(MTLPixelFormat n)	{
 	case MTLPixelFormatBC6H_RGBFloat:	return @"BC6F";
 	case MTLPixelFormatBC7_RGBAUnorm:	return @"BC7";
 	case MTLPixelFormatDepth32Float:	return @"Depth32";
+	case MTLPixelFormatDepth32Float_Stencil8:		return @"D32S8";
 	default:							return @"???";
 	}
 	return @"???";
@@ -813,6 +814,7 @@ BOOL IsMTLPixelFormatFloatingPoint(MTLPixelFormat inPfmt)	{
 	case MTLPixelFormatBC6H_RGBUfloat:
 	case MTLPixelFormatRGBA32Float:
 	case MTLPixelFormatDepth32Float:
+	case MTLPixelFormatDepth32Float_Stencil8:
 		return YES;
 	default:
 		return NO;
@@ -940,6 +942,9 @@ size_t BytesPerRowFromMTLPixelFormatAndSize(MTLPixelFormat inPfmt, NSSize * inou
 	case MTLPixelFormatDepth32Float:
 		bytesPerRow = size.width * 32 * 4 / 8;
 		break;
+	case MTLPixelFormatDepth32Float_Stencil8:
+		bytesPerRow = size.width * 40 * 4 / 8;
+		break;
 	case MTLPixelFormatBC1_RGBA:
 		size.width = ROUNDAUPTOMULTOFB((int)round(size.width), DXT_BLOCK_SIZE);
 		size.height = ROUNDAUPTOMULTOFB((int)round(size.height), DXT_BLOCK_SIZE);
@@ -984,7 +989,7 @@ MTLResourceOptions MTLResourceStorageModeForMTLStorageMode(MTLStorageMode inStor
 		returnMe = MTLResourceStorageModeManaged;
 		break;
 	case MTLStorageModeMemoryless:
-		//	intentionally blank, not handled
+		returnMe = MTLResourceStorageModeMemoryless;
 		break;
 	}
 	return returnMe;

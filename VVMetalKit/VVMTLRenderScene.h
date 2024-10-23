@@ -25,7 +25,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly,nonatomic) MTLRenderPassDescriptor * renderPassDescriptor;
 @property (readonly,nonatomic) id<MTLRenderCommandEncoder> renderEncoder;
 
-@property (readonly,nonatomic) MTLDepthStencilDescriptor * depthDesc;
 @property (strong) id<MTLDepthStencilState> depthState;
 
 //	subclasses are expected to populate these because they will likely vary from implementation to implementation
@@ -40,6 +39,7 @@ extern "C"	{
 #endif
 
 id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inFlipH, BOOL inFlipV, id<MTLDevice> inDevice);
+matrix_float4x4 CreatePerspectiveProjectionForCanvas(NSRect inCanvasBounds, double near, double far, id<MTLDevice> inDevice);
 
 
 #if defined __cplusplus

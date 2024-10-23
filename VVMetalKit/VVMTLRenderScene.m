@@ -17,7 +17,6 @@
 
 @interface VVMTLRenderScene ()
 @property (strong,nonatomic) MTLRenderPassDescriptor * renderPassDescriptor;
-@property (strong,nonatomic) MTLDepthStencilDescriptor * depthDesc;
 @property (readwrite,nonatomic) id<MTLRenderCommandEncoder> renderEncoder;
 @end
 
@@ -41,8 +40,10 @@
 		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
 		//attachDesc.loadAction = MTLLoadActionDontCare;
 		attachDesc.loadAction = MTLLoadActionClear;
+		
 		self.renderPassDescriptor.depthAttachment.clearDepth = 1.0;
 		self.renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
+		//self.renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
 		
 		self.renderPSODesc = [[MTLRenderPipelineDescriptor alloc] init];
 		//self.renderPSODesc.vertexFunction = vertFunc;
@@ -66,15 +67,6 @@
 		//self.renderPSODesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
 		//self.renderPSODesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 		//self.renderPSODesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-		
-		//	depth attachment pixel format- but only use this if we're working with depth...
-		//self.renderPSODesc.depthAttachmentPixelFormat = MTLPixelFormatDepth32Float;
-		
-		self.depthDesc = [MTLDepthStencilDescriptor new];
-		self.depthDesc.depthCompareFunction = MTLCompareFunctionLessEqual;
-		self.depthDesc.depthWriteEnabled = YES;
-		
-		self.depthState = [self.device newDepthStencilStateWithDescriptor:self.depthDesc];
 	}
 	return self;
 }
@@ -177,6 +169,19 @@ id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inF
 		options:MTLResourceStorageModeShared];
 	
 	return returnMe;
+}
+matrix_float4x4 CreatePerspectiveProjectionForCanvas(NSRect inCanvasBounds, double near, double far, id<MTLDevice> inDevice)	{
+	double			left = round(VVMINX(inCanvasBounds));
+	double			right = round(VVMAXX(inCanvasBounds));
+	double			top = round(VVMAXY(inCanvasBounds));
+	double			bottom = round(VVMINY(inCanvasBounds));
+	matrix_float4x4			mvp = simd_matrix_from_rows(
+		simd_make_float4((2.*near)/(right-left),	0.,							0.,							0.),
+		simd_make_float4(0.,						(2.*near)/(top-bottom),		0.,							0.),
+		simd_make_float4(0.,						0.,							(-1.*(far))/(far-near),		-1.),
+		simd_make_float4(0.,						0.,							(-1.*far*near)/(far-near),	0.)
+	);
+	return mvp;
 }
 
 
