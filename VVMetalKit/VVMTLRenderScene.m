@@ -8,6 +8,7 @@
 #import "VVMTLRenderScene.h"
 
 #import <VVMetalKit/AAPLMathUtilities.h>
+#import "VVMTLScene_priv.h"
 #import "VVMTLTextureImage.h"
 #import "VVMTLPool.h"
 #import "VVMacros.h"
@@ -45,6 +46,9 @@
 		self.renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
 		//self.renderPassDescriptor.depthAttachment.storeAction = MTLStoreActionStore;
 		
+		self.renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+		//self.renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
+		
 		self.renderPSODesc = [[MTLRenderPipelineDescriptor alloc] init];
 		//self.renderPSODesc.vertexFunction = vertFunc;
 		//self.renderPSODesc.fragmentFunction = fragFunc;
@@ -77,17 +81,30 @@
 }
 
 
+- (void) _renderCallback	{
+	//	if we don't currently have a PSO, load one!
+	if (self.renderPSO == nil)	{
+		[self _loadPSO];
+	}
+	[super _renderCallback];
+}
 - (void) _renderSetup	{
 	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks
 	[super _renderSetup];
 	
 	MTLRenderPassDescriptor		*localDesc = [self.renderPassDescriptor copy];
 	
-	//	configure the render pass descriptor to use the attachment texture
-	if (self.renderTarget != nil)	{
-		MTLRenderPassColorAttachmentDescriptor		*attachDesc = localDesc.colorAttachments[0];
-		attachDesc.texture = self.renderTarget.texture;
+	//	configure the render pass descriptor to use the various attached textures
+	if (self.msaaTarget != nil)	{
+		localDesc.colorAttachments[0].texture = self.msaaTarget.texture;
+		if (self.renderTarget != nil)
+			localDesc.colorAttachments[0].resolveTexture = self.renderTarget.texture;
 	}
+	else if (self.renderTarget != nil)	{
+		localDesc.colorAttachments[0].texture = self.renderTarget.texture;
+		localDesc.colorAttachments[0].resolveTexture = nil;
+	}
+	
 	if (self.depthTarget != nil)	{
 		localDesc.depthAttachment.texture = self.depthTarget.texture;
 	}
@@ -131,6 +148,15 @@
 	[super setRenderSize:n];
 	if (changed)	{
 		self.mvpBuffer = nil;
+	}
+}
+
+
+- (void) setMsaaSamplecount:(NSUInteger)n	{
+	BOOL		changed = (self.msaaSampleCount != n);
+	[super setMsaaSampleCount:n];
+	if (changed)	{
+		self.renderPSO = nil;
 	}
 }
 

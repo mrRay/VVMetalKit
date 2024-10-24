@@ -16,6 +16,7 @@
 
 @property (strong,nonatomic) id<VVMTLTextureImage> renderTarget;
 @property (strong,nonatomic) id<VVMTLTextureImage> depthTarget;
+@property (strong,nonatomic) id<VVMTLTextureImage> msaaTarget;
 
 - (void) _renderCallback;
 - (void) _renderSetup;

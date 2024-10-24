@@ -30,6 +30,7 @@ NS_ASSUME_NONNULL_BEGIN
 //	subclasses are expected to populate these because they will likely vary from implementation to implementation
 @property (strong,nonatomic,nullable) id<MTLBuffer> mvpBuffer;
 
+
 @end
 
 

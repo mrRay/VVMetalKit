@@ -6,7 +6,7 @@
 //
 
 #import "VVMTLComputeScene.h"
-
+#import "VVMTLScene_priv.h"
 #import "VVMTLTextureImage.h"
 #import "VVMTLPool.h"
 
@@ -40,6 +40,13 @@
 }
 
 
+- (void) _renderCallback	{
+	//	if we don't currently have a PSO, load one!
+	if (self.computePipelineStateObject == nil)	{
+		[self _loadPSO];
+	}
+	[super _renderCallback];
+}
 - (void) _renderSetup	{
 	if (self.threadGroupSizeVal < 1 && self.computePipelineStateObject != nil)	{
 		//	threadGroupSize.width * threadGroupSize.height * threadGroupSize.depth MUST BE <= max total threads per threadgroup)
@@ -68,6 +75,15 @@
 	
 	//	free my local vars
 	self.computeEncoder = nil;
+}
+
+
+- (void) setMsaaSamplecount:(NSUInteger)n	{
+	BOOL		changed = (self.msaaSampleCount != n);
+	[super setMsaaSampleCount:n];
+	if (changed)	{
+		self.computePipelineStateObject = nil;
+	}
 }
 
 

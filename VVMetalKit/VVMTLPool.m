@@ -44,6 +44,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	CVMetalTextureCacheRef		_cvTexCache;
 	CMClockRef			_clock;
 }
+@property (readwrite) BOOL supportsMemoryless;
+@property (readwrite) BOOL supportsTileShaders;
 //	really returns a VVMTLTextureImage or VVMTLBuffer, because that's what this class creates & vends
 - (id<VVMTLRecycleable>) _recycledObjectMatching:(id<VVMTLRecycleableDescriptor>)n;
 - (void) _labelTexture:(id<VVMTLTextureImage>)n;
@@ -75,6 +77,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		_texPool = [[NSMutableArray alloc] init];
 		_bufferPool = [[NSMutableArray alloc] init];
 		_lutPool = [[NSMutableArray alloc] init];
+		_supportsMemoryless = ([_device supportsFamily:MTLGPUFamilyApple8] || [_device supportsFamily:MTLGPUFamilyApple7]);
+		_supportsTileShaders = ([_device supportsFamily:MTLGPUFamilyApple4]);
 		
 		CVReturn		cvErr = kCVReturnSuccess;
 		cvErr = CVMetalTextureCacheCreate(
@@ -253,14 +257,47 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 
-- (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n	{
+- (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)inSize	{
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
-		createWithWidth:round(n.width)
-		height:round(n.height)
+		createWithWidth:round(inSize.width)
+		height:round(inSize.height)
 		pixelFormat:MTLPixelFormatBGRA8Unorm
 		storage:MTLStorageModePrivate
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
 		bytesPerRow:0];
+	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+- (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)inSize sampleCount:(NSUInteger)inSampleCount	{
+	VVMTLTextureImageDescriptor		*desc = nil;
+	if (inSampleCount>1 && _supportsMemoryless)	{
+		desc = [VVMTLTextureImageDescriptor
+			createWithWidth:round(inSize.width)
+			height:round(inSize.height)
+			pixelFormat:MTLPixelFormatBGRA8Unorm
+			//pixelFormat:MTLPixelFormatDepth32Float_Stencil8
+			//storage:MTLStorageModePrivate
+			storage:MTLStorageModeMemoryless
+			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			usage:MTLTextureUsageRenderTarget
+			bytesPerRow:0];
+		desc.textureType = (inSampleCount<=1) ? MTLTextureType2D : MTLTextureType2DMultisample;
+		desc.sampleCount = inSampleCount;
+	}
+	else	{
+		desc = [VVMTLTextureImageDescriptor
+			createWithWidth:round(inSize.width)
+			height:round(inSize.height)
+			pixelFormat:MTLPixelFormatBGRA8Unorm
+			storage:MTLStorageModePrivate
+			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			usage:MTLTextureUsageRenderTarget | MTLTextureUsageShaderRead
+			bytesPerRow:0];
+		desc.textureType = (inSampleCount<=1) ? MTLTextureType2D : MTLTextureType2DMultisample;
+		desc.sampleCount = inSampleCount;
+	}
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	[self timestampThis:returnMe];
@@ -739,13 +776,11 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 - (id<VVMTLTextureImage>) depthTexSized:(NSSize)n	{
-	
-	BOOL		supportsMemoryless = NO;
-	if ([_device supportsFamily:MTLGPUFamilyApple8] || [_device supportsFamily:MTLGPUFamilyApple7])
-		supportsMemoryless = YES;
-	
+	return [self depthTexSized:n sampleCount:1];
+}
+- (id<VVMTLTextureImage>) depthTexSized:(NSSize)n sampleCount:(NSUInteger)inSampleCount	{
 	VVMTLTextureImageDescriptor		*desc = nil;
-	if (supportsMemoryless)	{
+	if (_supportsMemoryless)	{
 		desc = [VVMTLTextureImageDescriptor
 			createWithWidth:round(n.width)
 			height:round(n.height)
@@ -756,6 +791,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
 			usage:MTLTextureUsageRenderTarget
 			bytesPerRow:0];
+		desc.textureType = (inSampleCount<=1) ? MTLTextureType2D : MTLTextureType2DMultisample;
+		desc.sampleCount = inSampleCount;
 	}
 	else	{
 		desc = [VVMTLTextureImageDescriptor
@@ -766,6 +803,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
 			usage:MTLTextureUsageRenderTarget
 			bytesPerRow:0];
+		desc.textureType = (inSampleCount<=1) ? MTLTextureType2D : MTLTextureType2DMultisample;
+		desc.sampleCount = inSampleCount;
 	}
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
@@ -1295,7 +1334,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	if (texture == nil)	{
 		MTLTextureDescriptor		*texDesc = [[MTLTextureDescriptor alloc] init];
-		texDesc.textureType = MTLTextureType2D;
+		texDesc.textureType = desc.textureType;
+		texDesc.sampleCount = desc.sampleCount;
 		texDesc.pixelFormat = desc.pfmt;
 		texDesc.width = size.width;
 		texDesc.height = size.height;

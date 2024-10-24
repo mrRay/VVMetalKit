@@ -31,11 +31,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (readonly) id<MTLDevice> device;
 @property (readonly) CVMetalTextureCacheRef cvTexCache;
+@property (readonly) BOOL supportsMemoryless;
+@property (readonly) BOOL supportsTileShaders;
 
 //	a lot of methods use this to recycle or generate a texture (and also an accompanying backing, as specified)
 - (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc;
 
 - (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n;
+- (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)inSize sampleCount:(NSUInteger)inSampleCount;
 - (id<VVMTLTextureImage>) bgra8SRGBTexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) rgba8TexSized:(NSSize)n;
 - (id<VVMTLTextureImage>) rgba8SRGBTexSized:(NSSize)n;
@@ -67,6 +70,7 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureImage>) bufferBackedLum8TexSized:(NSSize)n;
 
 - (id<VVMTLTextureImage>) depthTexSized:(NSSize)n;
+- (id<VVMTLTextureImage>) depthTexSized:(NSSize)n sampleCount:(NSUInteger)inSampleCount;
 
 - (id<VVMTLTextureImage>) textureForCVMTLTex:(CVMetalTextureRef)inRef sized:(NSSize)inSize;
 //- (id<VVMTLBuffer>) bufferButNoTexSized:(size_t)inBufferSize options:(MTLResourceOptions)inOpts;

@@ -29,6 +29,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 @property (assign,readwrite) NSUInteger width;
 @property (assign,readwrite) NSUInteger height;
+@property (assign,readwrite) MTLTextureType textureType;	//	defaults to MTLTextureType2D, also recognizes 'MTLTextureType2DMultisample'
+@property (assign,readwrite) NSUInteger sampleCount;	//	defaults to 1
 @property (assign,readwrite) MTLPixelFormat pfmt;
 @property (assign,readwrite) MTLStorageMode storage;
 @property (assign,readwrite) MTLTextureUsage usage;

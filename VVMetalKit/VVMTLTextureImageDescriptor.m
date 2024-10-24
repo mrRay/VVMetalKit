@@ -22,6 +22,8 @@
 	if (self != nil)	{
 		_width = inWidth;
 		_height = inHeight;
+		_textureType = MTLTextureType2D;
+		_sampleCount = 1;
 		_pfmt = inPfmt;
 		_storage = inStorage;
 		_usage = inUsage;
@@ -45,6 +47,8 @@
 	VVMTLTextureImageDescriptor		*returnMe = [[VVMTLTextureImageDescriptor alloc] init];
 	returnMe.width = _width;
 	returnMe.height = _height;
+	returnMe.textureType = _textureType;
+	returnMe.sampleCount = _sampleCount;
 	returnMe.pfmt = _pfmt;
 	returnMe.storage = _storage;
 	returnMe.usage = _usage;
@@ -65,6 +69,8 @@
 	VVMTLTextureImageDescriptor		*recast = (VVMTLTextureImageDescriptor *)n;
 	if (_width != recast.width
 	|| _height != recast.height
+	|| _textureType != recast.textureType
+	|| _sampleCount != recast.sampleCount
 	|| _pfmt != recast.pfmt
 	|| _storage != recast.storage
 	|| _usage != recast.usage
