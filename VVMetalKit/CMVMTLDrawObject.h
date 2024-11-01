@@ -17,7 +17,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 /*		convenience class intended to simplify a number of tasks:
-		- pooling similarly-sized data buffers (geometry & index buffers) to minimize system impact
+		- pooling similarly-sized data buffers (geometry & index buffers) to minimize system impact and encourage use as a lightweight, throwaway class
 		- providing a single interface that retains both data buffers (geometry & index) required to do indexed drawing
 		- not inherently threadsafe- assumed that it will be populated from a single thread!
 		- not very flexible: basically a container class (ex: if you change the primitive type, the underlying geometry/index buffers are likely invalid, but aren't updated or cleared)

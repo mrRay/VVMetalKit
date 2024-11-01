@@ -78,6 +78,12 @@ static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor)
 
 
 
+//	NSThread.currentThread.threadDictionary stores, at this key, an instance of NSMutableData that it uses to cache intermediate points
+static const NSString * kCVMTLDrawObjectDataBuffer = @"kCVMTLDrawObjectDataBuffer";
+
+
+
+
 
 
 
@@ -148,10 +154,6 @@ char get_line_intersection(
 	float p2_x, float p2_y,
 	float p3_x, float p3_y,
 	float *i_x, float *i_y);
-
-
-
-
 
 
 
@@ -547,7 +549,6 @@ char get_line_intersection(
 }
 
 
-#define MAX_SEGMENTS_COUNT 1024
 - (BOOL) encodePointsAsLine:(NSPoint *)inPoints count:(uint32_t)inPointsCount lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor	{
 	//NSLog(@"%s ... %d",__func__,inPointsCount);
 	
@@ -561,10 +562,6 @@ char get_line_intersection(
 		return NO;
 	if (inPointsCount < 2)	{
 		NSLog(@"ERR: not enough points (%d), %s",inPointsCount,__func__);
-		return NO;
-	}
-	if (inPointsCount > (1024+1))	{
-		NSLog(@"ERR: too many points, not optimized, %s",__func__);
 		return NO;
 	}
 	
@@ -688,10 +685,16 @@ char get_line_intersection(
 						- find where lines QS and Q'S' intersect.  this is the "bottom" vertex corresponding to point B/point A'
 			*/
 			
-			//VVLWSegment		tmpSegments[4];
-			VVLWSegment		tmpSegments[MAX_SEGMENTS_COUNT];
-			
-			//uint32_t		lastPointIndex = inPointsCount - 1;
+			size_t		minBackingSize = sizeof(VVLWSegment) * (inPointsCount + 1);
+			NSMutableData		*backingData = NSThread.currentThread.threadDictionary[kCVMTLDrawObjectDataBuffer];
+			if (backingData != nil && backingData.length < minBackingSize)	{
+				backingData = nil;
+			}
+			if (backingData == nil)	{
+				backingData = [NSMutableData dataWithLength:minBackingSize];
+				NSThread.currentThread.threadDictionary[kCVMTLDrawObjectDataBuffer] = backingData;
+			}
+			VVLWSegment		*tmpSegments = backingData.mutableBytes;
 			
 			uint32_t		segmentsCount = inPointsCount - 1;
 			uint32_t		lastSegmentIndex = segmentsCount - 1;
