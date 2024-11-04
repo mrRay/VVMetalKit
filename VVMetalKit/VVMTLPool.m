@@ -1262,6 +1262,9 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	CVPixelBufferRef		cvpb = n.cvpb;
 	
 	NSSize			size = NSMakeSize(desc.width, desc.height);
+	if (round(size.width)==0 || round(size.height)==0)	{
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%d x %d)",round(size.width),round(size.height)] }];
+	}
 	BOOL			mtlBufferBacking = desc.mtlBufferBacking;
 	BOOL			iosfcBacking = desc.iosfcBacking;
 	BOOL			cvpbBacking = desc.cvpbBacking;
@@ -1400,6 +1403,9 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	uint8_t			order = desc.order;
 	MTLSize			size = desc.size;
+	if (round(size.width)==0 || round(size.height)==0 || round(size.depth)==0)	{
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%d x %d x %d)",round(size.width),round(size.height),round(size.depth)] }];
+	}
 	BOOL			mtlBufferBacking = desc.mtlBufferBacking;
 	
 	size_t			bytesPerRow = size.width * 8 * 4 / 8;
