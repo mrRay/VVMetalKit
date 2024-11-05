@@ -1263,7 +1263,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	NSSize			size = NSMakeSize(desc.width, desc.height);
 	if (round(size.width)==0 || round(size.height)==0)	{
-		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%d x %d)",round(size.width),round(size.height)] }];
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%d x %d)",(int)round(size.width),(int)round(size.height)] }];
 	}
 	BOOL			mtlBufferBacking = desc.mtlBufferBacking;
 	BOOL			iosfcBacking = desc.iosfcBacking;
@@ -1404,7 +1404,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	uint8_t			order = desc.order;
 	MTLSize			size = desc.size;
 	if (round(size.width)==0 || round(size.height)==0 || round(size.depth)==0)	{
-		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%d x %d x %d)",round(size.width),round(size.height),round(size.depth)] }];
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%d x %d x %d)",(int)round(size.width),(int)round(size.height),(int)round(size.depth)] }];
 	}
 	BOOL			mtlBufferBacking = desc.mtlBufferBacking;
 	
