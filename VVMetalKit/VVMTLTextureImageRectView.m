@@ -163,19 +163,20 @@
 	}
 	
 	//	configure the current drawable & render pass descriptor
-	currentDrawable = metalLayer.nextDrawable;
-	if (currentDrawable == nil)	{
+	id<CAMetalDrawable>		drawable = metalLayer.nextDrawable;
+	currentDrawable = drawable;
+	if (drawable == nil)	{
 		NSLog(@"ERR: current drawable nil in %s",__func__);
 		return;
 	}
-	if (currentDrawable.texture == nil)	{
+	if (drawable.texture == nil)	{
 		NSLog(@"ERR: current drawable tex nil in %s",__func__);
 		return;
 	}
 	
 	MTLRenderPassDescriptor		*localDesc = [passDescriptor copy];
 	
-	localDesc.colorAttachments[0].texture = currentDrawable.texture;
+	localDesc.colorAttachments[0].texture = drawable.texture;
 	if (localDesc.colorAttachments[0].texture == nil)	{
 		return;
 	}
@@ -271,7 +272,7 @@
 			id<VVMTLBuffer>		tmpGeoBuffer = localGeoBuffer;
 			tmpBuffer = nil;
 			
-			id<CAMetalDrawable>		tmpDrawable = self->currentDrawable;
+			id<CAMetalDrawable>		tmpDrawable = drawable;
 			tmpDrawable = nil;
 			
 			tmpBuffer = nil;
@@ -286,9 +287,12 @@
 	
 	//NSLog(@"\t\tcmd buffer should have cmds for %@ in it...",self);
 	//	the buffer needs to draw the drawable!
-	[cmdBuffer presentDrawable:currentDrawable];
+	if (drawable != nil)	{
+		[cmdBuffer presentDrawable:drawable];
+	}
 	
 	currentDrawable = nil;
+	drawable = nil;
 	
 	localImgBuffer = nil;
 	
