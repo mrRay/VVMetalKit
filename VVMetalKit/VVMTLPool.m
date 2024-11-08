@@ -277,7 +277,6 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			createWithWidth:round(inSize.width)
 			height:round(inSize.height)
 			pixelFormat:MTLPixelFormatBGRA8Unorm
-			//pixelFormat:MTLPixelFormatDepth32Float_Stencil8
 			//storage:MTLStorageModePrivate
 			storage:MTLStorageModeMemoryless
 			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
@@ -500,6 +499,38 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		storage:MTLStorageModePrivate
 		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
 		bytesPerRow:0];
+	
+	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+- (id<VVMTLTextureImage>) rgbaFloatTexSized:(NSSize)n sampleCount:(NSUInteger)inSampleCount	{
+	VVMTLTextureImageDescriptor		*desc = nil;
+	if (inSampleCount>1 && _supportsMemoryless)	{
+		desc = [VVMTLTextureImageDescriptor
+			createWithWidth:round(n.width)
+			height:round(n.height)
+			pixelFormat:MTLPixelFormatRGBA32Float
+			//storage:MTLStorageModePrivate
+			storage:MTLStorageModeMemoryless
+			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+			bytesPerRow:0];
+		desc.textureType = (inSampleCount<=1) ? MTLTextureType2D : MTLTextureType2DMultisample;
+		desc.sampleCount = inSampleCount;
+	}
+	else	{
+		desc = [VVMTLTextureImageDescriptor
+			createWithWidth:round(n.width)
+			height:round(n.height)
+			pixelFormat:MTLPixelFormatRGBA32Float
+			storage:MTLStorageModePrivate
+			//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+			usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget
+			bytesPerRow:0];
+		desc.textureType = (inSampleCount<=1) ? MTLTextureType2D : MTLTextureType2DMultisample;
+		desc.sampleCount = inSampleCount;
+	}
 	
 	VVMTLTextureImage			*returnMe = (VVMTLTextureImage*)[self textureForDescriptor:desc];
 	[self timestampThis:returnMe];
