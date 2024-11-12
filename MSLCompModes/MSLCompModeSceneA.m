@@ -71,8 +71,8 @@
 	//	- attaches it to the shader
 	id<MTLBuffer>		localMVPBuffer = self.mvpBuffer;
 	if (localMVPBuffer == nil)	{
-		localMVPBuffer = CreateOrthogonalMVPBufferForCanvas(canvasBounds, NO, NO, self.device);
-		self.mvpBuffer = localMVPBuffer;
+		[self _setMVPBuffer];
+		localMVPBuffer = self.mvpBuffer;
 	}
 	
 	[self.renderEncoder useResource:localMVPBuffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
@@ -244,6 +244,10 @@
 		cbLocalMVPBuffer = nil;
 	}];
 	
+}
+
+- (void) _setMVPBuffer	{
+	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(self.canvasBounds, NO, NO, self.device);
 }
 
 

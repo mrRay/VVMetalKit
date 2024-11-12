@@ -58,6 +58,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/CopierMTLScene.h>
 #import <VVMetalKit/CustomMetalView.h>
 #import <VVMetalKit/CMVMTLDrawObject.h>
+#import <VVMetalKit/CMVMTLDrawObjectScene.h>
 //#import <VVMetalKit/VVSizingTool.h>
 #import <VVMetalKit/SizingTool_c.h>
 #import <VVMetalKit/SizingTool_objc.h>

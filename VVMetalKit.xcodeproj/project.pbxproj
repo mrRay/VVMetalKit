@@ -46,6 +46,8 @@
 		1A2149DA2638526B007AD273 /* SizingTool_objc.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2149D7263851BA007AD273 /* SizingTool_objc.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A2906652A16CAB700DD24AB /* MSLCompModeResource.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2906632A16CAB700DD24AB /* MSLCompModeResource.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A2906662A16CAB700DD24AB /* MSLCompModeResource.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2906642A16CAB700DD24AB /* MSLCompModeResource.m */; };
+		1A2F3FC62CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A2F3FC42CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A2F3FC72CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A2F3FC52CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m */; };
 		1A379F552C3EC78200B51B4E /* MSLCompModeResourceController.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A379F542C3EC78200B51B4E /* MSLCompModeResourceController.m */; };
 		1A379F562C3EC78200B51B4E /* MSLCompModeResourceController.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A379F532C3EC78200B51B4E /* MSLCompModeResourceController.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A47F8452A55E30C0087942C /* CIMTLScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A47F8372A55E30C0087942C /* CIMTLScene.m */; };
@@ -181,6 +183,8 @@
 		1A2149D7263851BA007AD273 /* SizingTool_objc.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SizingTool_objc.h; sourceTree = "<group>"; };
 		1A2906632A16CAB700DD24AB /* MSLCompModeResource.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeResource.h; sourceTree = "<group>"; };
 		1A2906642A16CAB700DD24AB /* MSLCompModeResource.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeResource.m; sourceTree = "<group>"; };
+		1A2F3FC42CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CMVMTLDrawObjectScene.h; sourceTree = "<group>"; };
+		1A2F3FC52CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CMVMTLDrawObjectScene.m; sourceTree = "<group>"; };
 		1A379F532C3EC78200B51B4E /* MSLCompModeResourceController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MSLCompModeResourceController.h; sourceTree = "<group>"; };
 		1A379F542C3EC78200B51B4E /* MSLCompModeResourceController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MSLCompModeResourceController.m; sourceTree = "<group>"; };
 		1A47F8372A55E30C0087942C /* CIMTLScene.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CIMTLScene.m; sourceTree = "<group>"; };
@@ -362,6 +366,8 @@
 				1A89211D2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h */,
 				1A6A02D72AF3DDC4003B12BF /* CMVMTLDrawObject.h */,
 				1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */,
+				1A2F3FC42CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h */,
+				1A2F3FC52CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m */,
 				1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */,
 				1AE5D72326165A470064DC1C /* SizingTool_c.h */,
 				1A2149D7263851BA007AD273 /* SizingTool_objc.h */,
@@ -451,6 +457,7 @@
 				1A0FBEC1260E1F5000FF39BB /* SizingTool_metal.h in Headers */,
 				1A89211E2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h in Headers */,
 				1A6A02D92AF3DDC4003B12BF /* CMVMTLDrawObject.h in Headers */,
+				1A2F3FC62CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h in Headers */,
 				1A976B6F2A461D4C00C654FA /* VVMTLTimestamp.h in Headers */,
 				1A976B6E2A461D4C00C654FA /* VVMTLBuffer.h in Headers */,
 				1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */,
@@ -663,6 +670,7 @@
 				1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */,
 				1ABE24582A4DE88B00317187 /* VVMTLRenderScene.m in Sources */,
 				1A199DF2279F6A2B00EE9ACB /* VVColorConversions.metal in Sources */,
+				1A2F3FC72CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m in Sources */,
 				1A0FBEDB260E244000FF39BB /* SwizzleMTLScene.metal in Sources */,
 				1AC4AC282A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m in Sources */,
 				1ABE24632A4DE8E600317187 /* VVMTLTextureImageRectView.metal in Sources */,

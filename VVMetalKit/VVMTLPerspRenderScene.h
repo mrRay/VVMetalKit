@@ -23,8 +23,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VVMTLPerspRenderScene : VVMTLRenderScene
 
-- (id<MTLBuffer>) generateMVPBuffer;
-
 @end
 
 

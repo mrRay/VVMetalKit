@@ -21,8 +21,8 @@
 
 @interface VVMTLScene ()
 
-@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveScheduledHandlers;
-@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveCompletedHandlers;
+//@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveScheduledHandlers;
+//@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveCompletedHandlers;
 
 @end
 
@@ -47,8 +47,8 @@
 		self.msaaSampleCount = 1;
 		self.colorSpace = RenderProperties.global.colorSpace;
 		
-		self.transitiveScheduledHandlers = [[NSMutableArray alloc] init];
-		self.transitiveCompletedHandlers = [[NSMutableArray alloc] init];
+		//self.transitiveScheduledHandlers = [[NSMutableArray alloc] init];
+		//self.transitiveCompletedHandlers = [[NSMutableArray alloc] init];
 	}
 	return self;
 }
@@ -58,8 +58,8 @@
 	self.renderTarget = nil;
 	self.depthTarget = nil;
 	self.msaaTarget = nil;
-	self.transitiveScheduledHandlers = nil;
-	self.transitiveCompletedHandlers = nil;
+	//self.transitiveScheduledHandlers = nil;
+	//self.transitiveCompletedHandlers = nil;
 }
 
 
@@ -126,24 +126,24 @@
 }
 - (void) _renderSetup	{
 	//	if there are any transitive scheduled/completed blocks, add them to the command buffer
-	if (self.transitiveScheduledHandlers.count > 0)	{
-		NSEnumerator		*it = [self.transitiveScheduledHandlers objectEnumerator];
-		MTLCommandBufferHandler		handler = [it nextObject];
-		while (handler != nil)	{
-			[self.commandBuffer addScheduledHandler:handler];
-			handler = [it nextObject];
-		}
-		[self.transitiveScheduledHandlers removeAllObjects];
-	}
-	if (self.transitiveCompletedHandlers.count > 0)	{
-		NSEnumerator		*it = [self.transitiveCompletedHandlers objectEnumerator];
-		MTLCommandBufferHandler		handler = [it nextObject];
-		while (handler != nil)	{
-			[self.commandBuffer addCompletedHandler:handler];
-			handler = [it nextObject];
-		}
-		[self.transitiveCompletedHandlers removeAllObjects];
-	}
+	//if (self.transitiveScheduledHandlers.count > 0)	{
+	//	NSEnumerator		*it = [self.transitiveScheduledHandlers objectEnumerator];
+	//	MTLCommandBufferHandler		handler = [it nextObject];
+	//	while (handler != nil)	{
+	//		[self.commandBuffer addScheduledHandler:handler];
+	//		handler = [it nextObject];
+	//	}
+	//	[self.transitiveScheduledHandlers removeAllObjects];
+	//}
+	//if (self.transitiveCompletedHandlers.count > 0)	{
+	//	NSEnumerator		*it = [self.transitiveCompletedHandlers objectEnumerator];
+	//	MTLCommandBufferHandler		handler = [it nextObject];
+	//	while (handler != nil)	{
+	//		[self.commandBuffer addCompletedHandler:handler];
+	//		handler = [it nextObject];
+	//	}
+	//	[self.transitiveCompletedHandlers removeAllObjects];
+	//}
 }
 - (void) _renderTeardown	{
 
@@ -188,18 +188,18 @@
 }
 
 
-- (void) addScheduledHandler:(MTLCommandBufferHandler)n	{
-	if (self.commandBuffer == nil)
-		[self.transitiveScheduledHandlers addObject:n];
-	else
-		[self.commandBuffer addScheduledHandler:n];
-}
-- (void) addCompletedHandler:(MTLCommandBufferHandler)n	{
-	if (self.commandBuffer == nil)
-		[self.transitiveCompletedHandlers addObject:n];
-	else
-		[self.commandBuffer addCompletedHandler:n];
-}
+//- (void) addScheduledHandler:(MTLCommandBufferHandler)n	{
+//	if (self.commandBuffer == nil)
+//		[self.transitiveScheduledHandlers addObject:n];
+//	else
+//		[self.commandBuffer addScheduledHandler:n];
+//}
+//- (void) addCompletedHandler:(MTLCommandBufferHandler)n	{
+//	if (self.commandBuffer == nil)
+//		[self.transitiveCompletedHandlers addObject:n];
+//	else
+//		[self.commandBuffer addCompletedHandler:n];
+//}
 
 
 @end

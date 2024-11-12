@@ -41,15 +41,6 @@ using namespace simd;
 	}
 	return self;
 }
-- (void) _renderSetup	{
-	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks, configures the pass descriptor, makes an encoder and has it load the PSO (which must be prepared before this- likely on init?)
-	[super _renderSetup];
-	
-	//	if we don't have an MVP buffer yet, make one now.  you'll have to attach this yourself!
-	if (self.mvpBuffer == nil)	{
-		self.mvpBuffer = [self generateMVPBuffer];
-	}
-}
 
 - (void) renderCallback	{
 	[super renderCallback];
@@ -60,7 +51,7 @@ using namespace simd;
 		atIndex:CMV_VS_IDX_MVP];
 }
 
-- (id<MTLBuffer>) generateMVPBuffer	{
+- (void) _setMVPBuffer	{
 	NSSize		renderSize = self.renderSize;
 	//NSRect		canvasRect = NSMakeRect(0,0,renderSize.width,renderSize.height);
 	
@@ -111,12 +102,10 @@ using namespace simd;
 	float4x4		mvpMatrix = projectionMatrix * viewMatrix * modelMatrix;
 	//float4x4		mvpMatrix = matrix_ortho_left_hand(left, right, bottom, top, near, far);
 	
-	id<MTLBuffer>		returnMe = [self.device
+	self.mvpBuffer = [self.device
 		newBufferWithBytes:&mvpMatrix
 		length:sizeof(mvpMatrix)
 		options:MTLResourceStorageModeShared];
-	
-	return returnMe;
 }
 
 @end

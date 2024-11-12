@@ -89,7 +89,7 @@
 	[super _renderCallback];
 }
 - (void) _renderSetup	{
-	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks
+	//	the super populates the cmd buffer with any transitive scheduled/completed blocks
 	[super _renderSetup];
 	
 	MTLRenderPassDescriptor		*localDesc = [self.renderPassDescriptor copy];
@@ -112,15 +112,27 @@
 	//	make a render encoder
 	self.renderEncoder = [self.commandBuffer renderCommandEncoderWithDescriptor:localDesc];
 	
+	//	configure the MVP buffer
+	[self _setMVPBuffer];
+	
 	//	configure the viewport
-	CGSize			tmpSize = self.renderSize;
-	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -10.f, 10.f }];
+	[self _setViewport];
 	
 	//	set the pipeline state
 	if (self.renderPSO != nil)
 		[self.renderEncoder setRenderPipelineState:self.renderPSO];
 	
 	localDesc = nil;
+}
+- (void) _setViewport	{
+	//	configure the viewport
+	CGSize			tmpSize = self.renderSize;
+	//[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -10.f, 10.f }];
+	[self.renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, tmpSize.width, tmpSize.height, -1.f, 1.f }];
+}
+- (void) _setMVPBuffer	{
+	NSSize			renderSize = self.renderSize;
+	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),YES,NO,self.device);
 }
 - (void) _renderTeardown	{
 	//	if there's a color attachment, make sure it's retained through the end of the command buffer

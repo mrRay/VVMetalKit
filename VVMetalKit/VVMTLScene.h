@@ -51,8 +51,8 @@ encoding or commit the cmd buffer in this method.			*/
 @property (readwrite,nonatomic) NSUInteger msaaSampleCount;
 @property (readwrite,nonatomic) CGColorSpaceRef colorSpace;
 
-- (void) addScheduledHandler:(MTLCommandBufferHandler)n;
-- (void) addCompletedHandler:(MTLCommandBufferHandler)n;
+//- (void) addScheduledHandler:(MTLCommandBufferHandler)n;
+//- (void) addCompletedHandler:(MTLCommandBufferHandler)n;
 
 @end
 

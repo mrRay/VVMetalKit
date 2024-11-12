@@ -25,11 +25,12 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly,nonatomic) MTLRenderPassDescriptor * renderPassDescriptor;
 @property (readonly,nonatomic) id<MTLRenderCommandEncoder> renderEncoder;
 
-@property (strong) id<MTLDepthStencilState> depthState;
-
 //	subclasses are expected to populate these because they will likely vary from implementation to implementation
+@property (strong) id<MTLDepthStencilState> depthState;
 @property (strong,nonatomic,nullable) id<MTLBuffer> mvpBuffer;
 
+- (void) _setViewport;
+- (void) _setMVPBuffer;
 
 @end
 
