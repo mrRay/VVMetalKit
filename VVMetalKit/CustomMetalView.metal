@@ -21,6 +21,10 @@ typedef struct	{
 	int8_t			texIndex;
 } CustomMetalViewRasterizerData;
 
+typedef struct	{
+	texture2d<float,access::sample>		texture;	//	has an implicit id of 0
+} CustomMetalViewTexture;
+
 
 
 
@@ -55,7 +59,8 @@ vertex CustomMetalViewRasterizerData CustomMetalViewVertShader(
 
 fragment float4 CustomMetalViewFragShader(
 	CustomMetalViewRasterizerData inRasterData [[ stage_in ]],
-	texture2d<float,access::sample> inTex [[ texture(CMV_FS_Idx_Tex) ]]
+	//texture2d<float,access::sample> inTex [[ texture(CMV_FS_Idx_Tex) ]]
+	device CustomMetalViewTexture * inTextures [[ buffer(CMV_FS_Idx_Tex) ]]
 	//float4 baseCanvasColor [[ color(0) ]]
 	)
 {
@@ -65,9 +70,14 @@ fragment float4 CustomMetalViewFragShader(
 		newFragColor = inRasterData.color;
 	}
 	else	{
+		device CustomMetalViewTexture		*texStructPtr = inTextures + inRasterData.texIndex;
+		
 		float2			samplerCoord = inRasterData.texCoord;
 		constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
-		newFragColor = inRasterData.color * inTex.sample(sampler, samplerCoord);
+		float4		samplerColor = texStructPtr->texture.sample(sampler, samplerCoord);
+		
+		//newFragColor = inRasterData.color * texStructPtr->texture.sample(sampler, samplerCoord);
+		newFragColor = inRasterData.color * float4(samplerColor.r, samplerColor.g, samplerColor.b, 1.) * float4(samplerColor.a, samplerColor.a, samplerColor.a, samplerColor.a);
 	}
 	
 	if (newFragColor.a >= 1.)
@@ -83,7 +93,8 @@ fragment float4 CustomMetalViewFragShader(
 
 fragment float4 CustomMetalViewFragShaderIgnoreSampledAlpha(
 	CustomMetalViewRasterizerData inRasterData [[ stage_in ]],
-	texture2d<float,access::sample> inTex [[ texture(CMV_FS_Idx_Tex) ]]
+	//texture2d<float,access::sample> inTex [[ texture(CMV_FS_Idx_Tex) ]]
+	device CustomMetalViewTexture * inTextures [[ buffer(CMV_FS_Idx_Tex) ]]
 	//float4 baseCanvasColor [[ color(0) ]]
 	)
 {
@@ -93,9 +104,14 @@ fragment float4 CustomMetalViewFragShaderIgnoreSampledAlpha(
 		newFragColor = inRasterData.color;
 	}
 	else	{
+		device CustomMetalViewTexture		*texStructPtr = inTextures + inRasterData.texIndex;
+		
 		float2			samplerCoord = inRasterData.texCoord;
 		constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
-		newFragColor = inRasterData.color * inTex.sample(sampler, samplerCoord);
+		float4		samplerColor = texStructPtr->texture.sample(sampler, samplerCoord);
+		
+		//newFragColor = inRasterData.color * texStructPtr->texture.sample(sampler, samplerCoord);
+		newFragColor = inRasterData.color * float4(samplerColor.r, samplerColor.g, samplerColor.b, 1.) * float4(samplerColor.a, samplerColor.a, samplerColor.a, samplerColor.a);
 		newFragColor.a = 1.0;
 	}
 	

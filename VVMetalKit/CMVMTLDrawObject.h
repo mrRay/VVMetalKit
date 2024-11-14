@@ -84,9 +84,13 @@ NS_ASSUME_NONNULL_BEGIN
 //	makes sure the receiver can accommodate the passed data, then populated vertexes using the passed geometry and index data.  DOES NOT ADD A "STOP BIT" FOR ___-STRIP TYPE PRIMITIVES!
 - (BOOL) encodeRawPoints:(NSPoint *)inPoints count:(uint32_t)inPointsCount indexes:(uint16_t*)inIndexes count:(uint32_t)inIndexesCount withColor:(NSColor *)inColor;
 
+- (BOOL) encodeArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor;
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
+
 - (BOOL) encodePrimitiveRestartIndex;
 
 - (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc commandBuffer:(id<MTLCommandBuffer>)inCB;
+- (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc textureArgumentEncoder:(id<MTLArgumentEncoder>)inTexArgEnc commandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end
 

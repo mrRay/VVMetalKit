@@ -22,6 +22,8 @@
 
 #define ROUNDINGSEGMENTS 4
 #define PI (3.1415926535897932384626433832795)
+const float DEG2RAD = (PI/180.);
+const float RAD2DEG = (180./PI);
 
 //	these macros are ripped from VVCore- they're isolated, this isn't a header, and i don't want to add a dependency...
 //	NSRect/Point/Size/etc and CGRect/Point/Size are functionally identical, but cast differently.  these macros provide a single interface for this functionality to simplify things.
@@ -80,6 +82,8 @@ static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor)
 
 //	NSThread.currentThread.threadDictionary stores, at this key, an instance of NSMutableData that it uses to cache intermediate points
 static const NSString * kCVMTLDrawObjectDataBuffer = @"kCVMTLDrawObjectDataBuffer";
+//	...same as above, but we need another buffer for the 'arc' methods (because they call into another method which uses the normal, non-arc buffer)
+static const NSString * kCVMTLDrawObjectArcDataBuffer = @"kCVMTLDrawObjectArcDataBuffer";
 
 
 
@@ -1044,6 +1048,109 @@ char get_line_intersection(
 	return YES;
 }
 
+//	change this to make the curve "smoother"- think we can probably just define a sane value here?
+#define ARC_PIXELS_PER_SEGMENT 20.
+- (BOOL) encodeArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor	{
+	//NSLog(@"%s ... %0.2f, %0.2f -> %0.2f",__func__,inRadius,RAD2DEG*inStartRadians,RAD2DEG*inEndRadians);
+	if (inStartRadians == inEndRadians)	{
+		NSLog(@"ERR: zero-length arc, %s",__func__);
+		return NO;
+	}
+	//	calculate the diameter of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
+	double		circumferenceInPixels = PI * 2. * inRadius;
+	double		numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	
+	double		arcProportionOfCircumference = (inEndRadians - inStartRadians)/(2*PI);
+	double		numSegmentsInArc = ceil( fabs(arcProportionOfCircumference) * numSegmentsInCircumference );
+	if (numSegmentsInArc < 1)
+		numSegmentsInArc = 1.;
+	uint32_t	numVerticesInArc = numSegmentsInArc + 1;
+	
+	//	get a backing buffer that we can use as scratch memory for assembling point data
+	size_t		minBackingSize = sizeof(NSPoint) * numVerticesInArc;
+	NSMutableData		*backingData = NSThread.currentThread.threadDictionary[kCVMTLDrawObjectArcDataBuffer];
+	if (backingData != nil && backingData.length < minBackingSize)	{
+		backingData = nil;
+	}
+	if (backingData == nil)	{
+		backingData = [NSMutableData dataWithLength:minBackingSize];
+		NSThread.currentThread.threadDictionary[kCVMTLDrawObjectArcDataBuffer] = backingData;
+	}
+	NSPoint		*pointBuffer = (NSPoint*)backingData.mutableBytes;
+	
+	//	populate the backing buffer with some point values
+	NSPoint		*wPtr = pointBuffer;
+	double		radiansPerSegment = (inEndRadians - inStartRadians) / numSegmentsInArc;
+	double		cumulativeAngle = inStartRadians;
+	for (int i=0; i<numVerticesInArc; ++i)	{
+		*wPtr = NSMakePoint( cos(cumulativeAngle) * inRadius + inCenter.x, sin(cumulativeAngle) * inRadius + inCenter.y );
+		cumulativeAngle += radiansPerSegment;
+		++wPtr;
+	}
+	
+	BOOL		returnMe = [self encodePointsAsLine:pointBuffer count:numVerticesInArc lineWidth:inLineWidth lineColor:inColor];
+	
+	return returnMe;
+}
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	if (outVtxCount==nil || outIdxCount==nil)	{
+		NSLog(@"ERR: %s, prereq nil, %p, %p",__func__,outVtxCount,outIdxCount);
+		return NO;
+	}
+	
+	//	get local copies of the vars we're being asked to update
+	uint32_t		vtxCount = *outVtxCount;
+	uint32_t		idxCount = *outIdxCount;
+	
+	//	calculate the diameter of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
+	double		circumferenceInPixels = PI * 2. * inRadius;
+	double		numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	
+	double		arcProportionOfCircumference = (inEndRadians - inStartRadians)/(2*PI);
+	double		numSegmentsInArc = ceil( fabs(arcProportionOfCircumference) * numSegmentsInCircumference );
+	if (numSegmentsInArc < 1)
+		numSegmentsInArc = 1.;
+	uint32_t	numVerticesInArc = numSegmentsInArc + 1;
+	
+	switch (inPrimitiveType)	{
+	case MTLPrimitiveTypePoint:
+		{
+			vtxCount += numVerticesInArc;
+			idxCount += numVerticesInArc;
+		}
+		break;
+	case MTLPrimitiveTypeLine:
+		{
+			vtxCount += numVerticesInArc;
+			idxCount += (numSegmentsInArc * 2);
+		}
+		break;
+	case MTLPrimitiveTypeLineStrip:
+		{
+			vtxCount += numVerticesInArc;
+			idxCount += (numVerticesInArc + 1);
+		}
+		break;
+	case MTLPrimitiveTypeTriangle:
+		{
+			vtxCount += (numVerticesInArc * 2);
+			idxCount += (numSegmentsInArc * 2 * 3);
+		}
+		break;
+	case MTLPrimitiveTypeTriangleStrip:
+		{
+			vtxCount += (numVerticesInArc * 2);
+			idxCount += ((numVerticesInArc * 2) + 1);
+		}
+		break;
+	}
+	
+	*outVtxCount = vtxCount;
+	*outIdxCount = idxCount;
+	
+	return YES;
+}
+
 - (BOOL) encodePrimitiveRestartIndex	{
 	if (self.availableIndexes < 1)	{
 		NSLog(@"ERR: unable to encode restart index, %s",__func__);
@@ -1055,8 +1162,8 @@ char get_line_intersection(
 	return YES;
 }
 
-- (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc commandBuffer:(id<MTLCommandBuffer>)inCB	{
-	if (inEnc == nil || inCB == nil)	{
+- (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inRenderEnc commandBuffer:(id<MTLCommandBuffer>)inCB	{
+	if (inRenderEnc == nil || inCB == nil)	{
 		return;
 	}
 	
@@ -1064,23 +1171,81 @@ char get_line_intersection(
 		return;
 	}
 	
+	
 	[self.images enumerateKeysAndObjectsUsingBlock:^(NSNumber *imgIdx, id<VVMTLTextureImage> imgTex, BOOL *stop)	{
-		[inEnc
+		[inRenderEnc
 			setFragmentTexture:imgTex.texture
 			atIndex:imgIdx.intValue];
 	}];
+	
 	
 	[inCB addCompletedHandler:^(id<MTLCommandBuffer> completedCB)	{
 		CMVMTLDrawObject		*tmpSelf = self;
 		tmpSelf = nil;
 	}];
 	
-	[inEnc
+	[inRenderEnc
 		setVertexBuffer:self.geometryBuffer.buffer
 		offset:0
 		atIndex:CMV_VS_IDX_Verts];
 	
-	[inEnc
+	[inRenderEnc
+		drawIndexedPrimitives:self.primitiveType
+		indexCount:self.indexBufferIndexCount
+		indexType:MTLIndexTypeUInt16
+		indexBuffer:self.indexBuffer.buffer
+		indexBufferOffset:0];
+}
+- (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inRenderEnc textureArgumentEncoder:(id<MTLArgumentEncoder>)inTexArgEnc commandBuffer:(id<MTLCommandBuffer>)inCB	{
+	if (inRenderEnc == nil || inCB == nil)	{
+		return;
+	}
+	
+	if (self.indexBufferIndexCount < 1)	{
+		return;
+	}
+	
+	//	make an array of image textures that have been sorted by comparing their keys (which are expected to be NSNumbers)
+	//if (self.images.count > 0)	{
+		NSArray<NSNumber*>		*sortedKeys = [self.images.allKeys sortedArrayUsingSelector:@selector(compare:)];
+		NSMutableArray		*sortedImages = [NSMutableArray arrayWithCapacity:0];
+		for (NSNumber * key in sortedKeys)	{
+			id<VVMTLTextureImage>		tex = [_images objectForKey:key];
+			if (tex != nil)	{
+				[sortedImages addObject:tex];
+			}
+		}
+		//	make an argument encoder, populate it with the array of textures
+		//id<MTLFunction>		localFragFunc = XXX;
+		//id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+		size_t		texStructLength = inTexArgEnc.encodedLength;
+		size_t		texArrayBufferSize = texStructLength * sortedImages.count;
+		texArrayBufferSize = fmax(texArrayBufferSize, 16);
+		id<MTLBuffer>		texArrayBuffer = [inRenderEnc.device newBufferWithLength:texArrayBufferSize options:MTLResourceStorageModeShared];
+		int		texIndex = 0;
+		for (id<VVMTLTextureImage> image in sortedImages)	{
+			[inTexArgEnc setArgumentBuffer:texArrayBuffer offset:(texIndex * texStructLength)];
+			[inTexArgEnc setTexture:image.texture atIndex:0];	//	the '0' here is the id of the var in the struct (which is auto-generated by the compiler here)
+			
+			[inRenderEnc useResource:image.texture usage:MTLResourceUsageRead stages:MTLRenderStageFragment];
+			
+			++texIndex;
+		}
+		
+		[inRenderEnc setFragmentBuffer:texArrayBuffer offset:0 atIndex:CMV_FS_Idx_Tex];
+	//}
+	
+	[inCB addCompletedHandler:^(id<MTLCommandBuffer> completedCB)	{
+		CMVMTLDrawObject		*tmpSelf = self;
+		tmpSelf = nil;
+	}];
+	
+	[inRenderEnc
+		setVertexBuffer:self.geometryBuffer.buffer
+		offset:0
+		atIndex:CMV_VS_IDX_Verts];
+	
+	[inRenderEnc
 		drawIndexedPrimitives:self.primitiveType
 		indexCount:self.indexBufferIndexCount
 		indexType:MTLIndexTypeUInt16

@@ -104,7 +104,7 @@ fragment float4 VVMTLTextureImageRectViewFragShader(
 	float4			color = tex.sample(sampler, samplerCoord) * displayInfo->colorMultiplier;
 	//return color;
 	float4			appliedAlphaColor = float4(color.a, color.a, color.a, 1.) * float4(color.r, color.g, color.b, 1.);
-	return appliedAlphaColor;;
+	return appliedAlphaColor;
 	
 }
 

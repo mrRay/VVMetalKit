@@ -16,7 +16,7 @@
 
 - (void) _setMVPBuffer	{
 	NSSize			renderSize = self.renderSize;
-	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),YES,NO,self.device);
+	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),NO,NO,self.device);
 }
 
 - (void) renderCallback	{

@@ -16,9 +16,8 @@
 	if (self != nil)	{
 		self.drawObject = nil;
 		
-		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
-		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
-		attachDesc.loadAction = MTLLoadActionDontCare;
+		self.renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
+		self.renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionDontCare;
 		
 		NSError				*nsErr = nil;
 		NSBundle			*myBundle = [NSBundle bundleForClass:[CustomMetalView class]];
@@ -39,10 +38,14 @@
 - (void) renderCallback	{
 	[super renderCallback];
 	
-	CMVMTLDrawObject		*drawObject = self.drawObject;
-	if (drawObject != nil)	{
-		[drawObject executeInRenderEncoder:self.renderEncoder commandBuffer:self.commandBuffer];
-		drawObject = nil;
+	CMVMTLDrawObject		*localDrawObject = self.drawObject;
+	if (localDrawObject != nil)	{
+		//[localDrawObject executeInRenderEncoder:self.renderEncoder commandBuffer:self.commandBuffer];
+		
+		id<MTLFunction>		localFragFunc = self.renderPSODesc.fragmentFunction;
+		id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+		[localDrawObject executeInRenderEncoder:self.renderEncoder textureArgumentEncoder:argEncoder commandBuffer:self.commandBuffer];
+		localDrawObject = nil;
 	}
 }
 

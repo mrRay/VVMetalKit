@@ -37,10 +37,10 @@
 		self.mvpBuffer = nil;
 		
 		self.renderPassDescriptor = [MTLRenderPassDescriptor renderPassDescriptor];
-		MTLRenderPassColorAttachmentDescriptor		*attachDesc = self.renderPassDescriptor.colorAttachments[0];
-		attachDesc.clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
-		//attachDesc.loadAction = MTLLoadActionDontCare;
-		attachDesc.loadAction = MTLLoadActionClear;
+		
+		self.renderPassDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0.0, 0.0, 0.0, 0.0);
+		//self.renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionDontCare;
+		self.renderPassDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
 		
 		self.renderPassDescriptor.depthAttachment.clearDepth = 1.0;
 		self.renderPassDescriptor.depthAttachment.loadAction = MTLLoadActionClear;
@@ -71,6 +71,9 @@
 		//self.renderPSODesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
 		//self.renderPSODesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 		//self.renderPSODesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+		
+		//	subclasses still need to create their pipeline state objects...
+		//self.renderPSO = [inDevice newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
 	}
 	return self;
 }
@@ -132,7 +135,7 @@
 }
 - (void) _setMVPBuffer	{
 	NSSize			renderSize = self.renderSize;
-	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),YES,NO,self.device);
+	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),NO,NO,self.device);
 }
 - (void) _renderTeardown	{
 	//	if there's a color attachment, make sure it's retained through the end of the command buffer
