@@ -1237,6 +1237,9 @@ char get_line_intersection(
 	
 	[inCB addCompletedHandler:^(id<MTLCommandBuffer> completedCB)	{
 		CMVMTLDrawObject		*tmpSelf = self;
+		NSMutableArray		*tmpSortedArray = sortedImages;
+		[tmpSortedArray removeAllObjects];
+		tmpSortedArray = nil;
 		tmpSelf = nil;
 	}];
 	

@@ -12,7 +12,23 @@
 #endif
 
 
+
+
 #ifdef __METAL_VERSION__
+
+#include <metal_stdlib>
+#include <metal_math>
+
+using namespace metal;
+
+#define PI (3.1415926535897932384626433832795)
+#define DEG2RAD (PI/180.)
+#define RAD2DEG (180./PI)
+
+
+
+
+#pragma mark - Function Declarations
 
 
 
@@ -49,6 +65,11 @@ static inline GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect);
 static inline GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect);
 
 
+//	"polar" GPoints have the format (r, theta in degrees)
+static inline GPoint CarToPol(GPoint inPoint);
+static inline GPoint PolToCar(GPoint inPoint);
+
+
 static inline GRange MakeGRange(int32_t inLocation, int32_t inLength);
 static inline GRange MakeGRangeAbsolute(GRange inRange);
 static inline GRange InvertGRangeLength(GRange inRange);
@@ -56,6 +77,7 @@ static inline GRange InvertGRangeLength(GRange inRange);
 
 
 
+#pragma mark - Function Definitions
 
 
 
@@ -71,7 +93,7 @@ static inline bool GPointsEqual(GPoint inA, GPoint inB)	{
 static inline GSize MakeSize(float inWidth, float inHeight)	{
 	return { inWidth, inHeight };
 }
-bool GSizesEqual(GSize inA, GSize inB)	{
+static inline bool GSizesEqual(GSize inA, GSize inB)	{
 	return (inA.width == inB.width && inA.height == inB.height);
 }
 
@@ -237,6 +259,34 @@ static inline GPoint NormCoordsOfPixelInRect(GPoint inPoint, GRect inRect)	{
 //}
 static inline GPoint PixelForNormCoordsInRect(GPoint inPoint, GRect inRect)	{
 	return MakePoint( (inPoint.x*(inRect.size.width-1.))+inRect.origin.x, (inPoint.y*(inRect.size.height-1.))+inRect.origin.y );
+}
+
+
+
+
+static inline GPoint CarToPol(GPoint inPoint)	{
+	float		radians = sqrt(pow(inPoint.x, 2) + pow(inPoint.y, 2));
+	float		degrees = RAD2DEG * atan(inPoint.y / inPoint.x);
+	
+	if (inPoint.x < 0.)	{
+		degrees += 180.;
+	}
+	else if (inPoint.x >= 0. && inPoint.y < 0.)	{
+		degrees += 360;
+	}
+	
+	while (degrees < 0.)	{
+		degrees += 360.;
+	}
+	while (degrees >= 360.)	{
+		degrees -= 360.;
+	}
+	
+	GPoint		returnMe = MakePoint(radians, degrees);
+	return returnMe;
+}
+static inline GPoint PolToCar(GPoint inPoint)	{
+	return MakePoint( inPoint.x * cos(DEG2RAD * inPoint.y), inPoint.x * sin(DEG2RAD * inPoint.y) );
 }
 
 
