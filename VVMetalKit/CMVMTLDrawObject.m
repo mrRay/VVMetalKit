@@ -1049,7 +1049,7 @@ char get_line_intersection(
 }
 
 //	change this to make the curve "smoother"- think we can probably just define a sane value here?
-#define ARC_PIXELS_PER_SEGMENT 20.
+#define ARC_PIXELS_PER_SEGMENT 15.
 - (BOOL) encodeArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor	{
 	//NSLog(@"%s ... %0.2f, %0.2f -> %0.2f",__func__,inRadius,RAD2DEG*inStartRadians,RAD2DEG*inEndRadians);
 	if (inStartRadians == inEndRadians)	{
