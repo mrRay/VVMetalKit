@@ -240,6 +240,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 - (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc	{
 	if (inDesc == nil)
 		return nil;
+	if (inDesc.width <= 0 || inDesc.height <= 0)
+		return nil;
 	VVMTLTextureImage			*returnMe = nil;
 	@synchronized (self)	{
 		returnMe = (VVMTLTextureImage*)[self _recycledObjectMatching:inDesc];
@@ -1047,6 +1049,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (id<VVMTLTextureLUT>) lutForDescriptor:(VVMTLTextureLUTDescriptor*)inDesc	{
 	if (inDesc == nil)
+		return nil;
+	if (inDesc.size.width <= 0 || inDesc.size.height <= 0 || inDesc.size.depth <= 0)
 		return nil;
 	VVMTLTextureLUT		*returnMe = nil;
 	@synchronized (self)	{
