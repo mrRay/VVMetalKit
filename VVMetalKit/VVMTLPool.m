@@ -1363,6 +1363,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	//	if the descriptor indicates that we need a MTLBuffer (via id<VVMTLBuffer>) as a backing, but we don't have one yet...
 	if (mtlBufferBacking && buffer == nil)	{
+		NSUInteger		alignment = [self.device minimumLinearTextureAlignmentForPixelFormat:descPixelFormat];
+		bytesPerRow = ROUNDAUPTOMULTOFB(bytesPerRow, alignment);
 		size_t			targetBufferLength = bytesPerRow * size.height;
 		buffer = [self bufferWithLength:targetBufferLength storage:desc.storage];
 		n.buffer = buffer;
