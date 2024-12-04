@@ -385,7 +385,8 @@ CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize
 		height:texSize.height
 		pixelFormat:inMTLTex.pixelFormat
 		storage:MTLStorageModeManaged
-		usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+		//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
+		usage:MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite
 		bytesPerRow:0];
 	desc.mtlBufferBacking = YES;
 	
