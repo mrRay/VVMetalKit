@@ -94,7 +94,8 @@
 	[self renderToTexture:n depthBuffer:nil msaa:nil inCommandBuffer:cb];
 }
 - (void) renderToTexture:(id<VVMTLTextureImage>)n depthBuffer:(id<VVMTLTextureImage>)d msaa:(nullable id<VVMTLTextureImage>)m inCommandBuffer:(id<MTLCommandBuffer>)cb	{
-	self.renderSize = (n==nil) ? CGSizeMake(1,1) : CGSizeMake(n.width, n.height);
+	if (n != nil)
+		self.renderSize = CGSizeMake(n.width, n.height);
 	
 	self.renderTarget = n;
 	self.depthTarget = d;

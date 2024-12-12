@@ -27,8 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
 - (id<VVMTLTextureImage>) createAndRenderWithDepth:(BOOL)inDepth toTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
-- (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb;
-- (void) renderToTexture:(id<VVMTLTextureImage>)n depthBuffer:(nullable id<VVMTLTextureImage>)d msaa:(nullable id<VVMTLTextureImage>)m inCommandBuffer:(id<MTLCommandBuffer>)cb;
+- (void) renderToTexture:(nullable id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb;
+- (void) renderToTexture:(nullable id<VVMTLTextureImage>)n depthBuffer:(nullable id<VVMTLTextureImage>)d msaa:(nullable id<VVMTLTextureImage>)m inCommandBuffer:(id<MTLCommandBuffer>)cb;
 
 /*		do all the rendering here.  when this method is called on a subclass, a pass 
 descriptor and render encoder MUST already exist and have been configured.  do NOT end 
