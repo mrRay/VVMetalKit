@@ -1112,7 +1112,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage	{
-	//NSLog(@"%s",__func__);
+	//NSLog(@"%s ... %ld",__func__,inLength);
 	if (inLength < 1)
 		return nil;
 	

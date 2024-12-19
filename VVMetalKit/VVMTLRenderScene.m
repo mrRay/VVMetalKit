@@ -211,19 +211,19 @@ id<MTLBuffer> CreateOrthogonalMVPBufferForCanvas(NSRect inCanvasBounds, BOOL inF
 	
 	return returnMe;
 }
-matrix_float4x4 CreatePerspectiveProjectionForCanvas(NSRect inCanvasBounds, double near, double far, id<MTLDevice> inDevice)	{
-	double			left = round(VVMINX(inCanvasBounds));
-	double			right = round(VVMAXX(inCanvasBounds));
-	double			top = round(VVMAXY(inCanvasBounds));
-	double			bottom = round(VVMINY(inCanvasBounds));
-	matrix_float4x4			mvp = simd_matrix_from_rows(
-		simd_make_float4((2.*near)/(right-left),	0.,							0.,							0.),
-		simd_make_float4(0.,						(2.*near)/(top-bottom),		0.,							0.),
-		simd_make_float4(0.,						0.,							(-1.*(far))/(far-near),		-1.),
-		simd_make_float4(0.,						0.,							(-1.*far*near)/(far-near),	0.)
-	);
-	return mvp;
-}
+//matrix_float4x4 CreatePerspectiveProjectionForCanvas(NSRect inCanvasBounds, double near, double far, id<MTLDevice> inDevice)	{
+//	double			left = round(VVMINX(inCanvasBounds));
+//	double			right = round(VVMAXX(inCanvasBounds));
+//	double			top = round(VVMAXY(inCanvasBounds));
+//	double			bottom = round(VVMINY(inCanvasBounds));
+//	matrix_float4x4			mvp = simd_matrix_from_rows(
+//		simd_make_float4((2.*near)/(right-left),	0.,							0.,							0.),
+//		simd_make_float4(0.,						(2.*near)/(top-bottom),		0.,							0.),
+//		simd_make_float4(0.,						0.,							(-1.*(far))/(far-near),		-1.),
+//		simd_make_float4(0.,						0.,							(-1.*far*near)/(far-near),	0.)
+//	);
+//	return mvp;
+//}
 
 
 
