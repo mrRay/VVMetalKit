@@ -114,6 +114,10 @@
 	
 	//	make a render encoder
 	self.renderEncoder = [self.commandBuffer renderCommandEncoderWithDescriptor:localDesc];
+	if (self.label != nil)
+		self.renderEncoder.label = self.label;
+	else
+		self.renderEncoder.label = [NSString stringWithFormat:@"%@ encoder",NSStringFromClass(self.class)];
 	
 	//	configure the MVP buffer
 	[self _setMVPBuffer];
