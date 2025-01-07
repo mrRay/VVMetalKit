@@ -229,10 +229,12 @@
 
 - (CIImage *) createCIImageWithColorSpace:(CGColorSpaceRef)cs	{
 	//NSLog(@"%s",__func__);
-	NSDictionary		*optsDict = (cs==NULL) ? nil : @{
-		kCIImageColorSpace: (__bridge id)cs,
-		kCIImageApplyOrientationProperty: @( kCGImagePropertyOrientationDownMirrored )
-	};
+	CGImagePropertyOrientation		orientation = self.CIImagePropertyOrientation;
+	NSMutableDictionary		*optsDict = [NSMutableDictionary dictionaryWithCapacity:0];
+	if (cs != NULL)	{
+		optsDict[kCIImageColorSpace] = (__bridge id)cs;
+	}
+	optsDict[kCIImageApplyOrientationProperty] = @( orientation );
 	
 	CIImage			*returnMe = [CIImage
 		imageWithMTLTexture:texture
@@ -254,23 +256,7 @@
 		//returnMe = [returnMe imageByApplyingTransform:CGAffineTransformMakeTranslation(-1*srcRect.origin.x, -1*srcRect.origin.y)];
 	}
 	
-	BOOL		cumulativeHFlip = flipH;
-	BOOL		cumulativeVFlip = flipV;
-	cumulativeVFlip = !cumulativeVFlip;	//	no idea why this is necessary, the textures i'm passing it aren't flipped.
-	
-	if (cumulativeHFlip || cumulativeVFlip)	{
-		CGImagePropertyOrientation		newOrientation = 0;
-		if (cumulativeHFlip && cumulativeVFlip)	{
-			newOrientation = kCGImagePropertyOrientationDown;
-		}
-		else if (cumulativeVFlip)	{
-			newOrientation = kCGImagePropertyOrientationDownMirrored;
-		}
-		else	{
-			newOrientation = kCGImagePropertyOrientationUpMirrored;
-		}
-		returnMe = [returnMe imageByApplyingCGOrientation:newOrientation];
-	}
+	returnMe = [returnMe imageByApplyingCGOrientation:orientation];
 	
 	return returnMe;
 }
@@ -327,6 +313,42 @@
 @synthesize srcRect;
 @synthesize flipH;
 @synthesize flipV;
+- (CGImagePropertyOrientation) cgImagePropertyOrientation	{
+	if (self.flipH)	{
+		if (self.flipV)	{
+			return kCGImagePropertyOrientationDown;
+		}
+		else	{
+			return kCGImagePropertyOrientationUpMirrored;
+		}
+	}
+	else	{
+		if (self.flipV)	{
+			return kCGImagePropertyOrientationDownMirrored;
+		}
+		else	{
+			return kCGImagePropertyOrientationUp;
+		}
+	}
+}
+- (CGImagePropertyOrientation) CIImagePropertyOrientation	{
+	if (self.flipH)	{
+		if (self.flipV)	{
+			return kCGImagePropertyOrientationUpMirrored;
+		}
+		else	{
+			return kCGImagePropertyOrientationDown;
+		}
+	}
+	else	{
+		if (self.flipV)	{
+			return kCGImagePropertyOrientationUp;
+		}
+		else	{
+			return kCGImagePropertyOrientationDownMirrored;
+		}
+	}
+}
 
 #pragma mark - VVMTLTimestamp conformance
 
