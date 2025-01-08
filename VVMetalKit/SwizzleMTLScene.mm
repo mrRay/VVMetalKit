@@ -99,6 +99,8 @@
 		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
 		switch (inInfo.dstImg.pf)	{
 		case SwizzlePF_Unknown:
+		case SwizzlePF_Luma_PK_UI_8:
+		case SwizzlePF_Luma_PK_FP_32:
 		case SwizzlePF_RGBA_PK_UI_8:
 		case SwizzlePF_RGBX_PK_UI_8:
 		case SwizzlePF_BGRA_PK_UI_8:
@@ -184,6 +186,8 @@
 		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
 		switch (inInfo.dstImg.pf)	{
 		case SwizzlePF_Unknown:
+		case SwizzlePF_Luma_PK_UI_8:
+		case SwizzlePF_Luma_PK_FP_32:
 		case SwizzlePF_RGBA_PK_UI_8:
 		case SwizzlePF_RGBX_PK_UI_8:
 		case SwizzlePF_BGRA_PK_UI_8:

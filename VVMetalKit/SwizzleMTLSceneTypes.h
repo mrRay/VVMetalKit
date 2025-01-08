@@ -23,6 +23,10 @@
 //	these are the swizzle pixel formats supported by "SwizzleMTLScene"
 typedef enum SwizzlePF	{
 	SwizzlePF_Unknown = 0,
+	
+	SwizzlePF_Luma_PK_UI_8 = 'L008',	//	8 bit unsigned int per channel, one channel per pixel (8 bits per pixel)
+	SwizzlePF_Luma_PK_FP_32 = 'L00f',	//	32-bit (4 byte) float per channel, one channel per pixel (32 bits per pixel)
+	
 	SwizzlePF_RGBA_PK_UI_8 = 'RGBA',	//	8 bit unsigned int per channel (32 bits per pixel)
 	SwizzlePF_RGBX_PK_UI_8 = 'RGBX',
 	SwizzlePF_BGRA_PK_UI_8 = 'BGRA',

@@ -149,6 +149,24 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 		}
 		break;
 	
+	case SwizzlePF_Luma_PK_UI_8:
+		{
+			size_t		bytesPerPixel = 1;	//	8 bits per channel, 1 channel per pixel, 8 bits per byte
+			size_t		offsetInBytes = (loc.y * imgInfo.planes[0].bytesPerRow) + (loc.x * bytesPerPixel);
+			constant uint8_t		*rPtr = (constant uint8_t *)srcBuffer + (imgInfo.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
+			
+			returnMe = float4( float3((float(*rPtr) / 255.)), 1. );
+		}
+		break;
+	case SwizzlePF_Luma_PK_FP_32:
+		{
+			size_t		bytesPerPixel = 4;	//	32 bits per channel, 1 channel per pixel, 8 bits per byte
+			size_t		offsetInBytes = (loc.y * imgInfo.planes[0].bytesPerRow) + (loc.x * bytesPerPixel);
+			constant float		*rPtr = (constant float *)srcBuffer + (imgInfo.planes[0].offset/SIZEOF_FLOAT) + (offsetInBytes/SIZEOF_FLOAT);
+			
+			returnMe = float4( float3(float(*rPtr)), 1. );
+		}
+		break;
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBX_PK_UI_8:
 	case SwizzlePF_BGRA_PK_UI_8:
@@ -157,7 +175,7 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 	case SwizzlePF_HSVA_PK_UI_8:
 	case SwizzlePF_CMYK_PK_UI_8:
 		{
-			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		bytesPerPixel = 4;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (loc.y * imgInfo.planes[0].bytesPerRow) + (loc.x * bytesPerPixel);
 			//uint8_t		*rPtr = (srcBuffer + offsetInBytes);
 			constant uint8_t		*rPtr = (constant uint8_t *)srcBuffer + (imgInfo.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
@@ -170,7 +188,7 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 		break;
 	case SwizzlePF_RGBA_PK_FP_32:
 		{
-			size_t		bytesPerPixel = 32 * 4 / 8;	//	32 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		bytesPerPixel = 16;	//	32 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (loc.y * imgInfo.planes[0].bytesPerRow) + (loc.x * bytesPerPixel);
 			//float		*rPtr = (srcBuffer + offsetInBytes);
 			constant float		*rPtr = (constant float *)srcBuffer + (imgInfo.planes[0].offset/SIZEOF_FLOAT) + (offsetInBytes/SIZEOF_FLOAT);
@@ -182,7 +200,7 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 		break;
 	case SwizzlePF_UYVY_PK_422_UI_8:
 		{
-			size_t		bytesPerPixel = SIZEOF_UINT8 * 2;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
+			size_t		bytesPerPixel = 2;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
 			//size_t		bytesPerRow = bytesPerPixel * imgInfo.res[0];
 			size_t		bytesPerRow = imgInfo.planes[0].bytesPerRow;
 			
@@ -217,7 +235,7 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 		break;
 	case SwizzlePF_YUYV_PK_422_UI_8:
 		{
-			size_t		bytesPerPixel = SIZEOF_UINT8 * 2;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
+			size_t		bytesPerPixel = 2;	//	8 bits per channel, 2 channels per pixel (Y + Cb/Cr), 8 bits per byte
 			//size_t		bytesPerRow = bytesPerPixel * imgInfo.res[0];
 			size_t		bytesPerRow = imgInfo.planes[0].bytesPerRow;
 			
@@ -494,6 +512,8 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 			*normRGB = float4(0,1,0,1);
 		}
 		break;
+	case SwizzlePF_Luma_PK_UI_8:
+	case SwizzlePF_Luma_PK_FP_32:
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBA_PK_FP_32:
 		{
@@ -853,13 +873,30 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 	switch (opInfo.dstImg.pf)	{
 	case SwizzlePF_Unknown:
 		return;
+	case SwizzlePF_Luma_PK_UI_8:
+		{
+			size_t		bytesPerPixel = 1;	//	8 bits per channel, 1 channel per pixel, 8 bits per byte
+			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
+			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset) + (offsetInBytes/SIZEOF_UINT8);
+			float		tmpVal = round(RGBtoLuma((*normRGB).rgb) * 255.);
+			*(wPtr + 0) = (uint8_t)tmpVal;
+		}
+		break;
+	case SwizzlePF_Luma_PK_FP_32:
+		{
+			size_t		bytesPerPixel = 4;	//	32 bits per channel, 1 channel per pixel, 8 bits per byte
+			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
+			device float		*wPtr = (device float *)dstBuffer + (opInfo.dstImg.planes[0].offset) + (offsetInBytes/SIZEOF_FLOAT);
+			*(wPtr + 0) = RGBtoLuma((*normRGB).rgb);
+		}
+		break;
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBX_PK_UI_8:
 		{
 			//float4		normCodeVals[MAX_PIXELS_TO_PROCESS];
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
-			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		bytesPerPixel = 4;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
 			
@@ -886,7 +923,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//float4		normCodeVals[MAX_PIXELS_TO_PROCESS];
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
-			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		bytesPerPixel = 4;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
 			
@@ -912,7 +949,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//float4		normCodeVals[MAX_PIXELS_TO_PROCESS];
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
-			size_t		bytesPerPixel = 8 * 4 / 8;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		bytesPerPixel = 4;	//	8 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
 			
@@ -938,7 +975,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			//float4		normCodeVals[MAX_PIXELS_TO_PROCESS];
 			//char4		codeVals[MAX_PIXELS_TO_PROCESS];
 			
-			size_t		bytesPerPixel = 32 * 4 / 8;	//	32 bits per channel, 4 channels per pixel, 8 bits per byte
+			size_t		bytesPerPixel = 16;	//	32 bits per channel, 4 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device float		*wPtr = (device float *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_FLOAT) + (offsetInBytes/SIZEOF_FLOAT);
 			

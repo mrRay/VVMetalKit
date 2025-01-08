@@ -122,6 +122,9 @@ static inline float3 HSLtoRGB(float3 inHSL);
 
 static inline float Hue_2_RGB( float v1, float v2, float vH );	//	backend method
 
+//	range is 0.-1. for this conversion
+static inline float RGBtoLuma(float3 inRGB);
+
 
 
 
@@ -471,6 +474,19 @@ static inline float Hue_2_RGB( float v1, float v2, float vH )	{
 		return ( v1 + ( v2 - v1 ) * ( ( 2. / 3. ) - var_vH ) * 6. );
 	return ( v1 );
 };
+
+
+static inline float RGBtoLuma(float3 inRGB)	{
+	float		returnMe;
+
+	//float		var_Min = fmin( inRGB.r, fmin(inRGB.g, inRGB.b) );	// Min. value of RGB
+	//float		var_Max = fmax( inRGB.r, fmax(inRGB.g, inRGB.b) );	// Max. value of RGB
+	//returnMe = ( var_Max + var_Min ) / 2.;
+	
+	returnMe = 0.2126*inRGB.r + 0.7152*inRGB.g + 0.0722*inRGB.b;
+	
+	return returnMe;
+}
 
 
 #endif

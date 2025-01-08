@@ -38,6 +38,9 @@ unsigned int SwizzleShaderImageInfoGetBytesPerRow(SwizzleShaderImageInfo *inInfo
 	switch (inPF)	{
 	case SwizzlePF_Unknown:					bytesPerRow = 0;		break;
 	
+	case SwizzlePF_Luma_PK_UI_8:			bytesPerRow = 8 * 1 * inWidth / 8;		break;
+	case SwizzlePF_Luma_PK_FP_32:			bytesPerRow = 32 * 1 * inWidth / 8;		break;
+	
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBX_PK_UI_8:
 	case SwizzlePF_BGRA_PK_UI_8:
@@ -79,6 +82,9 @@ unsigned int SwizzleShaderImageInfoGetLength(SwizzleShaderImageInfo *inInfo)	{
 	switch (inInfo->pf)	{
 	case SwizzlePF_Unknown:
 		break;
+	
+	case SwizzlePF_Luma_PK_UI_8:
+	case SwizzlePF_Luma_PK_FP_32:
 	
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBX_PK_UI_8:
@@ -140,9 +146,14 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 	returnMe.res[1] = inHeight;
 	//returnMe.bytesPerRow = inBytesPerRow;
 	switch (inPF)	{
+	
 	case SwizzlePF_Unknown:
 		returnMe.planeCount = 1;
 		break;
+	
+	case SwizzlePF_Luma_PK_UI_8:
+	case SwizzlePF_Luma_PK_FP_32:
+	
 	case SwizzlePF_RGBA_PK_UI_8:
 	case SwizzlePF_RGBX_PK_UI_8:
 	case SwizzlePF_BGRA_PK_UI_8:
