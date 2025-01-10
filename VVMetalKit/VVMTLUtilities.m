@@ -162,6 +162,8 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
 	CGColorSpaceRef		colorspace = RenderProperties.global.colorSpace;
+	if (colorspace != NULL)
+		CGColorSpaceRetain(colorspace);
 	
 	size_t			rgbaBytesPerRow = 8 * 4 * texDesc.width / 8;
 	size_t			rgbaBytesLength = rgbaBytesPerRow * texDesc.height;
@@ -277,6 +279,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 				kCGRenderingIntentDefault);
 			
 			free(texBytes);
+			texBytes = NULL;
 		}
 		break;
 	

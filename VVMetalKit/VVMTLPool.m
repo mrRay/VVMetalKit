@@ -892,6 +892,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	
 	//CGColorSpaceRef		tmpSpace = CGColorSpaceCreateWithName( kCGColorSpaceITUR_709 );
 	CGColorSpaceRef		tmpSpace = RenderProperties.global.colorSpace;
+	if (tmpSpace != NULL)
+		CGColorSpaceRetain(tmpSpace);
 	CGBitmapInfo		tmpBitmapInfo = (CGBitmapInfo)kCGImageAlphaNoneSkipFirst;
 	CGContextRef		tmpCGCtx = CGBitmapContextCreate( tmpBacking, tmpSize.width, tmpSize.height, 8, bytesPerRow, tmpSpace, tmpBitmapInfo);
 	

@@ -92,7 +92,7 @@ NS_ASSUME_NONNULL_BEGIN
 //	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d;
 
-- (void) timestampThis:(id<VVMTLTimestamp>)n;
+- (void) timestampThis:(nullable id<VVMTLTimestamp>)n;
 
 @end
 
