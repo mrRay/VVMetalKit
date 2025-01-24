@@ -20,10 +20,13 @@
 
 
 
-#define ROUNDINGSEGMENTS 4
 #define PI (3.1415926535897932384626433832795)
 const float DEG2RAD = (PI/180.);
 const float RAD2DEG = (180./PI);
+
+//	change this to make the curves drawn by this class "smoother" (lower numbers are smoother), at the expense of 
+//	requiring more geometry data- think we can probably just define a sane value here?
+#define ARC_PIXELS_PER_SEGMENT 8.
 
 //	these macros are ripped from VVCore- they're isolated, this isn't a header, and i don't want to add a dependency...
 //	NSRect/Point/Size/etc and CGRect/Point/Size are functionally identical, but cast differently.  these macros provide a single interface for this functionality to simplify things.
@@ -1048,15 +1051,17 @@ char get_line_intersection(
 	return YES;
 }
 
-//	change this to make the curve "smoother"- think we can probably just define a sane value here?
-#define ARC_PIXELS_PER_SEGMENT 15.
 - (BOOL) encodeArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor	{
 	//NSLog(@"%s ... %0.2f, %0.2f -> %0.2f",__func__,inRadius,RAD2DEG*inStartRadians,RAD2DEG*inEndRadians);
 	if (inStartRadians == inEndRadians)	{
 		NSLog(@"ERR: zero-length arc, %s",__func__);
 		return NO;
 	}
-	//	calculate the diameter of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
+	if (inRadius <= 0.0)	{
+		NSLog(@"ERR: zero radius, %s",__func__);
+		return NO;
+	}
+	//	calculate the circumference of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
 	double		circumferenceInPixels = PI * 2. * inRadius;
 	double		numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
 	
@@ -1147,6 +1152,261 @@ char get_line_intersection(
 	
 	*outVtxCount = vtxCount;
 	*outIdxCount = idxCount;
+	
+	return YES;
+}
+
+- (BOOL) encodeCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius fillColor:(NSColor * __nullable)inColor	{
+	//NSLog(@"%s ... %@, %0.2f",__func__,NSStringFromPoint(inCenter),inRadius);
+	if (inRadius <= 0.0)	{
+		NSLog(@"ERR: zero radius, %s",__func__);
+		return NO;
+	}
+	//	calculate the circumference of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
+	double		circumferenceInPixels = PI * 2. * inRadius;
+	uint32_t	numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	
+	if (numSegmentsInCircumference < 1)
+		numSegmentsInCircumference = 1.;
+	uint32_t		numVerticesInCircle = numSegmentsInCircumference;
+	
+	//	get a backing buffer that we can use as scratch memory for assembling point data
+	size_t		minBackingSize = sizeof(NSPoint) * (numVerticesInCircle + 1);	//	the "+1" is for the center of the circle
+	NSMutableData		*backingData = NSThread.currentThread.threadDictionary[kCVMTLDrawObjectArcDataBuffer];
+	if (backingData != nil && backingData.length < minBackingSize)	{
+		backingData = nil;
+	}
+	if (backingData == nil)	{
+		backingData = [NSMutableData dataWithLength:minBackingSize];
+		NSThread.currentThread.threadDictionary[kCVMTLDrawObjectArcDataBuffer] = backingData;
+	}
+	NSPoint		*pointBuffer = (NSPoint*)backingData.mutableBytes;
+	
+	//	populate the backing buffer with point values
+	NSPoint		*tmpWPtr = pointBuffer;
+	double		radiansPerSegment = 2. * PI / numSegmentsInCircumference;
+	double		cumulativeAngle = 0.;
+	//	now add the vertices that lay around the circumference of the circle
+	for (int i=0; i<numVerticesInCircle; ++i)	{
+		*tmpWPtr = NSMakePoint( cos(cumulativeAngle) * inRadius + inCenter.x, sin(cumulativeAngle) * inRadius + inCenter.y );
+		//NSLog(@"\t\t%d - %@",i,NSStringFromPoint(*tmpWPtr));
+		cumulativeAngle += radiansPerSegment;
+		++tmpWPtr;
+	}
+	//	add the center point last!
+	*tmpWPtr = inCenter;
+	++tmpWPtr;
+	
+	//	figure out how large the geometry and index buffers will need to be to draw this
+	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
+	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
+	uint32_t		indexBufferIndexCount = self.indexBufferIndexCount;
+	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
+	uint32_t		bytesPerIndex = 2;
+	
+	if (![CMVMTLDrawObject updateVertexCount:&newGeometryBufferVertexCount indexCount:&newIndexBufferIndexCount forCircleWithCenter:inCenter radius:inRadius forPrimitiveType:self.primitiveType])	{
+		NSLog(@"ERR: unable to calculate geometry or idx buffer size in %s",__func__);
+		return NO;
+	}
+	
+	//	make sure that our geometry and index buffers are large enough to accommodate the additional data
+	uint32_t		tmpMaxGeoSize = newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
+	uint32_t		tmpMaxIndexSize = newIndexBufferIndexCount * bytesPerIndex;
+	if (tmpMaxGeoSize > self.geometryBuffer.buffer.length)	{
+		NSLog(@"ERR: encode would be beyond buffer length, %s",__func__);
+		return NO;
+	}
+	if (tmpMaxIndexSize > self.indexBuffer.buffer.length)	{
+		NSLog(@"ERR: encode would be beyond index length, %s",__func__);
+		return NO;
+	}
+	
+	//	at this point we've got the geometry for the circle calculated out- populate the geometry and index buffers
+	
+	//	get the color vals
+	vector_float4		colors_vec = Vec4FromNSColor(inColor);
+	
+	//	get the base geometry buffer ptr, figure out where to write into it
+	CMVSimpleVertex		*rawGeoPtr = (CMVSimpleVertex *)self.geometryBuffer.buffer.contents;
+	CMVSimpleVertex		*baseGeoVert = rawGeoPtr + geometryBufferVertexCount;
+	//	get the base index buffer ptr, figure out where to write into it
+	uint16_t		*rawIdxPtr = (uint16_t *)self.indexBuffer.buffer.contents;
+	uint16_t		*baseIdxPtr = rawIdxPtr + indexBufferIndexCount;
+	
+	//	populate the geometry buffer
+	switch (self.primitiveType)	{
+	case MTLPrimitiveTypePoint:
+	case MTLPrimitiveTypeLine:
+	case MTLPrimitiveTypeLineStrip:
+		{
+			//	geometry doesn't include the center point
+			for (int i=0; i<numVerticesInCircle; ++i)	{
+				NSPoint		*rPtr = pointBuffer + i;
+				CMVSimpleVertex		*wPtr = baseGeoVert + i;
+				
+				wPtr->position = simd_make_float4( rPtr->x, rPtr->y, 0., 1. );
+				wPtr->color = colors_vec;
+				wPtr->texIndex = -1;
+			}
+		}
+		break;
+	case MTLPrimitiveTypeTriangle:
+	case MTLPrimitiveTypeTriangleStrip:
+		{
+			for (int i=0; i<numVerticesInCircle; ++i)	{
+				NSPoint		*rPtr = pointBuffer + i;
+				CMVSimpleVertex		*wPtr = baseGeoVert + i;
+				
+				//NSLog(@"\t\t%d - %@",i,NSStringFromPoint(*rPtr));
+				wPtr->position = simd_make_float4( rPtr->x, rPtr->y, 0., 1. );
+				wPtr->color = colors_vec;
+				wPtr->texIndex = -1;
+			}
+			//	center point is last!
+			CMVSimpleVertex		*wPtr = baseGeoVert + numVerticesInCircle;
+			
+			wPtr->position = simd_make_float4( inCenter.x, inCenter.y, 0., 1. );
+			wPtr->color = colors_vec;
+			wPtr->texIndex = -1;
+		}
+		break;
+	}
+	
+	//	populate the index buffer
+	switch (self.primitiveType)	{
+	case MTLPrimitiveTypePoint:
+		{
+			//	geometry doesn't include the center point
+			for (int i=0; i<numVerticesInCircle; ++i)	{
+				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
+			}
+			
+			//	update the respective vertex/idx counts;
+			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = newIndexBufferIndexCount;
+		}
+		break;
+	case MTLPrimitiveTypeLine:
+		{
+			//	geometry doesn't include the center point
+			for (int i=0; i<numSegmentsInCircumference; ++i)	{
+				*(baseIdxPtr + 2*i) = (geometryBufferVertexCount + i);
+				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i + 1);
+			}
+			
+			//	update the respective vertex/idx counts;
+			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = newIndexBufferIndexCount;
+		}
+		break;
+	case MTLPrimitiveTypeLineStrip:
+		{
+			//	geometry doesn't include the center point
+			for (int i=0; i<numVerticesInCircle; ++i)	{
+				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
+			}
+			//	we're going to include the first point again (to close the circle)
+			*(baseIdxPtr + numVerticesInCircle) = geometryBufferVertexCount;
+			//	stop bit!
+			*(baseIdxPtr + numVerticesInCircle + 1) = 0xFFFF;
+			
+			//	update the respective vertex/idx counts;
+			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = newIndexBufferIndexCount;
+		}
+		break;
+	case MTLPrimitiveTypeTriangle:
+		{
+			//	geometry for the triangles
+			for (int i=0; i<numSegmentsInCircumference; ++i)	{
+				*(baseIdxPtr + 3*i + 0) = (geometryBufferVertexCount + (i + 0)%numSegmentsInCircumference);
+				*(baseIdxPtr + 3*i + 1) = (geometryBufferVertexCount + (i + 1)%numSegmentsInCircumference);
+				*(baseIdxPtr + 3*i + 2) = (geometryBufferVertexCount + numVerticesInCircle);
+			}
+			//	stop bit!
+			*(baseIdxPtr + 3*numSegmentsInCircumference) = 0xFFFF;
+			
+			//	update the respective vertex/idx counts;
+			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = newIndexBufferIndexCount;
+		}
+		break;
+	case MTLPrimitiveTypeTriangleStrip:
+		{
+			//	geometry for the triangles
+			for (int i=0; i<numVerticesInCircle; ++i)	{
+				*(baseIdxPtr + 2*i + 0) = (geometryBufferVertexCount + numVerticesInCircle);	//	center...
+				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i);
+			}
+			//	one more to close the circle
+			*(baseIdxPtr + 2*numVerticesInCircle + 0) = (geometryBufferVertexCount + numVerticesInCircle);
+			*(baseIdxPtr + 2*numVerticesInCircle + 1) = (geometryBufferVertexCount);
+			//	stop bit!
+			*(baseIdxPtr + 2*numVerticesInCircle + 2) = 0xFFFF;
+			
+			//	update the respective vertex/idx counts;
+			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = newIndexBufferIndexCount;
+		}
+		break;
+	}
+	
+	return YES;
+}
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	if (inRadius <= 0.0)	{
+		NSLog(@"ERR: zero radius, %s",__func__);
+		return NO;
+	}
+	//	calculate the circumference of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
+	double		circumferenceInPixels = PI * 2. * inRadius;
+	double		numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	
+	if (numSegmentsInCircumference < 1)
+		numSegmentsInCircumference = 1.;
+	uint32_t		numVerticesInCircle = numSegmentsInCircumference;
+	
+	//	figure out how large the geometry and index buffers will need to be to draw this
+	uint32_t		geometryBufferVertexCount = *outVtxCount;
+	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
+	uint32_t		indexBufferIndexCount = *outIdxCount;
+	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
+	
+	switch (inPrimitiveType)	{
+	case MTLPrimitiveTypePoint:
+		{
+			newGeometryBufferVertexCount += (numVerticesInCircle);
+			newIndexBufferIndexCount += (numVerticesInCircle + 1);	//	the "+1" is the stop bit
+		}
+		break;
+	case MTLPrimitiveTypeLine:
+		{
+			newGeometryBufferVertexCount += (numVerticesInCircle);
+			newIndexBufferIndexCount += ((numSegmentsInCircumference * 2) + 1);	//	the "+1" is the stop bit
+		}
+		break;
+	case MTLPrimitiveTypeLineStrip:
+		{
+			newGeometryBufferVertexCount += (numVerticesInCircle);
+			newIndexBufferIndexCount += (numVerticesInCircle + 1 + 1);	//	the first "+1" closes the circle, the second is the stop bit
+		}
+		break;
+	case MTLPrimitiveTypeTriangle:
+		{
+			newGeometryBufferVertexCount += (numVerticesInCircle + 1);	//	the "+1" is for the center
+			newIndexBufferIndexCount += (numSegmentsInCircumference * 3);
+		}
+		break;
+	case MTLPrimitiveTypeTriangleStrip:
+		{
+			newGeometryBufferVertexCount += (numVerticesInCircle + 1);	//	the "+1" is for the center
+			newIndexBufferIndexCount += (((numVerticesInCircle + 1) * 2) + 1);	//	the first "+1" closes the circle, the second is the stop bit
+		}
+		break;
+	}
+	
+	*outVtxCount = newGeometryBufferVertexCount;
+	*outIdxCount = newIndexBufferIndexCount;
 	
 	return YES;
 }
