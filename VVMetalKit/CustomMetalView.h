@@ -33,6 +33,7 @@ NSView
 <CALayerDelegate>	{
 	id<MTLDevice>			device;
 	MTLRenderPassDescriptor			*passDescriptor;
+	MTLRenderPipelineDescriptor		*psoDesc;
 	id<MTLRenderPipelineState>		pso;
 	vector_uint2			viewportSize;
 	CAMetalLayer			*metalLayer;
@@ -62,6 +63,7 @@ NSView
 - (void) renderToCommandBuffer:(id<MTLCommandBuffer>)n;
 
 @property (readonly) NSSize viewportSize;
+@property (readonly) NSRect viewportBounds;	//	calculated at runtime from 'viewportSize', which is updated every time the drawable is reconfigured.
 
 @end
 

@@ -73,6 +73,8 @@
 		1A9924132A4DA43400F5094D /* VVMTLTextureImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A9924122A4DA43400F5094D /* VVMTLTextureImage.m */; };
 		1AAC5A522C3EF8AD00EC28CD /* MSLCompModeScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AAC5A502C3EF8AD00EC28CD /* MSLCompModeScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AAC5A532C3EF8AD00EC28CD /* MSLCompModeScene.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AAC5A512C3EF8AD00EC28CD /* MSLCompModeScene.m */; };
+		1AB9B7CD2D55227D002DE3BC /* CMVMTLDrawObjectView.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AB9B7CC2D55227D002DE3BC /* CMVMTLDrawObjectView.m */; };
+		1AB9B7CE2D55227D002DE3BC /* CMVMTLDrawObjectView.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AB9B7CB2D55227D002DE3BC /* CMVMTLDrawObjectView.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ABAD0DC27CEB41100466A69 /* SwizzleMTLSceneTypes.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */; };
 		1ABDF7AE2A214E3D00EE8708 /* VVMacros.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABDF7A12A214E3D00EE8708 /* VVMacros.h */; };
 		1ABE244F2A4DE87400317187 /* VVMTLScene.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ABE244D2A4DE87400317187 /* VVMTLScene.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -207,6 +209,8 @@
 		1AAF56C82A14237200626430 /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		1AAF56CA2A14238400626430 /* MetalKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MetalKit.framework; path = System/Library/Frameworks/MetalKit.framework; sourceTree = SDKROOT; };
 		1AAF56CB2A14238400626430 /* Metal.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Metal.framework; path = System/Library/Frameworks/Metal.framework; sourceTree = SDKROOT; };
+		1AB9B7CB2D55227D002DE3BC /* CMVMTLDrawObjectView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = CMVMTLDrawObjectView.h; sourceTree = "<group>"; };
+		1AB9B7CC2D55227D002DE3BC /* CMVMTLDrawObjectView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = CMVMTLDrawObjectView.m; sourceTree = "<group>"; };
 		1ABAD0DB27CEB41100466A69 /* SwizzleMTLSceneTypes.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SwizzleMTLSceneTypes.m; sourceTree = "<group>"; };
 		1ABDF7A12A214E3D00EE8708 /* VVMacros.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = VVMacros.h; sourceTree = "<group>"; };
 		1ABE244D2A4DE87400317187 /* VVMTLScene.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLScene.h; sourceTree = "<group>"; };
@@ -365,6 +369,8 @@
 				1A6A02CA2AF3DDC4003B12BF /* CMVMTLDrawObject.m */,
 				1A2F3FC42CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h */,
 				1A2F3FC52CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m */,
+				1AB9B7CB2D55227D002DE3BC /* CMVMTLDrawObjectView.h */,
+				1AB9B7CC2D55227D002DE3BC /* CMVMTLDrawObjectView.m */,
 				1A0FBEAA260E1F5000FF39BB /* SizingTool_metal.h */,
 				1AE5D72326165A470064DC1C /* SizingTool_c.h */,
 				1A2149D7263851BA007AD273 /* SizingTool_objc.h */,
@@ -455,6 +461,7 @@
 				1A89211E2A0BDDED00C19DE3 /* CustomMetalViewShaderTypes.h in Headers */,
 				1A6A02D92AF3DDC4003B12BF /* CMVMTLDrawObject.h in Headers */,
 				1A2F3FC62CE37EB6005B2C79 /* CMVMTLDrawObjectScene.h in Headers */,
+				1AB9B7CE2D55227D002DE3BC /* CMVMTLDrawObjectView.h in Headers */,
 				1A976B6F2A461D4C00C654FA /* VVMTLTimestamp.h in Headers */,
 				1A976B6E2A461D4C00C654FA /* VVMTLBuffer.h in Headers */,
 				1A976B6A2A461D4C00C654FA /* VVMTLImage.h in Headers */,
@@ -661,6 +668,7 @@
 				1A06925D2AF2649700A2DA9F /* VVMTLOrthoRenderScene.m in Sources */,
 				1ABE39102CB5985900E0819B /* VVMTLPerspRenderScene.mm in Sources */,
 				1A20CF0F2A4A1A3700F2EDBB /* VVMTLPool.m in Sources */,
+				1AB9B7CD2D55227D002DE3BC /* CMVMTLDrawObjectView.m in Sources */,
 				1ABE24582A4DE88B00317187 /* VVMTLRenderScene.m in Sources */,
 				1ABE24502A4DE87500317187 /* VVMTLScene.m in Sources */,
 				1A9924132A4DA43400F5094D /* VVMTLTextureImage.m in Sources */,
