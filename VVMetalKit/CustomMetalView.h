@@ -31,6 +31,7 @@ UIView
 NSView
 #endif
 <CALayerDelegate>	{
+	@public
 	id<MTLDevice>			device;
 	MTLRenderPassDescriptor			*passDescriptor;
 	MTLRenderPipelineDescriptor		*psoDesc;
@@ -64,6 +65,19 @@ NSView
 
 @property (readonly) NSSize viewportSize;
 @property (readonly) NSRect viewportBounds;	//	calculated at runtime from 'viewportSize', which is updated every time the drawable is reconfigured.
+
+@property (readonly) double localToBackingBoundsMultiplier;
+
+//	local, thread-safe version of NSView's 'boundsRotation' property (and other properties)
+@property (atomic,readwrite) CGFloat localBoundsRotation;
+@property (atomic,readwrite) NSRect localBounds;
+@property (atomic,readwrite) NSRect localBackingBounds;
+@property (atomic,readwrite) NSRect localFrame;
+//@property (atomic,readwrite) NSSize localFrameSize;
+@property (atomic,readwrite,weak) NSWindow * localWindow;
+@property (atomic,readwrite) BOOL localHidden;
+@property (atomic,readwrite) NSRect localVisibleRect;	//	updated on setNeedsDisplay and on changes to bounds or frame
+- (NSRect) convertRectToLocalBackingBounds:(NSRect)n;
 
 @end
 

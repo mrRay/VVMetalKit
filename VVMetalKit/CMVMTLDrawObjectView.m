@@ -19,8 +19,32 @@
 
 #pragma mark - frontend
 
-- (void) drawObject:(CMVMTLDrawObject*)inDrawObj inCmdBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
+- (void) drawNow	{
+	if (self.localWindow==nil || self.localHidden)	{
+		//NSLog(@"\t\terr: bailing A %s, %@",__func__,[self className]);
+		return;
+	}
+	
+	CMVMTLDrawObject		*localDrawObj = self.drawObject;
+	
+	id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.displayCmdQueue commandBuffer];
+	
+	[self drawObject:localDrawObj inCommandBuffer:cmdBuffer];
+	
+	[cmdBuffer commit];
+}
+- (void) drawInCommandBuffer:(id<MTLCommandBuffer>)inCmdBuffer	{
+	CMVMTLDrawObject		*localDrawObj = self.drawObject;
+	if (localDrawObj == nil)
+		return;
+	[self drawObject:localDrawObj inCommandBuffer:inCmdBuffer];
+	localDrawObj = nil;
+}
+- (void) drawObject:(CMVMTLDrawObject*)inDrawObj inCommandBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
 	//NSLog(@"%s",__func__);
+	
+	if (_drawObject != inDrawObj)
+		_drawObject = inDrawObj;
 	
 	//	get local copies of some buffers and stuff we'll need to draw
 	id<MTLBuffer>		localMVPBuffer = nil;

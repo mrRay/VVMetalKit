@@ -9,6 +9,13 @@
 
 
 
+@interface CustomMetalView ()
+@property (readwrite) double localToBackingBoundsMultiplier;
+@end
+
+
+
+
 @implementation CustomMetalView
 
 
@@ -41,6 +48,7 @@
 }
 - (void) generalInit	{
 	//NSLog(@"%s ... %@",__func__,self);
+	_localToBackingBoundsMultiplier = 1.0;
 	viewportSize = simd_make_uint2(1,1);
 	
 	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
@@ -79,6 +87,14 @@
 	//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 	self.layerBackgroundColor = nil;
 	//self.layerBackgroundColor = [NSColor colorWithDeviceRed:0. green:0. blue:0. alpha:1.];
+	
+	self.localBoundsRotation = self.boundsRotation;
+	self.localBounds = self.bounds;
+	self.localFrame = self.frame;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.bounds];
+	self.localWindow = self.window;
+	self.localHidden = self.hidden;
+	self.localVisibleRect = self.visibleRect;
 }
 - (void) awakeFromNib	{
 	self.colorspace = RenderProperties.global.colorSpace;
@@ -98,21 +114,21 @@
 	//return [super layerClass];
 	return [CAMetalLayer class];
 }
-- (void) viewDidMoveToWindow	{
-	[super viewDidMoveToWindow];
-	[self reconfigureDrawable];
-	
-	if (self.delegate != nil)
-		[self.delegate redrawView:self];
-}
-- (void) viewDidChangeBackingProperties	{
-	//NSLog(@"%s ... %@",__func__,self);
-	[super viewDidChangeBackingProperties];
-	[self reconfigureDrawable];
-	
-	if (self.delegate != nil)
-		[self.delegate redrawView:self];
-}
+//- (void) viewDidMoveToWindow	{
+//	[super viewDidMoveToWindow];
+//	[self reconfigureDrawable];
+//	
+//	if (self.delegate != nil)
+//		[self.delegate redrawView:self];
+//}
+//- (void) viewDidChangeBackingProperties	{
+//	//NSLog(@"%s ... %@",__func__,self);
+//	[super viewDidChangeBackingProperties];
+//	[self reconfigureDrawable];
+//	
+//	if (self.delegate != nil)
+//		[self.delegate redrawView:self];
+//}
 - (void) setFrameSize:(NSSize)n	{
 	[super setFrameSize:n];
 	[self reconfigureDrawable];
@@ -120,13 +136,13 @@
 	if (self.delegate != nil)
 		[self.delegate redrawView:self];
 }
-- (void) setBoundsSize:(NSSize)n	{
-	[super setBoundsSize:n];
-	[self reconfigureDrawable];
-	
-	if (self.delegate != nil)
-		[self.delegate redrawView:self];
-}
+//- (void) setBoundsSize:(NSSize)n	{
+//	[super setBoundsSize:n];
+//	[self reconfigureDrawable];
+//	
+//	if (self.delegate != nil)
+//		[self.delegate redrawView:self];
+//}
 
 
 - (BOOL) isOpaque	{
@@ -138,17 +154,113 @@
 	return [CAMetalLayer layer];
 }
 
+#endif
 
+- (void) viewDidChangeBackingProperties	{
+	//NSLog(@"%s ... %@",__func__,self);
+	[super viewDidChangeBackingProperties];
+	
+	[self reconfigureDrawable];
+	
+	self.localBounds = self.bounds;
+	self.localFrame = self.frame;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.localBounds];
+	self.localVisibleRect = self.visibleRect;
+	[self setNeedsDisplay:YES];
+	//if (self.delegate != nil)
+	//	[self.delegate redrawView:self];
+}
+- (void)viewDidMoveToWindow	{
+	//NSLog(@"%s ... %@",__func__,self);
+	
+	[super viewDidMoveToWindow];
+	[self reconfigureDrawable];
+	
+	self.localWindow = self.window;
+	self.localVisibleRect = self.visibleRect;
+	
+	[self updateTrackingAreas];
+	
+	[self setNeedsDisplay:YES];
+	//if (self.delegate != nil)
+	//	[self.delegate redrawView:self];
+}
+- (void) updateTrackingAreas	{
+	[super updateTrackingAreas];
+	
+	self.localBounds = self.bounds;
+	self.localFrame = self.frame;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.localBounds];
+	self.localVisibleRect = self.visibleRect;
+}
+
+- (void) setBoundsRotation:(CGFloat)n	{
+	[super setBoundsRotation:n];
+	self.localBoundsRotation = self.boundsRotation;
+	self.localVisibleRect = self.visibleRect;
+}
+- (void) setBounds:(NSRect)n	{
+	[super setBounds:n];
+	self.localBounds = self.bounds;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.localBounds];
+	self.localVisibleRect = self.visibleRect;
+}
+- (void) setBoundsOrigin:(NSPoint)n	{
+	[super setBoundsOrigin:n];
+	self.localBounds = self.bounds;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.localBounds];
+	self.localVisibleRect = self.visibleRect;
+}
+- (void) setBoundsSize:(NSSize)n	{
+	[super setBoundsSize:n];
+	[self reconfigureDrawable];
+	self.localBounds = self.bounds;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.localBounds];
+	self.localVisibleRect = self.visibleRect;
+	
+	[self setNeedsDisplay:YES];
+	//if (self.delegate != nil)
+	//	[self.delegate redrawView:self];
+}
+- (void) setFrame:(NSRect)n	{
+	[super setFrame:n];
+	self.localBounds = self.bounds;
+	self.localFrame = self.frame;
+	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.localBounds];
+	self.localVisibleRect = self.visibleRect;
+}
+- (void) viewWillMoveToWindow:(NSWindow *)n	{
+	//NSLog(@"%s",__func__);
+	self.localWindow = n;
+	self.localVisibleRect = self.visibleRect;
+	[super viewWillMoveToWindow:n];
+}
+- (void) setHidden:(BOOL)n	{
+	[super setHidden:n];
+	self.localHidden = self.hidden;
+	self.localVisibleRect = self.visibleRect;
+}
 //@synthesize needsDisplay=myNeedsDisplay;
 - (void) setNeedsDisplay:(BOOL)n	{
 	//myNeedsDisplay = n;
-	if (n)
+	if (n)	{
 		self.contentNeedsRedraw = YES;
+		self.localVisibleRect = self.visibleRect;
+	}
 	[super setNeedsDisplay:n];
 	if (n && self.delegate != nil)
 		[self.delegate redrawView:self];
 }
-#endif
+- (void) setNeedsDisplayInRect:(NSRect)n	{
+	self.contentNeedsRedraw = YES;
+	self.localVisibleRect = self.visibleRect;
+	[super setNeedsDisplayInRect:n];
+	if (self.delegate != nil)
+		[self.delegate redrawView:self];
+}
+- (NSRect) convertRectToLocalBackingBounds:(NSRect)n	{
+	return NSMakeRect(n.origin.x*_localToBackingBoundsMultiplier,n.origin.y*_localToBackingBoundsMultiplier,n.size.width*_localToBackingBoundsMultiplier,n.size.height*_localToBackingBoundsMultiplier);
+}
 
 
 #pragma mark - backend
@@ -272,10 +384,12 @@
 	}
 	
 	if (tmpScreen == nil)	{
+		self.localToBackingBoundsMultiplier = 1.0;
 		return YES;
 	}
 	
 	CGFloat			scale = tmpScreen.backingScaleFactor;
+	self.localToBackingBoundsMultiplier = scale;
 	
 	#endif
 	//NSLog(@"\t\tscreen is %@, window is %@, scale is %0.2f", self.window.screen, self.window, scale);
