@@ -18,7 +18,7 @@ NS_ASSUME_NONNULL_BEGIN
 @property (strong,nullable) id<MTLBuffer> mvpBuffer;
 
 //	we store a local copy of the object to be drawn (which in turn retains all the geometry + textures)
-@property (strong) CMVMTLDrawObject * drawObject;
+@property (strong,nullable) CMVMTLDrawObject * drawObject;
 
 - (void) drawNow;
 - (void) drawInCommandBuffer:(id<MTLCommandBuffer>)inCmdBuffer;
