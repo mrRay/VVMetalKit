@@ -25,6 +25,12 @@
 	[super setImgBuffer:inBuffer];
 }
 
+- (BOOL) reconfigureDrawable	{
+	BOOL		returnMe = [super reconfigureDrawable];
+	if (self.imgBuffer != nil)
+		self.vertRect = NSRectThatFitsRectInRect(self.imgBuffer.srcRect, NSMakeRect(0,0,viewportSize.x,viewportSize.y), SizingModeFit);
+	return returnMe;
+}
 
 - (void) setLayerBackgroundColor:(NSColor *)n	{
 	[super setLayerBackgroundColor:n];
