@@ -97,6 +97,7 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
 #import <VVMetalKit/VVMTLUtilities.h>
 #import <VVMetalKit/AAPLMathUtilities.h>
+#import <VVMetalKit/CIImageAdditions.h>
 #import <VVMetalKit/CIMTLScene.h>
 
 #endif
