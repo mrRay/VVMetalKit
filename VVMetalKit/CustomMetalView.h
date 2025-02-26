@@ -5,7 +5,8 @@
 #import <UIKit/UIKit.h>
 #else
 #import <Cocoa/Cocoa.h>
-#import <Quartz/Quartz.h>
+//#import <Quartz/Quartz.h>
+#import <QuartzCore/QuartzCore.h>
 #endif
 #import <simd/simd.h>
 #import <VVMetalKit/CustomMetalViewShaderTypes.h>
