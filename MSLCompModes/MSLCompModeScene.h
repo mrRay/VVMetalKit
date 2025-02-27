@@ -27,7 +27,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 //	NO, don't use these (publicly)
 - (id<VVMTLTextureImage>) createAndRenderToTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));;
-- (void) renderToTexture:(id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));;
+- (void) renderToTexture:(nullable id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb __attribute__((unavailable("No, don't do this")));
 
 @property (strong,readwrite,nullable) MSLCompModeRecipe * recipe;
 @property (readwrite) NSRect canvasBounds;	//	the region of the canvas that we're rendering
