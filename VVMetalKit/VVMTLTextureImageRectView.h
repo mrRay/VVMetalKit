@@ -5,18 +5,10 @@
 //  Created by testadmin on 6/29/23.
 //
 
-//#import <Cocoa/Cocoa.h>
-#import <TargetConditionals.h>
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#import <UIKit/UIKit.h>
-#import <VVMetalKitTouch/CustomMetalView.h>
-#import <VVMetalKitTouch/VVMTLPool.h>
-#else
 #import <Cocoa/Cocoa.h>
 #import <VVMetalKit/CustomMetalView.h>
 #import <VVMetalKit/VVMTLTextureImage.h>
 #import <VVMetalKit/VVMTLPool.h>
-#endif
 
 NS_ASSUME_NONNULL_BEGIN
 

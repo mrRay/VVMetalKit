@@ -1,8 +1,4 @@
 #import "CustomMetalView.h"
-#import "TargetConditionals.h"
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#import <UIKit/UIKit.h>
-#endif
 
 #import "RenderProperties.h"
 
@@ -22,15 +18,6 @@
 #pragma mark - init/teardown
 
 
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-- (instancetype) initWithFrame:(CGRect)frame	{
-	self = [super initWithFrame:frame];
-	if (self != nil)	{
-		[self generalInit];
-	}
-	return self;
-}
-#else
 - (instancetype) initWithFrame:(NSRect)frame	{
 	self = [super initWithFrame:frame];
 	if (self != nil)	{
@@ -38,7 +25,6 @@
 	}
 	return self;
 }
-#endif
 - (instancetype) initWithCoder:(NSCoder *)inCoder	{
 	self = [super initWithCoder:inCoder];
 	if (self != nil)	{
@@ -51,13 +37,9 @@
 	_localToBackingBoundsMultiplier = 1.0;
 	viewportSize = simd_make_uint2(1,1);
 	
-	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-	metalLayer = (CAMetalLayer*)self.layer;
-	#else
 	metalLayer = [CAMetalLayer layer];
 	//metalLayer.maximumDrawableCount = 2;
 	//metalLayer.framebufferOnly = true;
-	#endif
 	//NSLog(@"\t\tmetalLayer is now %@",metalLayer);
 	
 	passDescriptor = [MTLRenderPassDescriptor new];
@@ -72,13 +54,11 @@
 	
 	self.colorspace = RenderProperties.global.colorSpace;
 	
-	#if !TARGET_OS_IOS
 	self.wantsLayer = YES;
 	//self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawDuringViewResize;
 	self.layerContentsRedrawPolicy = NSViewLayerContentsRedrawCrossfade;
 	self.layer = metalLayer;
 	//[self.layer addSublayer:metalLayer];	//	doesn't work!
-	#endif
 	
 	self.layer.delegate = self;
 	
@@ -108,8 +88,6 @@
 #pragma mark - superclass overrides
 
 
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#else
 + (Class) layerClass	{
 	//return [super layerClass];
 	return [CAMetalLayer class];
@@ -153,8 +131,6 @@
 - (CALayer *) makeBackingLayer	{
 	return [CAMetalLayer layer];
 }
-
-#endif
 
 - (void) viewDidChangeBackingProperties	{
 	//NSLog(@"%s ... %@",__func__,self);
@@ -319,11 +295,6 @@
 }
 - (BOOL) reconfigureDrawable	{
 	//NSLog(@"%s ... %@",__func__,self);
-	#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-	
-	CGFloat			scale = self.window.screen.scale;
-	
-	#else
 	
 	//	we have to find the screen our window is on (so we can get its pixel density)...but there's a catch: 
 	//	if the window isn't open, calling "self.window.screen" returns nil- even though the window has a 
@@ -391,7 +362,6 @@
 	CGFloat			scale = tmpScreen.backingScaleFactor;
 	self.localToBackingBoundsMultiplier = scale;
 	
-	#endif
 	//NSLog(@"\t\tscreen is %@, window is %@, scale is %0.2f", self.window.screen, self.window, scale);
 	
 	//NSLog(@"\t\tbounds are %@",NSStringFromRect(self.bounds));
@@ -455,11 +425,7 @@
 	if (_layerBackgroundColor == nil)	{
 		//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 		self.layer.opaque = NO;
-		#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-		self.layer.backgroundColor = [[UIColor clearColor] CGColor];
-		#else
 		self.layer.backgroundColor = [[NSColor clearColor] CGColor];
-		#endif
 		passDescriptor = [MTLRenderPassDescriptor new];
 		passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
 		passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0);
@@ -470,12 +436,7 @@
 		CGFloat			components[8];
 		[_layerBackgroundColor getComponents:components];
 		//NSLog(@"\t\tcolor was %@, comps are %0.2f, %0.2f, %0.2f",_layerBackgroundColor,components[0],components[1],components[2]);
-		#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-		//self.layer.backgroundColor = [[UIColor clearColor] CGColor];
-		NSLog(@"ERR ****************** INCOMPLETE %s",__func__);
-		#else
 		self.layer.backgroundColor = [_layerBackgroundColor CGColor];
-		#endif
 		passDescriptor = [MTLRenderPassDescriptor new];
 		passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
 		passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake( components[0], components[1], components[2], components[3] );

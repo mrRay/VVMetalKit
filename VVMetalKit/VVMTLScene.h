@@ -7,12 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
-#import <TargetConditionals.h>
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#import <UIKit/UIKit.h>
-#else
 #import <Cocoa/Cocoa.h>
-#endif
 
 #import <VVMetalKit/VVMTLTextureImage.h>
 

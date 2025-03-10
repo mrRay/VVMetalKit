@@ -1,18 +1,10 @@
 #import "SwizzleMTLScene.h"
-#import "TargetConditionals.h"
 #import "VVMTLPool.h"
 //#import "VVMTLTextureImageShaderTypes.h"
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
 #import "VVMTLScene_priv.h"
 //#import <VVCore/VVCore.h>
-
-
-
-
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#define NSMakeSize CGSizeMake
-#endif
 
 
 

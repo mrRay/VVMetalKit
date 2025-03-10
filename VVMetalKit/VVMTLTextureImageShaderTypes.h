@@ -9,12 +9,7 @@
 #define VVMTLTextureImageShaderTypes_h
 
 
-#import <TargetConditionals.h>
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#include <VVMetalKitTouch/SizingToolTypes.h>
-#else
 #include <VVMetalKit/SizingToolTypes.h>
-#endif
 
 #include <simd/simd.h>
 

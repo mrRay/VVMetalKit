@@ -6,7 +6,6 @@
 //
 
 #import "VVMTLTextureImageRectView.h"
-#import "TargetConditionals.h"
 #import "VVMTLTextureImageRectViewShaderTypes.h"
 #import "RenderProperties.h"
 //#import "VVSizingTool.h"
@@ -17,11 +16,6 @@
 
 
 
-
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#define NSMakeRect CGRectMake
-#define NSRect CGRect
-#endif
 
 #define VVMINX(r) ((r.size.width>=0) ? (r.origin.x) : (r.origin.x+r.size.width))
 #define VVMAXX(r) ((r.size.width>=0) ? (r.origin.x+r.size.width) : (r.origin.x))

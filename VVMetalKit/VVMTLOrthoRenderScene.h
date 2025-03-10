@@ -5,12 +5,7 @@
 //  Created by testadmin on 11/1/23.
 //
 
-#import <TargetConditionals.h>
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#import <VVMetalKitTouch/VVMTLRenderScene.h>
-#else
 #import <VVMetalKit/VVMTLRenderScene.h>
-#endif
 
 NS_ASSUME_NONNULL_BEGIN
 

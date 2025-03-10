@@ -9,14 +9,8 @@
 #define VVMTLTextureImageRectViewShaderTypes_h
 
 
-#import <TargetConditionals.h>
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#include <VVMetalKitTouch/SizingToolTypes.h>
-#include <VVMetalKitTouch/VVMTLTextureImageShaderTypes.h>
-#else
 #include <VVMetalKit/SizingToolTypes.h>
 #include <VVMetalKit/VVMTLTextureImageShaderTypes.h>
-#endif
 
 
 

@@ -3,17 +3,6 @@
 #import "VVMTLTextureImageShaderTypes.h"
 #import "RenderProperties.h"
 #import "SizingTool_objc.h"
-#import "TargetConditionals.h"
-
-
-
-
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#define NSSize CGSize
-#define NSMakeSize CGSizeMake
-#define NSEqualSizes CGSizeEqualToSize
-#define NSStringFromSize NSStringFromCGSize
-#endif
 
 
 

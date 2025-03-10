@@ -9,12 +9,7 @@
 #define SizingTool_objc_h
 
 
-#import <TargetConditionals.h>
-#if defined(TARGET_OS_IOS) && TARGET_OS_IOS==1
-#include <VVMetalKitTouch/SizingTool_c.h>
-#else
 #include <VVMetalKit/SizingTool_c.h>
-#endif
 
 #include <Foundation/Foundation.h>
 #include <CoreGraphics/CoreGraphics.h>
@@ -27,26 +22,23 @@
 
 
 
-#if !TARGET_OS_IOS
 static inline GPoint GPointFromNSPoint(NSPoint inPoint);
 static inline NSPoint NSPointFromGPoint(GPoint inPoint);
-#endif
+
 static inline GPoint GPointFromCGPoint(CGPoint inPoint);
 static inline CGPoint CGPointFromGPoint(GPoint inPoint);
 
 
-#if !TARGET_OS_IOS
 static inline GSize GSizeFromNSSize(NSSize inSize);
 static inline NSSize NSSizeFromGSize(GSize inSize);
-#endif
+
 static inline GSize GSizeFromCGSize(CGSize inSize);
 static inline CGPoint CGSizeFromGSize(GSize inSize);
 
 
-#if !TARGET_OS_IOS
 static inline GRect GRectFromNSRect(NSRect inRect);
 static inline NSRect NSRectFromGRect(GRect inRect);
-#endif
+
 static inline GRect GRectFromCGRect(CGRect inRect);
 static inline CGRect CGRectFromGRect(GRect inRect);
 
@@ -73,7 +65,6 @@ static inline SizingMode SizingModeFromNSString(NSString *inString);
 
 
 
-#if !TARGET_OS_IOS
 static inline GPoint GPointFromNSPoint(NSPoint inPoint)	{
 	struct GPoint		returnMe = { (float)inPoint.x, (float)inPoint.y };
 	return returnMe;
@@ -81,7 +72,7 @@ static inline GPoint GPointFromNSPoint(NSPoint inPoint)	{
 static inline NSPoint NSPointFromGPoint(GPoint inPoint)	{
 	return NSMakePoint(inPoint.x, inPoint.y);
 }
-#endif
+
 static inline GPoint GPointFromCGPoint(CGPoint inPoint)	{
 	struct GPoint		returnMe = { (float)inPoint.x, (float)inPoint.y };
 	return returnMe;
@@ -93,7 +84,6 @@ static inline CGPoint CGPointFromGPoint(GPoint inPoint)	{
 
 
 
-#if !TARGET_OS_IOS
 static inline GSize GSizeFromNSSize(NSSize inSize)	{
 	struct GSize		returnMe = { (float)inSize.width, (float)inSize.height };
 	return returnMe;
@@ -101,7 +91,7 @@ static inline GSize GSizeFromNSSize(NSSize inSize)	{
 static inline NSSize NSSizeFromGSize(GSize inSize)	{
 	return NSMakeSize(inSize.width, inSize.height);
 }
-#endif
+
 static inline GSize GSizeFromCGSize(CGSize inSize)	{
 	struct GSize		returnMe = { (float)inSize.width, (float)inSize.height };
 	return returnMe;
@@ -113,7 +103,6 @@ static inline CGPoint CGSizeFromGSize(GSize inSize)	{
 
 
 
-#if !TARGET_OS_IOS
 static inline GRect GRectFromNSRect(NSRect inRect)	{
 	struct GRect		returnMe = { { (float)inRect.origin.x, (float)inRect.origin.y }, { (float)inRect.size.width, (float)inRect.size.height } };
 	return returnMe;
@@ -121,7 +110,7 @@ static inline GRect GRectFromNSRect(NSRect inRect)	{
 static inline NSRect NSRectFromGRect(GRect inRect)	{
 	return NSMakeRect(inRect.origin.x, inRect.origin.y, inRect.size.width, inRect.size.height);
 }
-#endif
+
 static inline GRect GRectFromCGRect(CGRect inRect)	{
 	struct GRect		returnMe = { { (float)inRect.origin.x, (float)inRect.origin.y }, { (float)inRect.size.width, (float)inRect.size.height } };
 	return returnMe;
