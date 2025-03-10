@@ -379,8 +379,6 @@
 	
 	return returnMe;
 }
-- (void) renderToCommandBuffer:(id<MTLCommandBuffer>)n	{
-}
 
 
 #pragma mark - key-value overrides

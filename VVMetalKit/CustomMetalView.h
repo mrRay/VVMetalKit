@@ -49,7 +49,6 @@ NS_ASSUME_NONNULL_BEGIN
 
 //	returns a YES if the dimensions of the drawable have changed
 - (BOOL) reconfigureDrawable;
-- (void) renderToCommandBuffer:(id<MTLCommandBuffer>)n;
 
 @property (readonly) NSSize viewportSize;
 @property (readonly) NSRect viewportBounds;	//	calculated at runtime from 'viewportSize', which is updated every time the drawable is reconfigured.
