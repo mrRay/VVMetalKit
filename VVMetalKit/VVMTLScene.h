@@ -16,6 +16,13 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+/*		A collection of resources used to perform rendering using Metal.
+		Base class, you probably won't be making instances of this- instead, look at VVMTLComputScene and VVMTLRenderScene (and its descendants, VVMTLOrthoRenderScene and VVMTLPerspRenderScene)
+*/
+
+
+
+
 @interface VVMTLScene : NSObject
 
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice;

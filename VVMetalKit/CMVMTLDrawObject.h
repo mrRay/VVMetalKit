@@ -29,9 +29,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface CMVMTLDrawObject : NSObject
 
+//	creates an instance of this class with a known buffer size in bytes.  defaults to triangle strip drawing.
 + (instancetype) createWithGeometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize;
+//	if you know the number of vertexes and the number of indexes used to draw those vertexes, you can use this method to create an instance of this class.  defaults to triangle strip drawing.
 + (instancetype) createWithGeometryBufferCount:(uint32_t)inVertCount indexBufferCount:(uint32_t)inIndexCount;
 
+//	this is the "main" init method- other create/init methods use this "under the hood".  don't feel like you need to use this method directly.
 - (instancetype) initWithPrimitiveType:(MTLPrimitiveType)inPrimType geometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize;
 
 - (instancetype) initWithGeometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize;
@@ -70,29 +73,65 @@ NS_ASSUME_NONNULL_BEGIN
 
 //	generates geometry to draw a quad matching the passed values (using the receiver's primitive type) and appends it to the receiver's geometry and index buffers.  returns NO if the data cannot be appended to the receiver's buffers.
 - (BOOL) encodeQuad:(NSRect)inRect withColor:(NSColor *)inColor;
+//	generates geometry for drawing a quad with the passed rect that will draw using the passed texture.  caller is responsible for incrementing and tracking 'inTexIndex', which should start at '0'.  the passed texture will be retained for the lifetime of the receiver, and will be associated with 'inTexIndex' for that duration.
 - (BOOL) encodeQuad:(NSRect)inRect withImage:(__nullable id<VVMTLTextureImage>)inImg texIndex:(int8_t)inTexIndex;
 - (BOOL) encodeQuad:(NSRect)inRect withImage:(id<VVMTLTextureImage> __nullable)inImg texIndex:(int8_t)inTexIndex color:(NSColor * __nullable)inColor;
+//	this method calculates the number of vertexes and indexes needed to draw the passed quad, and updates 'outVtxCount' and 'outIdxCount' accordingly
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forQuad:(NSRect)inRect primitiveType:(MTLPrimitiveType)inPrimitiveType;
 
+
+//	generates geometry for drawing the outline of the passed quad using a line with the passed width and color.
 - (BOOL) encodeStrokedQuad:(NSRect)inRect strokeWidth:(float)inStrokeWidth strokeColor:(NSColor *)inColor;
+//	this method calculates the number of vertexes and indexes needed to stroke the passed quad, and updates 'outVtxCount' and 'outIdxCount' accordingly
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forStrokedQuad:(NSRect)inRect primitiveType:(MTLPrimitiveType)inPrimitiveType;
 
+
+//	generates geometry for drawing a diamond in the passed rect with the passed color as its fill
 - (BOOL) encodeDiamond:(NSRect)inRect withColor:(NSColor *)inColor;
+//	generates geometry for stroking (drawing the outline of) the passed rec with a line of the passed width and color.
 - (BOOL) encodeStrokedDiamond:(NSRect)inRect strokeWidth:(float)inStrokeWidth strokeColor:(NSColor *)inColor;
+
 
 //	generates geometry to draw a line matching the passed values (using the receiver's primitive type) and appends it to the receiver's gemoetry and index buffers.  returns NO if the data cannot be appended to the receiver's buffers.
 - (BOOL) encodePointsAsLine:(NSPoint *)inPoints count:(uint32_t)inPointsCount lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor;
+//	this method calculates the number of vertexes and indexes required to draw an arbitrary number of points as a line using the passed primitive type
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forPointsAsLineCount:(uint32_t)inPointsCount primitiveType:(MTLPrimitiveType)inPrimitiveType;
+
 
 //	makes sure the receiver can accommodate the passed data, then populated vertexes using the passed geometry and index data.  DOES NOT ADD A "STOP BIT" FOR ___-STRIP TYPE PRIMITIVES!
 - (BOOL) encodeRawPoints:(NSPoint *)inPoints count:(uint32_t)inPointsCount indexes:(uint16_t*)inIndexes count:(uint32_t)inIndexesCount withColor:(NSColor *)inColor;
 
-- (BOOL) encodeArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor;
-+ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
 
-- (BOOL) encodeCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius fillColor:(NSColor * __nullable)inColor;
-+ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
+//	encodes drawing commands to draw the outline of an arc matching the passed description
+- (BOOL) encodeStrokedArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth strokeColor:(NSColor * __nullable)inColor;
+//	this method calculates how many vertexes and indexes are required to draw the stroke of an arc with the passed dimensions, and updates 'outVtxCount' and 'outIdxCount' accordingly.  this method exists because you need to know the number of vertexes/indexes to make an instance of CMVMTLDrawObject.
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forStrokedArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
 
+
+//	encodes drawing commands to draw a filled arc matching the passed description
+- (BOOL) encodeFilledArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians fillColor:(NSColor * __nullable)inColor;
+//	this method calculates how many vertexes and indexes are required to draw a filled arc with the passed dimensions, and updates 'outVtxCount' and 'outIdxCount' accordingly.  this method exists because you need to know the number of vertexes/indexes to make an instance of CMVMTLDrawObject.
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forFilledArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
+
+
+//	encodes drawing commands to draw a stroked circle (or portion thereof) matching the passed description.
+- (BOOL) encodeStrokedCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius lineWidth:(float)inLineWidth strokeColor:(NSColor * __nullable)inColor;
+//	this method calculates how many vertexes and indexes are required to draw a stroked circle with the passed dimensions, and updates 'outVtxCount' and 'outIdxCount' accordingly.  this method exists because you need to know the number of vertexes/indexes to make an instance of CMVMTLDrawObject.
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forStrokedCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
+
+
+//	encodes drawing commands to draw a filled circle (or portion thereof) matching the passed description.
+- (BOOL) encodeFilledCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius fillColor:(NSColor * __nullable)inColor;
+//	this method calculates how many vertexes and indexes are required to draw a filled circle with the passed dimensions, and updates 'outVtxCount' and 'outIdxCount' accordingly.  this method exists because you need to know the number of vertexes/indexes to make an instance of CMVMTLDrawObject.
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forFilledCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType;
+
+
+//	adds a primitive restart index value to the indexes.
 - (BOOL) encodePrimitiveRestartIndex;
 
+//	the receiver will execute its drawing commands in the passed render encoder/command buffer.  note: this command will only produce the desired output if your drawing commands don't make use of textures!
 - (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc commandBuffer:(id<MTLCommandBuffer>)inCB;
+//	the receiver will execute its drawing commands using the passed encoders.  if your draw object makes use of textures, you need to use this method- if you don't, the textures won't appear as intended.
 - (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc textureArgumentEncoder:(id<MTLArgumentEncoder>)inTexArgEnc commandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end

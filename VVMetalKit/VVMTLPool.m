@@ -901,9 +901,16 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	NSGraphicsContext	*tmpNSCtx = [NSGraphicsContext graphicsContextWithCGContext:tmpCGCtx flipped:NO];
 	CGImageRef			tmpCGImg = (tmpNSCtx==nil) ? NULL : [n CGImageForProposedRect:&tmpRect context:tmpNSCtx hints:nil];
 	
+	
+	
+	/*
 	NSError				*nsErr = nil;
 	id<MTLTexture>		tmpTex = (tmpCGImg==NULL) ? nil : [tmpLoader newTextureWithCGImage:tmpCGImg options:@{ MTKTextureLoaderOptionSRGB: @(NO) } error:&nsErr];
 	id<VVMTLTextureImage>		returnMe = (tmpTex==nil) ? nil : [self textureForExistingTexture:tmpTex];
+	*/
+	id<VVMTLTextureImage>		returnMe = CreateTextureFromCGImage(tmpCGImg);
+	
+	
 	
 	tmpNSCtx = nil;
 	tmpLoader = nil;

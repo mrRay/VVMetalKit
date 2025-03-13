@@ -290,7 +290,7 @@ char get_line_intersection(
 	case MTLPrimitiveTypeLineStrip:
 		{
 			newGeometryBufferVertexCount = geometryBufferVertexCount + 4;
-			newIndexBufferIndexCount = indexBufferIndexCount + 5;	//	4 idxs + 1 stop bit
+			newIndexBufferIndexCount = indexBufferIndexCount + 6;	//	4 idxs + 1 idx (back to first point) + 1 stop bit
 		}
 		break;
 	case MTLPrimitiveTypeTriangle:
@@ -423,7 +423,8 @@ char get_line_intersection(
 			*(baseIdxPtr + 1) = (geometryBufferVertexCount + 1);
 			*(baseIdxPtr + 2) = (geometryBufferVertexCount + 3);
 			*(baseIdxPtr + 3) = (geometryBufferVertexCount + 2);
-			*(baseIdxPtr + 4) = 0xFFFF;
+			*(baseIdxPtr + 4) = (geometryBufferVertexCount + 0);
+			*(baseIdxPtr + 5) = 0xFFFF;
 			
 			//	update the respective vertex counts
 			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
@@ -481,6 +482,35 @@ char get_line_intersection(
 	
 	return YES;
 }
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forQuad:(NSRect)inRect primitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	uint32_t		vtxCount = *outVtxCount;
+	uint32_t		idxCount = *outIdxCount;
+	switch (inPrimitiveType)	{
+	case MTLPrimitiveTypePoint:
+		vtxCount += 4;
+		idxCount += 4;
+		break;
+	case MTLPrimitiveTypeLine:
+		vtxCount += 4;
+		idxCount += 8;
+		break;
+	case MTLPrimitiveTypeLineStrip:
+		vtxCount += 4;
+		idxCount += 5;
+		break;
+	case MTLPrimitiveTypeTriangle:
+		vtxCount += 4;
+		idxCount += 6;
+		break;
+	case MTLPrimitiveTypeTriangleStrip:
+		vtxCount += 4;
+		idxCount += 5;
+		break;
+	}
+	*outVtxCount = vtxCount;
+	*outIdxCount = idxCount;
+	return YES;
+}
 
 
 - (BOOL) encodeStrokedQuad:(NSRect)inRect strokeWidth:(float)inStrokeWidth strokeColor:(NSColor *)inColor	{
@@ -494,6 +524,9 @@ char get_line_intersection(
 		VVRectGetAnchorPoint(inRect, VVRectAnchor_TL)
 	};
 	return [self encodePointsAsLine:points count:5 lineWidth:inStrokeWidth lineColor:inColor];
+}
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forStrokedQuad:(NSRect)inRect primitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	return [self updateVertexCount:outVtxCount indexCount:outIdxCount forPointsAsLineCount:5 primitiveType:inPrimitiveType];
 }
 
 
@@ -990,6 +1023,36 @@ char get_line_intersection(
 	
 	return YES;
 }
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forPointsAsLineCount:(uint32_t)inPointsCount primitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	uint32_t		vtxCount = *outVtxCount;
+	uint32_t		idxCount = *outIdxCount;
+	switch (inPrimitiveType)	{
+	case MTLPrimitiveTypePoint:
+		vtxCount += inPointsCount;
+		idxCount += inPointsCount;
+		break;
+	case MTLPrimitiveTypeLine:
+		vtxCount += inPointsCount;
+		idxCount += ((inPointsCount - 1) * 2);
+		break;
+	case MTLPrimitiveTypeLineStrip:
+		vtxCount += inPointsCount;
+		idxCount += (inPointsCount + 1);	//	+1 is stop bit
+		break;
+	case MTLPrimitiveTypeTriangle:
+		vtxCount += (inPointsCount * 2);
+		idxCount += ((inPointsCount - 1) * 6);
+		break;
+	case MTLPrimitiveTypeTriangleStrip:
+		vtxCount += (inPointsCount * 2);
+		idxCount += ((inPointsCount * 2) + 1);	//	one quad (4 idxs) per line segment +1 stop bit
+		break;
+	}
+	*outVtxCount = vtxCount;
+	*outIdxCount = idxCount;
+	return YES;
+}
+
 
 - (BOOL) encodeRawPoints:(NSPoint *)inPoints count:(uint32_t)inPointsCount indexes:(uint16_t*)inIndexes count:(uint32_t)inIndexesCount withColor:(NSColor *)inColor	{
 	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
@@ -1051,7 +1114,8 @@ char get_line_intersection(
 	return YES;
 }
 
-- (BOOL) encodeArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth lineColor:(NSColor * __nullable)inColor	{
+
+- (BOOL) encodeStrokedArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians lineWidth:(float)inLineWidth strokeColor:(NSColor * __nullable)inColor	{
 	//NSLog(@"%s ... %0.2f, %0.2f -> %0.2f",__func__,inRadius,RAD2DEG*inStartRadians,RAD2DEG*inEndRadians);
 	if (inStartRadians == inEndRadians)	{
 		NSLog(@"ERR: zero-length arc, %s",__func__);
@@ -1097,7 +1161,7 @@ char get_line_intersection(
 	
 	return returnMe;
 }
-+ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forStrokedArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
 	if (outVtxCount==nil || outIdxCount==nil)	{
 		NSLog(@"ERR: %s, prereq nil, %p, %p",__func__,outVtxCount,outIdxCount);
 		return NO;
@@ -1156,7 +1220,8 @@ char get_line_intersection(
 	return YES;
 }
 
-- (BOOL) encodeCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius fillColor:(NSColor * __nullable)inColor	{
+
+- (BOOL) encodeFilledArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians fillColor:(NSColor * __nullable)inColor	{
 	//NSLog(@"%s ... %@, %0.2f",__func__,NSStringFromPoint(inCenter),inRadius);
 	if (inRadius <= 0.0)	{
 		NSLog(@"ERR: zero radius, %s",__func__);
@@ -1168,10 +1233,15 @@ char get_line_intersection(
 	
 	if (numSegmentsInCircumference < 1)
 		numSegmentsInCircumference = 1.;
-	uint32_t		numVerticesInCircle = numSegmentsInCircumference;
+	
+	uint32_t	numSegmentsInArc = ceil( (inEndRadians-inStartRadians)/(2.*PI) * (double)numSegmentsInCircumference );
+	if (numSegmentsInArc < 1)
+		numSegmentsInArc = 1.;
+	
+	uint32_t		numVerticesInArc = numSegmentsInArc + 1;
 	
 	//	get a backing buffer that we can use as scratch memory for assembling point data
-	size_t		minBackingSize = sizeof(NSPoint) * (numVerticesInCircle + 1);	//	the "+1" is for the center of the circle
+	size_t		minBackingSize = sizeof(NSPoint) * (numVerticesInArc + 1);	//	the "+1" is for the center of the circle
 	NSMutableData		*backingData = NSThread.currentThread.threadDictionary[kCVMTLDrawObjectArcDataBuffer];
 	if (backingData != nil && backingData.length < minBackingSize)	{
 		backingData = nil;
@@ -1184,10 +1254,10 @@ char get_line_intersection(
 	
 	//	populate the backing buffer with point values
 	NSPoint		*tmpWPtr = pointBuffer;
-	double		radiansPerSegment = 2. * PI / numSegmentsInCircumference;
-	double		cumulativeAngle = 0.;
+	double		radiansPerSegment = (inEndRadians-inStartRadians) / numSegmentsInArc;
+	double		cumulativeAngle = inStartRadians;
 	//	now add the vertices that lay around the circumference of the circle
-	for (int i=0; i<numVerticesInCircle; ++i)	{
+	for (int i=0; i<numVerticesInArc; ++i)	{
 		*tmpWPtr = NSMakePoint( cos(cumulativeAngle) * inRadius + inCenter.x, sin(cumulativeAngle) * inRadius + inCenter.y );
 		//NSLog(@"\t\t%d - %@",i,NSStringFromPoint(*tmpWPtr));
 		cumulativeAngle += radiansPerSegment;
@@ -1204,7 +1274,7 @@ char get_line_intersection(
 	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
 	uint32_t		bytesPerIndex = 2;
 	
-	if (![CMVMTLDrawObject updateVertexCount:&newGeometryBufferVertexCount indexCount:&newIndexBufferIndexCount forCircleWithCenter:inCenter radius:inRadius forPrimitiveType:self.primitiveType])	{
+	if (![CMVMTLDrawObject updateVertexCount:&newGeometryBufferVertexCount indexCount:&newIndexBufferIndexCount forFilledArcWithCenter:inCenter radius:inRadius start:inStartRadians end:inEndRadians forPrimitiveType:self.primitiveType])	{
 		NSLog(@"ERR: unable to calculate geometry or idx buffer size in %s",__func__);
 		return NO;
 	}
@@ -1240,7 +1310,7 @@ char get_line_intersection(
 	case MTLPrimitiveTypeLineStrip:
 		{
 			//	geometry doesn't include the center point
-			for (int i=0; i<numVerticesInCircle; ++i)	{
+			for (int i=0; i<numVerticesInArc; ++i)	{
 				NSPoint		*rPtr = pointBuffer + i;
 				CMVSimpleVertex		*wPtr = baseGeoVert + i;
 				
@@ -1253,7 +1323,7 @@ char get_line_intersection(
 	case MTLPrimitiveTypeTriangle:
 	case MTLPrimitiveTypeTriangleStrip:
 		{
-			for (int i=0; i<numVerticesInCircle; ++i)	{
+			for (int i=0; i<numVerticesInArc; ++i)	{
 				NSPoint		*rPtr = pointBuffer + i;
 				CMVSimpleVertex		*wPtr = baseGeoVert + i;
 				
@@ -1263,7 +1333,7 @@ char get_line_intersection(
 				wPtr->texIndex = -1;
 			}
 			//	center point is last!
-			CMVSimpleVertex		*wPtr = baseGeoVert + numVerticesInCircle;
+			CMVSimpleVertex		*wPtr = baseGeoVert + numVerticesInArc;
 			
 			wPtr->position = simd_make_float4( inCenter.x, inCenter.y, 0., 1. );
 			wPtr->color = colors_vec;
@@ -1277,7 +1347,7 @@ char get_line_intersection(
 	case MTLPrimitiveTypePoint:
 		{
 			//	geometry doesn't include the center point
-			for (int i=0; i<numVerticesInCircle; ++i)	{
+			for (int i=0; i<numVerticesInArc; ++i)	{
 				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
 			}
 			
@@ -1289,7 +1359,7 @@ char get_line_intersection(
 	case MTLPrimitiveTypeLine:
 		{
 			//	geometry doesn't include the center point
-			for (int i=0; i<numSegmentsInCircumference; ++i)	{
+			for (int i=0; i<numSegmentsInArc; ++i)	{
 				*(baseIdxPtr + 2*i) = (geometryBufferVertexCount + i);
 				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i + 1);
 			}
@@ -1302,13 +1372,14 @@ char get_line_intersection(
 	case MTLPrimitiveTypeLineStrip:
 		{
 			//	geometry doesn't include the center point
-			for (int i=0; i<numVerticesInCircle; ++i)	{
+			for (int i=0; i<numVerticesInArc; ++i)	{
 				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
 			}
 			//	we're going to include the first point again (to close the circle)
-			*(baseIdxPtr + numVerticesInCircle) = geometryBufferVertexCount;
+			//*(baseIdxPtr + numVerticesInArc) = geometryBufferVertexCount;
 			//	stop bit!
-			*(baseIdxPtr + numVerticesInCircle + 1) = 0xFFFF;
+			//*(baseIdxPtr + numVerticesInArc + 1) = 0xFFFF;
+			*(baseIdxPtr + numVerticesInArc) = 0xFFFF;
 			
 			//	update the respective vertex/idx counts;
 			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
@@ -1321,7 +1392,7 @@ char get_line_intersection(
 			for (int i=0; i<numSegmentsInCircumference; ++i)	{
 				*(baseIdxPtr + 3*i + 0) = (geometryBufferVertexCount + (i + 0)%numSegmentsInCircumference);
 				*(baseIdxPtr + 3*i + 1) = (geometryBufferVertexCount + (i + 1)%numSegmentsInCircumference);
-				*(baseIdxPtr + 3*i + 2) = (geometryBufferVertexCount + numVerticesInCircle);
+				*(baseIdxPtr + 3*i + 2) = (geometryBufferVertexCount + numVerticesInArc);
 			}
 			//	stop bit!
 			*(baseIdxPtr + 3*numSegmentsInCircumference) = 0xFFFF;
@@ -1334,15 +1405,16 @@ char get_line_intersection(
 	case MTLPrimitiveTypeTriangleStrip:
 		{
 			//	geometry for the triangles
-			for (int i=0; i<numVerticesInCircle; ++i)	{
-				*(baseIdxPtr + 2*i + 0) = (geometryBufferVertexCount + numVerticesInCircle);	//	center...
+			for (int i=0; i<numVerticesInArc; ++i)	{
+				*(baseIdxPtr + 2*i + 0) = (geometryBufferVertexCount + numVerticesInArc);	//	center...
 				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i);
 			}
 			//	one more to close the circle
-			*(baseIdxPtr + 2*numVerticesInCircle + 0) = (geometryBufferVertexCount + numVerticesInCircle);
-			*(baseIdxPtr + 2*numVerticesInCircle + 1) = (geometryBufferVertexCount);
+			//*(baseIdxPtr + 2*numVerticesInArc + 0) = (geometryBufferVertexCount + numVerticesInArc);
+			//*(baseIdxPtr + 2*numVerticesInArc + 1) = (geometryBufferVertexCount);
 			//	stop bit!
-			*(baseIdxPtr + 2*numVerticesInCircle + 2) = 0xFFFF;
+			//*(baseIdxPtr + 2*numVerticesInArc + 2) = 0xFFFF;
+			*(baseIdxPtr + 2*numVerticesInArc + 0) = 0xFFFF;
 			
 			//	update the respective vertex/idx counts;
 			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
@@ -1353,7 +1425,7 @@ char get_line_intersection(
 	
 	return YES;
 }
-+ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forFilledArcWithCenter:(NSPoint)inCenter radius:(double)inRadius start:(double)inStartRadians end:(double)inEndRadians forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
 	if (inRadius <= 0.0)	{
 		NSLog(@"ERR: zero radius, %s",__func__);
 		return NO;
@@ -1364,7 +1436,13 @@ char get_line_intersection(
 	
 	if (numSegmentsInCircumference < 1)
 		numSegmentsInCircumference = 1.;
-	uint32_t		numVerticesInCircle = numSegmentsInCircumference;
+	
+	//uint32_t		numVerticesInCircle = numSegmentsInCircumference;
+	uint32_t	numSegmentsInArc = ceil( (inEndRadians-inStartRadians)/(2.*PI) * (double)numSegmentsInCircumference );
+	if (numSegmentsInArc < 1)
+		numSegmentsInArc = 1.;
+	
+	uint32_t		numVerticesInArc = numSegmentsInArc + 1;
 	
 	//	figure out how large the geometry and index buffers will need to be to draw this
 	uint32_t		geometryBufferVertexCount = *outVtxCount;
@@ -1375,32 +1453,34 @@ char get_line_intersection(
 	switch (inPrimitiveType)	{
 	case MTLPrimitiveTypePoint:
 		{
-			newGeometryBufferVertexCount += (numVerticesInCircle);
-			newIndexBufferIndexCount += (numVerticesInCircle + 1);	//	the "+1" is the stop bit
+			newGeometryBufferVertexCount += (numVerticesInArc);
+			newIndexBufferIndexCount += (numVerticesInArc + 1);	//	the "+1" is the stop bit
 		}
 		break;
 	case MTLPrimitiveTypeLine:
 		{
-			newGeometryBufferVertexCount += (numVerticesInCircle);
-			newIndexBufferIndexCount += ((numSegmentsInCircumference * 2) + 1);	//	the "+1" is the stop bit
+			newGeometryBufferVertexCount += (numVerticesInArc);
+			newIndexBufferIndexCount += ((numSegmentsInArc * 2) + 1);	//	the "+1" is the stop bit
 		}
 		break;
 	case MTLPrimitiveTypeLineStrip:
 		{
-			newGeometryBufferVertexCount += (numVerticesInCircle);
-			newIndexBufferIndexCount += (numVerticesInCircle + 1 + 1);	//	the first "+1" closes the circle, the second is the stop bit
+			newGeometryBufferVertexCount += (numVerticesInArc);
+			//newIndexBufferIndexCount += (numVerticesInArc + 1 + 1);	//	the first "+1" closes the circle, the second is the stop bit
+			newIndexBufferIndexCount += (numVerticesInArc + 1);	//	the "+1" is the stop bit
 		}
 		break;
 	case MTLPrimitiveTypeTriangle:
 		{
-			newGeometryBufferVertexCount += (numVerticesInCircle + 1);	//	the "+1" is for the center
-			newIndexBufferIndexCount += (numSegmentsInCircumference * 3);
+			newGeometryBufferVertexCount += (numVerticesInArc + 1);	//	the "+1" is for the center
+			newIndexBufferIndexCount += (numSegmentsInArc * 3);
 		}
 		break;
 	case MTLPrimitiveTypeTriangleStrip:
 		{
-			newGeometryBufferVertexCount += (numVerticesInCircle + 1);	//	the "+1" is for the center
-			newIndexBufferIndexCount += (((numVerticesInCircle + 1) * 2) + 1);	//	the first "+1" closes the circle, the second is the stop bit
+			newGeometryBufferVertexCount += (numVerticesInArc + 1);	//	the "+1" is for the center
+			//newIndexBufferIndexCount += (((numVerticesInArc + 1) * 2) + 1);	//	the first "+1" closes the circle, the second is the stop bit
+			newIndexBufferIndexCount += ((numVerticesInArc * 2) + 1);	//	the "+1" is the stop bit
 		}
 		break;
 	}
@@ -1410,6 +1490,23 @@ char get_line_intersection(
 	
 	return YES;
 }
+
+
+- (BOOL) encodeStrokedCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius lineWidth:(float)inLineWidth strokeColor:(NSColor * __nullable)inColor	{
+	return [self encodeStrokedArcWithCenter:inCenter radius:inRadius start:0. end:2.*PI lineWidth:inLineWidth strokeColor:inColor];
+}
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forStrokedCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	return [self updateVertexCount:outVtxCount indexCount:outIdxCount forStrokedArcWithCenter:inCenter radius:inRadius start:0. end:2.*PI forPrimitiveType:inPrimitiveType];
+}
+
+
+- (BOOL) encodeFilledCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius fillColor:(NSColor * __nullable)inColor	{
+	return [self encodeFilledArcWithCenter:inCenter radius:inRadius start:0. end:2.*PI fillColor:inColor];
+}
++ (BOOL) updateVertexCount:(uint32_t *)outVtxCount indexCount:(uint32_t *)outIdxCount forFilledCircleWithCenter:(NSPoint)inCenter radius:(double)inRadius forPrimitiveType:(MTLPrimitiveType)inPrimitiveType	{
+	return [self updateVertexCount:outVtxCount indexCount:outIdxCount forFilledArcWithCenter:inCenter radius:inRadius start:0. end:2.*PI forPrimitiveType:inPrimitiveType];
+}
+
 
 - (BOOL) encodePrimitiveRestartIndex	{
 	if (self.availableIndexes < 1)	{

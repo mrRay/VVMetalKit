@@ -12,6 +12,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+/*		Subclass VVMTLComputScene if you want to get up and running with a compute-based Metal pipeline quickly
+*/
+
+
+
+
 @interface VVMTLComputeScene : VVMTLScene
 
 @property (strong,nonatomic,nullable) id<MTLComputePipelineState> computePipelineStateObject;

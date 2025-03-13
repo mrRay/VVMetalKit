@@ -13,11 +13,25 @@
 	[super generalInit];
 	
 	_mvpBuffer = nil;
+	_drawObjects = [NSMutableArray arrayWithCapacity:0];
 	
 	self.contentNeedsRedraw = YES;
 }
 
 #pragma mark - frontend
+
+- (void) clearDrawObjects	{
+	@synchronized (self)	{
+		[_drawObjects removeAllObjects];
+	}
+}
+- (void) addDrawObject:(CMVMTLDrawObject *)n	{
+	if (n != nil)	{
+		@synchronized (self)	{
+			[_drawObjects addObject:n];
+		}
+	}
+}
 
 - (void) drawNow	{
 	if (self.localWindow==nil || self.localHidden)	{
@@ -25,27 +39,34 @@
 		return;
 	}
 	
-	CMVMTLDrawObject		*localDrawObj = self.drawObject;
+	NSArray<CMVMTLDrawObject*>		*localDrawObjects = nil;
+	@synchronized (self)	{
+		localDrawObjects = [_drawObjects copy];
+	}
 	
 	id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.displayCmdQueue commandBuffer];
 	
-	[self drawObject:localDrawObj inCommandBuffer:cmdBuffer];
+	[self drawObjects:localDrawObjects inCommandBuffer:cmdBuffer];
 	
 	[cmdBuffer commit];
 }
 - (void) drawInCommandBuffer:(id<MTLCommandBuffer>)inCmdBuffer	{
-	CMVMTLDrawObject		*localDrawObj = self.drawObject;
-	if (localDrawObj == nil)
+	NSArray<CMVMTLDrawObject*>		*localDrawObjects = nil;
+	@synchronized (self)	{
+		localDrawObjects = [_drawObjects copy];
+	}
+	if (localDrawObjects==nil || localDrawObjects.count<1)
 		return;
-	[self drawObject:localDrawObj inCommandBuffer:inCmdBuffer];
-	localDrawObj = nil;
+	[self drawObjects:localDrawObjects inCommandBuffer:inCmdBuffer];
+	localDrawObjects = nil;
 }
 - (void) drawObject:(CMVMTLDrawObject*)inDrawObj inCommandBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
-	//NSLog(@"%s",__func__);
-	
-	if (_drawObject != inDrawObj)
-		_drawObject = inDrawObj;
-	
+	if (inDrawObj == nil)
+		[self drawObjects:@[] inCommandBuffer:cmdBuffer];
+	else
+		[self drawObjects:@[inDrawObj] inCommandBuffer:cmdBuffer];
+}
+- (void) drawObjects:(NSArray<CMVMTLDrawObject*> *)inDrawObjs inCommandBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
 	//	get local copies of some buffers and stuff we'll need to draw
 	id<MTLBuffer>		localMVPBuffer = nil;
 	//id<MTLBuffer>		localVertBuffer = nil;
@@ -90,11 +111,13 @@
 	[renderEncoder setRenderPipelineState:localPSO];
 	[renderEncoder setVertexBuffer:localMVPBuffer offset:0 atIndex:CMV_VS_IDX_MVP];
 	
-	//	execute the draw object
-	if (inDrawObj != nil)	{
-		id<MTLFunction>		localFragFunc = psoDesc.fragmentFunction;
-		id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
-		[inDrawObj executeInRenderEncoder:renderEncoder textureArgumentEncoder:argEncoder commandBuffer:cmdBuffer];
+	//	execute the draw object(s)
+	for (CMVMTLDrawObject * drawObj in inDrawObjs)	{
+		if (drawObj != nil)	{
+			id<MTLFunction>		localFragFunc = psoDesc.fragmentFunction;
+			id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+			[drawObj executeInRenderEncoder:renderEncoder textureArgumentEncoder:argEncoder commandBuffer:cmdBuffer];
+		}
 	}
 	
 	//	finish up the encoder

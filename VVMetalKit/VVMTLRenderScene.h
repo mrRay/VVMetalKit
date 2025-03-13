@@ -12,6 +12,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+/*		Subclass VVMTLRenderScene if you want to get up and running with a render-based Metal pipeline
+*/
+
+
+
+
 @interface VVMTLRenderScene : VVMTLScene
 
 @property (strong,nonatomic,nullable) MTLRenderPipelineDescriptor * renderPSODesc;
