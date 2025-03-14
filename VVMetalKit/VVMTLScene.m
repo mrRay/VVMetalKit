@@ -23,6 +23,7 @@
 
 //@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveScheduledHandlers;
 //@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveCompletedHandlers;
+- (void) _renderCallback;
 
 @end
 
@@ -116,6 +117,9 @@
 	//	VVMTLScene doesn't have any PSOs of its own- only its subclasses (compute and render) have PSOs.
 }
 - (void) _renderCallback	{
+	//	setup the PSO
+	[self _loadPSO];
+	
 	//	setup for render
 	[self _renderSetup];
 	

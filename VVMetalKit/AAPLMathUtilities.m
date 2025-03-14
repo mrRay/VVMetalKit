@@ -553,7 +553,7 @@ quaternion_float AAPL_SIMD_OVERLOAD quaternion_slerp(quaternion_float q0, quater
     quaternion_float q;
 
     float cosHalfTheta = vector_dot(q0, q1);
-    if (fabs(cosHalfTheta) >= 1.f) ///q0=q1 or q0=q1
+    if (fabs(cosHalfTheta) >= 1.f) //q0=q1 or q0=q1
     {
         return q0;
     }

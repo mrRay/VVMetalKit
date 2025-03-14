@@ -27,6 +27,7 @@
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice	{
 	self = [super initWithDevice:inDevice];
 	if (self != nil)	{
+		self.computePSODesc = nil;
 		self.computePipelineStateObject = nil;
 		self.computeEncoder = nil;
 		self.threadGroupSizeVal = 0;
@@ -35,6 +36,7 @@
 	return self;
 }
 - (void) dealloc	{
+	self.computePSODesc = nil;
 	self.computePipelineStateObject = nil;
 	self.computeEncoder = nil;
 }
@@ -42,9 +44,9 @@
 
 - (void) _renderCallback	{
 	//	if we don't currently have a PSO, load one!
-	if (self.computePipelineStateObject == nil)	{
-		[self _loadPSO];
-	}
+	//if (self.computePipelineStateObject == nil)	{
+	//	[self _loadPSO];
+	//}
 	[super _renderCallback];
 }
 - (void) _renderSetup	{

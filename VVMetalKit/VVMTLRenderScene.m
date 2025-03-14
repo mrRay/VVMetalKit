@@ -86,9 +86,9 @@
 
 - (void) _renderCallback	{
 	//	if we don't currently have a PSO, load one!
-	if (self.renderPSO == nil)	{
-		[self _loadPSO];
-	}
+	//if (self.renderPSO == nil)	{
+	//	[self _loadPSO];
+	//}
 	[super _renderCallback];
 }
 - (void) _renderSetup	{

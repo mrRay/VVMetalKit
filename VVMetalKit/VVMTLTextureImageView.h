@@ -13,6 +13,14 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+/*		If you want to draw an id<VVMTLTextureImage> as big as possible (without cropping) with Metal, use this class
+		- Assign a texture to its 'imgBuffer' property
+		- Call 'drawInCmdBuffer' to perform drawing
+*/
+
+
+
+
 @interface VVMTLTextureImageView : VVMTLTextureImageRectView
 @end
 

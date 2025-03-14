@@ -15,6 +15,12 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+/**		Subclass of VVMTLScene to simplify the process of rendering a CIImage to a texture image (`id<VVMTLTextureImage>`)
+*/
+
+
+
+
 @interface CIMTLScene : VVMTLScene
 
 - (instancetype) initWithDevice:(id<MTLDevice>)inDevice;

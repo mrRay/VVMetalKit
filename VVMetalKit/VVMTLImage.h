@@ -15,7 +15,7 @@
 
 
 
-/*		Describes how the contents of a GPU asset portray an image
+/**		This protocol defines properties necessary to describe an image- it's assumed that the image is backed by a Metal texture
 */
 
 
@@ -23,14 +23,22 @@
 
 @protocol VVMTLImage
 
-@property (assign,readwrite) NSUInteger width;	//	width of the GPU asset
-@property (assign,readwrite) NSUInteger height;	//	height of the GPU asset
-@property (readonly) NSSize size;	//	the size of the GPU asset.  read-only, basically just creates an NSSize from 'width' and 'height'
-@property (assign,readwrite) NSRect srcRect;	//	defines a rectangular region of the GPU asset (origin is in bottom left).  the "image" consists of the texture data within this region.  usually the full width/height, but you can do texture atlas stuff, too.  if your texture is flipped vertically, you need to adjust this srcRect to take the flippedness into account.
-@property (assign,readwrite) BOOL flipH;	//	whether or not the image data in 'srcRect' needs to be flipped horizontally when being sampled or displayed
-@property (assign,readwrite) BOOL flipV;	//	whether or not the image data in 'srcRect' needs to be flipped vertically when being sampled or displayed
-@property (readonly) CGImagePropertyOrientation cgImagePropertyOrientation;	//	the orientation of the texture as you look at the texture
-@property (readonly) CGImagePropertyOrientation CIImagePropertyOrientation;	//	CIImage needs us to pretend textures that are upside-down are really right-side-up- I don't know why, but I'm assuming it has something to do with Metal using the top-left corner of the image as its origin.
+///	The width of the GPU asset
+@property (assign,readwrite) NSUInteger width;
+///	The height of the GPU asset
+@property (assign,readwrite) NSUInteger height;
+///	The size of the GPU asset- equivalent dimensions to the width and height properties, just expressed as a size for convenience.
+@property (readonly) NSSize size;
+///	Defines a rectangular region of the GPU asset (origin is in bottom left of the texture).  The "image" consists of the texture data within this region.  Usually the full width/height, but you can do texture atlas stuff, too.  If your texture is flipped vertically, you need to adjust this srcRect to take the flippedness into account- you also need to make use of the 'flipV' property to indicate that the image within 'srcRect' is flipped.
+@property (assign,readwrite) NSRect srcRect;
+///	Whether or not the image data in 'srcRect' needs to be flipped horizontally when being sampled or displayed
+@property (assign,readwrite) BOOL flipH;
+///	Whether or not the image data in 'srcRect' needs to be flipped vertically when being sampled or displayed
+@property (assign,readwrite) BOOL flipV;
+///	The orientation of the texture as you look at the texture.  This property is read-only, and is derived from the values of the 'flipH' and 'flipV' properties.
+@property (readonly) CGImagePropertyOrientation cgImagePropertyOrientation;
+///	CIImage needs us to pretend textures that are upside-down are really right-side-up- I don't know why, but I'm assuming it has something to do with Metal using the top-left corner of the image as its origin.
+@property (readonly) CGImagePropertyOrientation CIImagePropertyOrientation;
 
 @end
 

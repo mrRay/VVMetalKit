@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-/*		Subclass VVMTLComputScene if you want to get up and running with a compute-based Metal pipeline quickly
+/*		Subclass VVMTLComputScene if you want to get up and running with a compute-based Metal pipeline quickly.  Examples in VVMetalKit/vvcore_glue_code/test apps repo.
 */
 
 
@@ -20,6 +20,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VVMTLComputeScene : VVMTLScene
 
+@property (strong,nonatomic,nullable) MTLComputePipelineDescriptor * computePSODesc;
 @property (strong,nonatomic,nullable) id<MTLComputePipelineState> computePipelineStateObject;
 
 @property (readonly,nonatomic) id<MTLComputeCommandEncoder> computeEncoder;

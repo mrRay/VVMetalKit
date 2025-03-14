@@ -25,6 +25,7 @@ static inline float4 Lerp4(float4 a, float4 b, float mix)	{
 	return float4( Lerp(a.x, b.x, mix), Lerp(a.y, b.y, mix), Lerp(a.z, b.z, mix), Lerp(a.w, b.w, mix) );
 }
 
+//	Performs bilinear interpolation to calculate a new color value for a pixel
 //	'topLeft', 'topRight', 'botLeft', 'botRight' are the vals that will be interpolated between and form four corners of a box
 //	'mix' is assumed to be normalized (ranged 0-1) and describes the value we want to calculate via bilinear interpolation
 static inline float4 BilinearInterpolation(float4 topLeft, float4 topRight, float4 botLeft, float4 botRight, float2 mix)	{

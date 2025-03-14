@@ -30,7 +30,6 @@
 		self.renderPSODesc.fragmentFunction = fragFunc;
 		self.renderPSODesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
 		
-		self.renderPSO = [inDevice newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
 	}
 	return self;
 }
@@ -47,6 +46,12 @@
 		[localDrawObject executeInRenderEncoder:self.renderEncoder textureArgumentEncoder:argEncoder commandBuffer:self.commandBuffer];
 		localDrawObject = nil;
 	}
+}
+
+- (void) _loadPSO	{
+	[super _loadPSO];
+	NSError		*nsErr = nil;
+	self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
 }
 
 @end

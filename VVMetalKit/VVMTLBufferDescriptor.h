@@ -15,9 +15,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-//	if this class seems smaller "than it should be", remember that it's just a descriptor for a recycleable 
-//	resource- all of the properties that describe the image contained by this buffer are irrelevant for the 
-//	purpose of the recycleable portion of id<VVMTLBuffer>...
+///	Describes a VVMTLBuffer- this class is used as the basis of comparison between VVMTLBuffer instances to determine if they can be used interchangeably (to determine if a buffer in the pool can be recycled when the user requests a new buffer).
 
 
 

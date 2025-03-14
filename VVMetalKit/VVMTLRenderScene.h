@@ -12,7 +12,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-/*		Subclass VVMTLRenderScene if you want to get up and running with a render-based Metal pipeline
+/*		Subclass VVMTLRenderScene if you want to get up and running with a render-based Metal pipeline.  Examples in VVMetalKit/vvcore_glue_code/test apps repo.
 */
 
 

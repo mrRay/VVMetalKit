@@ -14,8 +14,15 @@
 
 
 
+/**		This class addition allows a CIImage to retain an instance of VVMTLTextureImage- it uses objective-c runtime functions to create a strong ref between the CIImage and an
+*/
+
+
+
+
 @interface CIImage (CIImageAdditions)
 
+///	This property is retained for the lifetime of the CIImage
 @property (strong) id<VVMTLTextureImage> backingVVMTLTextureImage;
 
 @end

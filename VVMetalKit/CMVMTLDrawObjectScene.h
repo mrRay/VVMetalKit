@@ -16,9 +16,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-/*		Metal rendering setup with orthographic projection used to render the contents of CMVMTLDrawObject to texture
-		- Assign a drawObject
-		- Tell it to render using the usual means
+/**		Metal rendering setup with orthographic projection used to render the contents of CMVMTLDrawObject to a texture.  Assign a `CMVMTLDrawObject` instance to its `drawObject` property, and use one of its superclass' methods to render that to a texture.
 */
 
 
@@ -26,7 +24,7 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface CMVMTLDrawObjectScene : VVMTLOrthoRenderScene
 
-//	this object will draw its contents in the scene every time it renders
+///	This object will draw its contents in the scene every time it renders.
 @property (strong,nullable) CMVMTLDrawObject * drawObject;
 
 @end

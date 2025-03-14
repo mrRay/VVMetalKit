@@ -16,6 +16,11 @@
 
 
 
+//	Contains properties of VVMTLTextureImage used to render that texture properly in a shader
+
+
+
+
 typedef struct VVMTLTextureImageStruct	{
 	GRect			srcRectCart;	//	the region of the passed texture that contains the image we want to work with.  origin is BOTTOM LEFT CORNER of the image as it's loaded natively (cartesian coords)
 	GRect			srcRectMtl;	//	same meaning as 'srcRectCart', but the origin is the TOP LEFT CORNER of the image as it's loaded (metal compatible coords)

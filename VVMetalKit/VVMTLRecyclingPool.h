@@ -14,6 +14,12 @@
 
 
 
+/**		This protocol defines the methods and properties that implement "pool" functionality- the ability to recycle and fetch recycled objects that match a description
+*/
+
+
+
+
 @protocol VVMTLRecyclingPool
 
 //	the passed object is added to the pool without inspection- it is not copied, it is just inserted into the array (FIFO)

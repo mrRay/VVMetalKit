@@ -23,18 +23,31 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+/**		VVMTLPool is a pool for recycling (and generating) Metal resources (textures and buffers).
+		- Recycling assets is almost always significantly faster/more efficient than trashing and re-generating them repeatedly.
+		- Has a global singleton accessible via the class method- your app probably only needs one instance of this class
+		- Generates both `VVMTLTextureImage` and `VVMTLBuffer` instances
+*/
+
+
+
+
 @interface VVMTLPool : NSObject <VVMTLRecyclingPool>
 
+///	The global singleton class- it's nil by default, and must be populated manually.
 @property (class,strong,readwrite) VVMTLPool * global;
 
+///	The standard method for creating an instance of VVMTLPool.
 - (instancetype) initWithDevice:(id<MTLDevice>)n;
 
+///	The device used by the pool- set on init.
 @property (readonly) id<MTLDevice> device;
+///	Instances of VVMTLPool have a CVMetalTextureCacheRef by default.
 @property (readonly) CVMetalTextureCacheRef cvTexCache;
 @property (readonly) BOOL supportsMemoryless;
 @property (readonly) BOOL supportsTileShaders;
 
-//	a lot of methods use this to recycle or generate a texture (and also an accompanying backing, as specified)
+///	This method will attempt to recycle an unused texture that matches the passed desription- if none can be found, a new texture matching the description will be allocated and returned.
 - (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc;
 
 - (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n;
@@ -86,10 +99,11 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureLUT>) bufferBacked2DLUTSized:(MTLSize)n;
 - (id<VVMTLTextureLUT>) bufferBacked3DLUTSized:(MTLSize)n;
 
+///	Returns a buffer with the passed length and storage mode.  May return an existing buffer if one's available- otherwise, a new buffer will be allocated.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage;
-//	copies the data from the passed ptr into a new buffer.  safe to delete the passed ptr when this returns.
+///	Copies the data from the passed ptr into a new buffer.  Safe to delete the passed ptr when this returns.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b;
-//	the MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.
+///	The MTLBuffer returned by this will be backed by the passed ptr, and modifying the MTLBuffer will modify its backing.  This buffer creation method doesn't copy the data.
 - (id<VVMTLBuffer>) bufferWithLengthNoCopy:(size_t)inLength storage:(MTLStorageMode)inStorage basePtr:(nullable void*)b bufferDeallocator:(nullable void (^)(void *pointer, NSUInteger length))d;
 
 - (void) timestampThis:(nullable id<VVMTLTimestamp>)n;
