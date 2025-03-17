@@ -13,7 +13,7 @@
 
 
 
-/*	Describes how the contents of a GPU asset portray a LUT
+/**		Describes how the contents of a GPU asset portray a LUT
 */
 
 

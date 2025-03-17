@@ -20,15 +20,22 @@
 
 
 
+/**		This protocol defines the properties and methods required to describe a LUT backed by a texture that can be recycled by ``VVMTLPool``
+*/
+
+
+
+
 @protocol VVMTLTextureLUT <VVMTLLUT, VVMTLRecycleable>
 
 + (instancetype __nonnull) createWithDescriptor:(VVMTLTextureLUTDescriptor * __nonnull)n;
 
 - (instancetype __nonnull) initWithDescriptor:(VVMTLTextureLUTDescriptor * __nonnull)n;
 
+///	The texture representation of this LUT.
 @property (strong,readwrite,nonnull) id<MTLTexture> texture;
 
-//	If non-null, provides the backing for the texture. Receiver "retains" the id<VVMTLBuffer> for its lifetime.
+///	If non-null, provides the backing for the texture. Receiver "retains" the id<VVMTLBuffer> for its lifetime.
 @property (strong,readwrite,nullable) id<VVMTLBuffer> buffer;
 
 @end

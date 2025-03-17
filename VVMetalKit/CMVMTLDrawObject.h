@@ -131,9 +131,9 @@ NS_ASSUME_NONNULL_BEGIN
 ///	Adds a primitive restart index value to the indexes.
 - (BOOL) encodePrimitiveRestartIndex;
 
-///	The receiver will execute its drawing commands in the passed render encoder/command buffer.  Note: this command will only produce the desired output if your drawing commands don't make use of multiple textures!
+///	The receiver will execute its drawing commands in the passed render encoder/command buffer.  Note: this command will only produce the desired output if your drawing commands don't make use of multiple textures, and the render pipeline declares a single texture input.
 - (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc commandBuffer:(id<MTLCommandBuffer>)inCB;
-///	The receiver will execute its drawing commands using the passed encoders.  If your draw object makes use of textures, you need to use this method- if you don't, the textures won't appear as intended.
+///	The receiver will execute its drawing commands using the passed encoders.  If your draw object makes use of multiple textures, you need to use this method and ensure that your render pipeline is expecting an array of textures on a single argument to your shader- if you don't, the textures won't appear as intended.
 - (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inEnc textureArgumentEncoder:(id<MTLArgumentEncoder>)inTexArgEnc commandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end

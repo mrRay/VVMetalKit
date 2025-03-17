@@ -15,6 +15,12 @@
 
 
 
+/**		This protocol describes the properties and methods an object is required to implement to allow it to be timestamped (when it should appear and how long it should stay visible for)
+*/
+
+
+
+
 @protocol VVMTLTimestamp
 
 @property (assign,readwrite) CMTime time;

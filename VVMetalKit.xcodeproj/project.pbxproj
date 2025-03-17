@@ -30,6 +30,7 @@
 		1A0FBEDF260E257600FF39BB /* RenderProperties.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A0FBEDD260E257600FF39BB /* RenderProperties.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A0FBEE0260E257600FF39BB /* RenderProperties.m in Sources */ = {isa = PBXBuildFile; fileRef = 1A0FBEDE260E257600FF39BB /* RenderProperties.m */; };
 		1A199DF0279F6A1F00EE9ACB /* VVColorConversions.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		1A1AC2442D84E3C000D9AFB4 /* VVMetalKit.docc in Sources */ = {isa = PBXBuildFile; fileRef = 1A1AC2432D84E3C000D9AFB4 /* VVMetalKit.docc */; };
 		1A20CF012A46213B00F2EDBB /* VVMTLRecyclingPool.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A20CF002A46213B00F2EDBB /* VVMTLRecyclingPool.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A20CF032A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A20CF022A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1A20CF062A499BC300F2EDBB /* VVMTLBufferDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1A20CF042A499BC300F2EDBB /* VVMTLBufferDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -111,6 +112,7 @@
 		1A0FBEDD260E257600FF39BB /* RenderProperties.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RenderProperties.h; sourceTree = "<group>"; };
 		1A0FBEDE260E257600FF39BB /* RenderProperties.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RenderProperties.m; sourceTree = "<group>"; };
 		1A199DEF279F6A1F00EE9ACB /* VVColorConversions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVColorConversions.h; sourceTree = "<group>"; };
+		1A1AC2432D84E3C000D9AFB4 /* VVMetalKit.docc */ = {isa = PBXFileReference; lastKnownFileType = folder.documentationcatalog; name = VVMetalKit.docc; path = VVMetalKit/VVMetalKit.docc; sourceTree = "<group>"; };
 		1A20CF002A46213B00F2EDBB /* VVMTLRecyclingPool.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLRecyclingPool.h; sourceTree = "<group>"; };
 		1A20CF022A46225D00F2EDBB /* VVMTLRecycleableDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLRecycleableDescriptor.h; sourceTree = "<group>"; };
 		1A20CF042A499BC300F2EDBB /* VVMTLBufferDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLBufferDescriptor.h; sourceTree = "<group>"; };
@@ -190,6 +192,7 @@
 		1A0FBE83260E1C2E00FF39BB = {
 			isa = PBXGroup;
 			children = (
+				1A1AC2432D84E3C000D9AFB4 /* VVMetalKit.docc */,
 				1A0FBE8E260E1C2E00FF39BB /* Products */,
 				1A0FBE8F260E1C2E00FF39BB /* VVMetalKit */,
 				1A8C0409261631FC00038DC9 /* Frameworks */,
@@ -426,6 +429,7 @@
 				1A6A02D82AF3DDC4003B12BF /* CMVMTLDrawObject.m in Sources */,
 				1A2F3FC72CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m in Sources */,
 				1A0FBEC3260E1F5000FF39BB /* CopierMTLScene.m in Sources */,
+				1A1AC2442D84E3C000D9AFB4 /* VVMetalKit.docc in Sources */,
 				1A0FBEC5260E1F5000FF39BB /* CopierMTLScene.metal in Sources */,
 				1A0FBEC4260E1F5000FF39BB /* CustomMetalView.m in Sources */,
 				1A093A7C2AF2930C00AC3C1F /* CustomMetalView.metal in Sources */,
@@ -516,6 +520,7 @@
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
+				RUN_DOCUMENTATION_COMPILER = YES;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -576,6 +581,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
+				RUN_DOCUMENTATION_COMPILER = YES;
 				SDKROOT = macosx;
 				STRIP_INSTALLED_PRODUCT = NO;
 				VERSIONING_SYSTEM = "apple-generic";
@@ -604,7 +610,6 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				RUN_DOCUMENTATION_COMPILER = YES;
 				SKIP_INSTALL = YES;
 			};
 			name = Debug;
@@ -630,7 +635,6 @@
 				MODULE_VERIFIER_SUPPORTED_LANGUAGE_STANDARDS = "gnu11 gnu++14";
 				PRODUCT_BUNDLE_IDENTIFIER = com.vidvox.VVMetalKit;
 				PRODUCT_NAME = "$(TARGET_NAME:c99extidentifier)";
-				RUN_DOCUMENTATION_COMPILER = YES;
 				SKIP_INSTALL = YES;
 			};
 			name = Release;

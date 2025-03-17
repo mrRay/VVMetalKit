@@ -15,6 +15,11 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
+///	Data container class.  Contents describe the relevant distinguishing characteristics of the GPU resource (and associated CPU resources, if any) that we're going to recycle.  When retrieving objects from the pool, the values of this class are compared the pool's contents to find a match.
+
+
+
+
 @interface VVMTLTextureLUTDescriptor : NSObject <VVMTLRecycleableDescriptor>
 
 + (instancetype) createWithOrder:(uint8_t)inOrder size:(MTLSize)inSize pixelFormat:(MTLPixelFormat)inPfmt storage:(MTLStorageMode)inStorage usage:(MTLTextureUsage)inUsage;
