@@ -20,6 +20,11 @@
 
 
 
+///	VVMTLBuffer is essentially a "wrapper" for `id<MTLBuffer>` that allows it to be recycled.  Do not create instances of this class directly- instead, get them from your instance of VVMTLPool.
+
+
+
+
 @protocol VVMTLBuffer <VVMTLTimestamp, VVMTLRecycleable>
 
 + (instancetype __nonnull) createWithDescriptor:(VVMTLBufferDescriptor * __nonnull)n;
@@ -36,11 +41,6 @@
 @interface NSObject (VVMTLBufferNSObjectAdditions)
 @property (readonly) BOOL isVVMTLBuffer;
 @end
-
-
-
-
-///	VVMTLBuffer is essentially a "wrapper" for `id<MTLBuffer>` that allows it to be recycled.  Do not create instances of this class directly- instead, get them from your instance of VVMTLPool.
 
 
 

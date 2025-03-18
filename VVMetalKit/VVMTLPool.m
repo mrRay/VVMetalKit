@@ -718,6 +718,8 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 - (id<VVMTLTextureImage>) textureForExistingTexture:(id<MTLTexture>)n	{
+	if (n == nil)
+		return nil;
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:n.width
 		height:n.height
