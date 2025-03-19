@@ -8,7 +8,8 @@
 #ifndef VVMTLTextureImageShaderFuncs_h
 #define VVMTLTextureImageShaderFuncs_h
 
-#include <VVMetalKit/SizingTool_metal.h>
+#include <VVMetalKit/SizingToolTypes.h>
+//#include <VVMetalKit/SizingTool_metal.h>
 #include <VVMetalKit/VVMTLTextureImageShaderTypes.h>
 
 

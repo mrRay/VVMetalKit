@@ -7,7 +7,7 @@
 
 #import <Foundation/Foundation.h>
 #import "SwizzleMTLSceneTypes.h"
-#include "SizingTool_c.h"
+//#include "SizingTool_c.h"
 
 
 

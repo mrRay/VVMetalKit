@@ -1,6 +1,7 @@
 #include <metal_stdlib>
 #include "VVMTLTextureImageShaderTypes.h"
-#include "SizingTool_metal.h"
+#include <VVMetalKit/SizingToolTypes.h>
+//#include "SizingTool_metal.h"
 
 using namespace metal;
 

@@ -2,7 +2,8 @@
 using namespace metal;
 
 #include "VVMTLTextureImageRectViewShaderTypes.h"
-#include "SizingTool_metal.h"
+#include <VVMetalKit/SizingToolTypes.h>
+//#include "SizingTool_metal.h"
 
 
 

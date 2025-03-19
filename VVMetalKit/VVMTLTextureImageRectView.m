@@ -9,7 +9,7 @@
 #import "VVMTLTextureImageRectViewShaderTypes.h"
 #import "RenderProperties.h"
 //#import "VVSizingTool.h"
-#import "SizingTool_c.h"
+//#import "SizingTool_c.h"
 #import "SizingTool_objc.h"
 #import "VVMTLRenderScene.h"
 #import <Metal/Metal.h>

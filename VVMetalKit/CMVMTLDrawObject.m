@@ -20,9 +20,9 @@
 
 
 
-#define PI (3.1415926535897932384626433832795)
-const float DEG2RAD = (PI/180.);
-const float RAD2DEG = (180./PI);
+//#define PI (3.1415926535897932384626433832795)
+//const float DEG2RAD = (PI/180.);
+//const float RAD2DEG = (180./PI);
 
 //	change this to make the curves drawn by this class "smoother" (lower numbers are smoother), at the expense of 
 //	requiring more geometry data- think we can probably just define a sane value here?

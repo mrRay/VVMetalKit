@@ -9,7 +9,7 @@
 #define SizingTool_objc_h
 
 
-#include <VVMetalKit/SizingTool_c.h>
+#include <VVMetalKit/SizingToolTypes.h>
 
 #include <Foundation/Foundation.h>
 #include <CoreGraphics/CoreGraphics.h>
