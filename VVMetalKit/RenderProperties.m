@@ -61,7 +61,6 @@ RenderProperties			*_globalRenderProperties = nil;
 	
 	//@synchronized (self)	{
 		self.device = n;
-		self.defaultLibrary = [self.device newDefaultLibrary];
 		self.renderQueue = [self.device newCommandQueue];
 		self.bgCmdQueue = [self.device newCommandQueue];
 		self.displayCmdQueue = [self.device newCommandQueue];

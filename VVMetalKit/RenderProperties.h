@@ -31,8 +31,6 @@ extern NSString * const kRenderPropertiesChangedNotificationName;
 @property (readonly) id<MTLCommandQueue> bgCmdQueue;
 ///	A Metal command queue you can use for display commands.
 @property (readonly) id<MTLCommandQueue> displayCmdQueue;
-///	The default Metal library for the host app's default Metal library.
-@property (readonly) id<MTLLibrary> defaultLibrary;
 
 ///	Defaults to kCGColorSpaceSRGB
 @property (readwrite,nullable) CGColorSpaceRef colorSpace;

@@ -30,10 +30,10 @@
 		id<MTLLibrary>		defaultLibrary = [self.device newDefaultLibraryWithBundle:myBundle error:&nsErr];
 		id<MTLFunction>		func = [defaultLibrary newFunctionWithName:@"CopierMTLSceneFunc"];
 		
-		self.computePipelineStateObject = [self.device
+		self.computePSO = [self.device
 			newComputePipelineStateWithFunction:func
 			error:&nsErr];
-		if (self.computePipelineStateObject == nil || nsErr != nil)
+		if (self.computePSO == nil || nsErr != nil)
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 	}
 	return self;
@@ -104,8 +104,9 @@
 		tmpBufferC = nil;
 	}];
 	
-	MTLSize			threadGroupSize = MTLSizeMake(self.threadGroupSizeVal, self.threadGroupSizeVal, 1);
-	MTLSize			numGroups = [self calculateNumberOfGroups];
+	uint32_t		threadGroupSizeVal = (uint32_t)sqrt( (double)self.computePSO.maxTotalThreadsPerThreadgroup );
+	MTLSize			threadGroupSize = MTLSizeMake(threadGroupSizeVal, threadGroupSizeVal, 1);
+	MTLSize			numGroups = [self calculateNumThreadgroups];
 	[self.computeEncoder dispatchThreadgroups:numGroups threadsPerThreadgroup:threadGroupSize];
 	
 	geoBuffer = nil;

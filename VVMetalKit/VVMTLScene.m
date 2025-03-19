@@ -21,8 +21,6 @@
 
 @interface VVMTLScene ()
 
-//@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveScheduledHandlers;
-//@property (strong) NSMutableArray<MTLCommandBufferHandler> * transitiveCompletedHandlers;
 - (void) _renderCallback;
 
 @end
@@ -47,9 +45,6 @@
 		self.renderSize = CGSizeMake(40,30);
 		self.msaaSampleCount = 1;
 		self.colorSpace = RenderProperties.global.colorSpace;
-		
-		//self.transitiveScheduledHandlers = [[NSMutableArray alloc] init];
-		//self.transitiveCompletedHandlers = [[NSMutableArray alloc] init];
 	}
 	return self;
 }
@@ -59,8 +54,6 @@
 	self.renderTarget = nil;
 	self.depthTarget = nil;
 	self.msaaTarget = nil;
-	//self.transitiveScheduledHandlers = nil;
-	//self.transitiveCompletedHandlers = nil;
 }
 
 
@@ -123,45 +116,17 @@
 	//	setup for render
 	[self _renderSetup];
 	
-	//	execute the render callback- this is where subclasses do their rendering
+	//	sublcasses render here
 	[self renderCallback];
 	
 	//	teardown after render
 	[self _renderTeardown];
 }
 - (void) _renderSetup	{
-	//	if there are any transitive scheduled/completed blocks, add them to the command buffer
-	//if (self.transitiveScheduledHandlers.count > 0)	{
-	//	NSEnumerator		*it = [self.transitiveScheduledHandlers objectEnumerator];
-	//	MTLCommandBufferHandler		handler = [it nextObject];
-	//	while (handler != nil)	{
-	//		[self.commandBuffer addScheduledHandler:handler];
-	//		handler = [it nextObject];
-	//	}
-	//	[self.transitiveScheduledHandlers removeAllObjects];
-	//}
-	//if (self.transitiveCompletedHandlers.count > 0)	{
-	//	NSEnumerator		*it = [self.transitiveCompletedHandlers objectEnumerator];
-	//	MTLCommandBufferHandler		handler = [it nextObject];
-	//	while (handler != nil)	{
-	//		[self.commandBuffer addCompletedHandler:handler];
-	//		handler = [it nextObject];
-	//	}
-	//	[self.transitiveCompletedHandlers removeAllObjects];
-	//}
 }
 - (void) _renderTeardown	{
 
 }
-
-
-//@synthesize renderSize=_renderSize;
-//- (void) setRenderSize:(NSSize)n	{
-//	_renderSize = n;
-//}
-//- (NSSize) renderSize	{
-//	return renderSize;
-//}
 
 
 - (void) renderCallback	{
@@ -191,20 +156,6 @@
 - (CGColorSpaceRef) colorSpace	{
 	return _colorSpace;
 }
-
-
-//- (void) addScheduledHandler:(MTLCommandBufferHandler)n	{
-//	if (self.commandBuffer == nil)
-//		[self.transitiveScheduledHandlers addObject:n];
-//	else
-//		[self.commandBuffer addScheduledHandler:n];
-//}
-//- (void) addCompletedHandler:(MTLCommandBufferHandler)n	{
-//	if (self.commandBuffer == nil)
-//		[self.transitiveCompletedHandlers addObject:n];
-//	else
-//		[self.commandBuffer addCompletedHandler:n];
-//}
 
 
 @end

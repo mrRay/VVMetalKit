@@ -32,11 +32,12 @@ NS_ASSUME_NONNULL_BEGIN
 ///	Creates (asks the pool to vend) an 8-bit BGRA texture matching the passed dimensions as well as a depth buffer, renders to them in the passed command buffer, and returns the passed texture.
 - (id<VVMTLTextureImage>) createAndRenderWithDepth:(BOOL)inDepth toTextureSized:(NSSize)inSize inCommandBuffer:(id<MTLCommandBuffer>)cb;
 
-///	Renders
+///	Renders to the passed texture in the passed command buffer
 - (void) renderToTexture:(nullable id<VVMTLTextureImage>)n inCommandBuffer:(id<MTLCommandBuffer>)cb;
+///	Renders to the passed textures and depth buffer in the passed command buffer
 - (void) renderToTexture:(nullable id<VVMTLTextureImage>)n depthBuffer:(nullable id<VVMTLTextureImage>)d msaa:(nullable id<VVMTLTextureImage>)m inCommandBuffer:(id<MTLCommandBuffer>)cb;
 
-/// Override this method in subclasses- do all the rendering here.  When this method is called on a subclass, a pass descriptor and render encoder MUST already exist and have been configured.  Do NOT end encoding or commit the cmd buffer in this method.
+/// Override this method in subclasses and do your rendering in it.  It's expected that the rendering backend (PSO/encoder/etc) will have already been created before this method is called.
 - (void) renderCallback;
 
 ///	Override this method in subclasses and create your pipeline state object here
@@ -59,9 +60,6 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readwrite,nonatomic) NSSize renderSize;
 @property (readwrite,nonatomic) NSUInteger msaaSampleCount;
 @property (readwrite,nonatomic) CGColorSpaceRef colorSpace;
-
-//- (void) addScheduledHandler:(MTLCommandBufferHandler)n;
-//- (void) addCompletedHandler:(MTLCommandBufferHandler)n;
 
 @end
 

@@ -43,10 +43,10 @@
 		id<MTLLibrary>		defaultLibrary = [self.device newDefaultLibraryWithBundle:myBundle error:&nsErr];
 		id<MTLFunction>		func = [defaultLibrary newFunctionWithName:@"SwizzleMTLSceneFunc"];
 		
-		self.computePipelineStateObject = [self.device
+		self.computePSO = [self.device
 			newComputePipelineStateWithFunction:func
 			error:&nsErr];
-		if (self.computePipelineStateObject == nil || nsErr != nil)
+		if (self.computePSO == nil || nsErr != nil)
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
 		
 		slugBuffer = [VVMTLPool.global bufferWithLength:1 storage:MTLStorageModeShared];
@@ -59,11 +59,11 @@
 #pragma mark - frontend methods
 
 
-- (void) convertSrcBuffer:(id<VVMTLBuffer>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (void) convertSrcBuffer:(id<VVMTLBuffer>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)outDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	//NSLog(@"%s",__func__);
 	//NSLog(@"%s ... %@ -> %@",__func__,[NSString stringFromFourCC:inInfo.srcImg.pf],[NSString stringFromFourCC:inInfo.dstImg.pf]);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
-	if (inSrc==nil || (inDst==nil && inDstRGB==nil))	{
+	if (inSrc==nil || (outDst==nil && inDstRGB==nil))	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
 		return;
 	}
@@ -84,7 +84,7 @@
 	@synchronized (self)	{
 		self.srcBuffer = inSrc;
 		self.srcRGBTexture = nil;
-		self.dstBuffer = inDst;
+		self.dstBuffer = outDst;
 		self.dstRGBTexture = inDstRGB;
 		self.info = inInfo;
 	
@@ -152,16 +152,16 @@
 		self.dstRGBTexture = nil;
 	}
 	
-	//if (inDst != nil)	{
+	//if (outDst != nil)	{
 	//	id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
-	//	[blitEncoder synchronizeResource:inDst];
+	//	[blitEncoder synchronizeResource:outDst];
 	//	[blitEncoder endEncoding];
 	//}
 }
-- (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)inDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
+- (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)outDst dstRGBTexture:(nullable id<VVMTLTextureImage>)outTex swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
-	//if (inSrc == nil || inDst == nil)
-	if (inSrc==nil && !(inDst!=nil || inRGB != nil))
+	//if (inSrc == nil || outDst == nil)
+	if (inSrc==nil && !(outDst!=nil || outTex != nil))
 	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
 		return;
@@ -171,8 +171,8 @@
 	@synchronized (self)	{
 		self.srcBuffer = nil;
 		self.srcRGBTexture = inSrc;
-		self.dstBuffer = inDst;
-		self.dstRGBTexture = inRGB;
+		self.dstBuffer = outDst;
+		self.dstRGBTexture = outTex;
 		self.info = inInfo;
 	
 		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
@@ -232,9 +232,9 @@
 		self.dstRGBTexture = nil;
 	}
 	
-	//if (inDst != nil)	{
+	//if (outDst != nil)	{
 	//	id<MTLBlitCommandEncoder>		blitEncoder = [inCB blitCommandEncoder];
-	//	[blitEncoder synchronizeResource:inDst];
+	//	[blitEncoder synchronizeResource:outDst];
 	//	[blitEncoder endEncoding];
 	//}
 }
@@ -301,8 +301,9 @@
 		a = nil;
 	}];
 	
-	MTLSize			threadGroupSize = MTLSizeMake(self.threadGroupSizeVal, self.threadGroupSizeVal, 1);
-	MTLSize			numGroups = [self calculateNumberOfGroups];
+	uint32_t		threadGroupSizeVal = (uint32_t)sqrt( (double)self.computePSO.maxTotalThreadsPerThreadgroup );
+	MTLSize			threadGroupSize = MTLSizeMake(threadGroupSizeVal, threadGroupSizeVal, 1);
+	MTLSize			numGroups = [self calculateNumThreadgroups];
 	[self.computeEncoder dispatchThreadgroups:numGroups threadsPerThreadgroup:threadGroupSize];
 	
 	infoBuffer = nil;

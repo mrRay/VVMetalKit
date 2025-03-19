@@ -16,14 +16,15 @@ NS_ASSUME_NONNULL_BEGIN
 
 
 
-/**		Convenience class intended to simplify efficiently drawing arbitrary two-dimensional graphics in metal.
-*/
-///		- Pools similarly-sized data buffers (geometry & index buffers) to minimize system impact and encourage use as a lightweight, throwaway class
-///		- Provides a single interface that retains both data buffers (geometry & index) required to do indexed drawing
+///		Convenience class intended to simplify efficiently drawing arbitrary two-dimensional graphics in metal.
+///		- Pools similarly-sized data buffers (geometry & index buffers) to minimize system impact and encourage use as a lightweight, throwaway class.
+///		- Provides a single interface that manages and retains both data buffers (geometry & index) required to do indexed drawing.
+///		- Simple interface: tell it to encode draw commands (draw rect/draw line/etc) which it converts to geometry behind the scenes.
 ///		## Notes:
 ///		- Not inherently threadsafe- assumed that it will be populated from a single thread!
-///		- Not very flexible: basically a container class (ex: if you change the primitive type, the underlying geometry/index buffers are likely invalid, but aren't updated or cleared)
-///		- Class uses the `CustomMetalView`'s vertex format (which is also identical to `VVSpriteMTLView`'s vertex format) when packing geometry data
+///		- Not very flexible: basically a container class (ex: if you change the primitive type, the underlying geometry/index buffers are likely invalid, but aren't updated or cleared).
+///		- Capable of drawing textured geometry, but requires an argument encoder during rendering to do so (``CMVMTLDrawObjectScene`` and ``CMVMTLDrawObjectView`` manage this automatically but if you want to use this class with an arbitrary Metal render command encoder you'll have to manage this yourself).
+///		- Class uses the `CustomMetalView`'s vertex format (which is also identical to `VVSpriteMTLView`'s vertex format) when packing geometry data- this is only an issue if you want to render it in arbitrary Metal render command encoders.
 
 
 

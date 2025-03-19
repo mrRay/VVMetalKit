@@ -28,33 +28,27 @@
 	self = [super initWithDevice:inDevice];
 	if (self != nil)	{
 		self.computePSODesc = nil;
-		self.computePipelineStateObject = nil;
+		self.computePSO = nil;
 		self.computeEncoder = nil;
-		self.threadGroupSizeVal = 0;
 		self.shaderEvalSize = MTLSizeMake(1,1,1);
 	}
 	return self;
 }
 - (void) dealloc	{
 	self.computePSODesc = nil;
-	self.computePipelineStateObject = nil;
+	self.computePSO = nil;
 	self.computeEncoder = nil;
 }
 
 
 - (void) _renderCallback	{
 	//	if we don't currently have a PSO, load one!
-	//if (self.computePipelineStateObject == nil)	{
+	//if (self.computePSO == nil)	{
 	//	[self _loadPSO];
 	//}
 	[super _renderCallback];
 }
 - (void) _renderSetup	{
-	if (self.threadGroupSizeVal < 1 && self.computePipelineStateObject != nil)	{
-		//	threadGroupSize.width * threadGroupSize.height * threadGroupSize.depth MUST BE <= max total threads per threadgroup)
-		self.threadGroupSizeVal = (NSUInteger)sqrt( (double)self.computePipelineStateObject.maxTotalThreadsPerThreadgroup );
-	}
-	
 	//	the super creates the command buffer, populates it with any transitive scheduled/completed blocks
 	[super _renderSetup];
 	
@@ -66,7 +60,7 @@
 		self.computeEncoder.label = [NSString stringWithFormat:@"%@ encoder",NSStringFromClass(self.class)];
 	
 	//	set the pipeline state
-	[self.computeEncoder setComputePipelineState:self.computePipelineStateObject];
+	[self.computeEncoder setComputePipelineState:self.computePSO];
 }
 - (void) _renderTeardown	{
 	//	end encoding
@@ -84,13 +78,14 @@
 	BOOL		changed = (self.msaaSampleCount != n);
 	[super setMsaaSampleCount:n];
 	if (changed)	{
-		self.computePipelineStateObject = nil;
+		self.computePSO = nil;
 	}
 }
 
 
-- (MTLSize) calculateNumberOfGroups	{
-	MTLSize			threadGroupSize = MTLSizeMake(self.threadGroupSizeVal, self.threadGroupSizeVal, 1);
+- (MTLSize) calculateNumThreadgroups	{
+	uint32_t		threadGroupSizeVal = (uint32_t)sqrt( (double)self.computePSO.maxTotalThreadsPerThreadgroup );
+	MTLSize			threadGroupSize = MTLSizeMake(threadGroupSizeVal, threadGroupSizeVal, 1);
 	MTLSize			numGroups = MTLSizeMake(
 		self.renderSize.width/self.shaderEvalSize.width/threadGroupSize.width + 1,
 		self.renderSize.height/self.shaderEvalSize.height/threadGroupSize.height + 1,

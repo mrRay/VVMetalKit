@@ -21,16 +21,16 @@ NS_ASSUME_NONNULL_BEGIN
 @interface VVMTLComputeScene : VVMTLScene
 
 @property (strong,nonatomic,nullable) MTLComputePipelineDescriptor * computePSODesc;
-@property (strong,nonatomic,nullable) id<MTLComputePipelineState> computePipelineStateObject;
+@property (strong,nonatomic,nullable) id<MTLComputePipelineState> computePSO;
 
+///	This property is only valid during the render callback, and is set to nil as soon as the encoder's been shut down
 @property (readonly,nonatomic) id<MTLComputeCommandEncoder> computeEncoder;
-@property (readonly,nonatomic) NSUInteger threadGroupSizeVal;
 
-///	The # of pixels the shader should evaluate at a time.  is usually 1/1/1 (the shader is evaluated for every pixel in the output image)
+///	The shader will evaluate this many pixels with each thread- 1/1/1 by default
 @property (readwrite) MTLSize shaderEvalSize;
 
-///	Calculates the number of groups to execute during rendering, using 'threadGroupSizeVal' (which is only populated during _renderSetup!) and 'shaderEvalSize'
-- (MTLSize) calculateNumberOfGroups;
+///	Uses `shaderEvalSize` to calculate the number of groups to execute during rendering.
+- (MTLSize) calculateNumThreadgroups;
 
 @end
 
