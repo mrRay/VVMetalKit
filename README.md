@@ -1,10 +1,8 @@
-# `VVMetalKit`
+# VVMetalKit
 
-VVMetalKit is a framework that contains a number of basic Metal-based utilities I use for the various projects I work on.
+VVMetalKit is a framework that contains a couple basic Metal-based utilities I use for the various projects I work on.  The pool for recycling textures and buffers is the main feature offered by this framework- most of the other classes are intended to simplify workflows around rendering to, populating, converting, or displaying textures.
 
-## Overview
-
-#### Essentials:
+### Essentials:
 
 - `RenderProperties` is a global singleton for conveniently storing/retrieving values you'll use frequently.  This is the first thing you'll want to configure if you're using this framework.
 - `VVMTLPool` is a texture and buffer pool- recycling textures and buffers is significantly faster than trashing and re-creating them every time you need one.  If you're working with Metal textures/buffers, this is probably the second thing you'll want to create.
@@ -12,7 +10,7 @@ VVMetalKit is a framework that contains a number of basic Metal-based utilities 
 - `VVMTLBuffer-protocol` is a protocol/class that describes a poolable buffer accessible to Metal.  Instances of this class always come from `VVMTLPool`.  The buffer may or may not be backed by shared memory, depending on how it was created by the pool.
 - `VVMTLTextureImageView` is a high-level NSView subclass that uses Metal to display a `VVMTLTextureImage-protocol` as large as possible without cropping.  Under the hood, it uses `CustomMetalView`, which is an NSView that uses Metal to draw its contents- kind of like `MTKView`, which makes it more configurable...
 
-#### Other useful classes:
+### Other useful classes:
 
 - `VVMTLScene` is a superclass that contains a number of properties and methods used to "render content to a texture".  You probably won't work with it directly, but will instead want to subclass one of its subclasses:
 - `VVMTLComputeScene` is a subclass of VVMTLScene that is used to perform compute-based rendering operations (`id<MTLComputeCommandEncoder>`).  This class is intended to be subclassed- `CopierMTLScene` is one such example.
@@ -27,3 +25,11 @@ VVMetalKit is a framework that contains a number of basic Metal-based utilities 
 - `AAPLMathUtilties.h` is provided by Apple, and contains a bunch of handy general-purpose math functions suited for using matrices to manipulate geometry.
 - `CIImageAdditions.h` is a `CIImage` class addition that adds a strong ref to `CIImage` instances that retains a `VVMTLTextureImage-protocol` for the lifetime of the `CIImage`.
 - `SwizzleMTLScene` is a class that uses Metal compute to do pixel format conversion on the GPU.
+
+### Documentation:
+
+Documentation is provided in Apple's "DocC" format- it's also documented heavily with traditional inline comments.
+
+### Licensing
+
+This is all BSD licensed, you can do whatever you want with it and feel good about yourself!  If you have any ideas for improvements (or you find any bugs or problems), please open an issue and let me know.
