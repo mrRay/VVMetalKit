@@ -159,9 +159,9 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	void			*texBytes = NULL;
 	
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceITUR_709);
-	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
-	CGColorSpaceRef		colorspace = RenderProperties.global.colorSpace;
+	//CGColorSpaceRef		colorspace = RenderProperties.global.colorSpace;
 	if (colorspace != NULL)
 		CGColorSpaceRetain(colorspace);
 	
@@ -718,13 +718,15 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		bytesPerRow:(uint32_t)bufferBytesPerRow];
 	
 	//	make a CGContextRef that will use our buffer/texture as its backing
+	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+	
 	CGContextRef		ctx = CGBitmapContextCreate(
 		(void*)returnMe.buffer.buffer.contents,
 		(long)targetSize.width,
 		(long)targetSize.height,
 		0,
 		bufferBytesPerRow,
-		RenderProperties.global.colorSpace,
+		colorspace,
 		kCGImageAlphaPremultipliedLast);
 	if (ctx == NULL)	{
 		NSLog(@"ERR: ctx NULL in %s",__func__);
@@ -739,6 +741,8 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	//CGBitmapContextUnpremultiply(ctx);		//	commented out b/c it's a big perf hit!
 	
 	CGContextRelease(ctx);
+	
+	CGColorSpaceRelease(colorspace);
 	
 	[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesToWrite)];
 	[VVMTLPool.global timestampThis:returnMe];
