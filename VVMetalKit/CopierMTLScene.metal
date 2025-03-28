@@ -36,6 +36,8 @@ kernel void CopierMTLSceneFunc(
 	GRect		srcRect_tl = geoBuffer->srcRectMtl;
 	
 	GPoint		pxlCoords_src_tl = PixelForNormCoordsInRect( normCoords_dst_tl, srcRect_tl );
+	pxlCoords_src_tl.x += 0.5;
+	pxlCoords_src_tl.y += 0.5;
 	
 	//	sample srcTexture at these pixel coords
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
