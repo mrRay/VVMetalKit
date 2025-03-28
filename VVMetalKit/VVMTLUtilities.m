@@ -85,7 +85,7 @@ CGImageRef CreateCGImageRefFromVVMTLTextureImage(id<VVMTLTextureImage> inImg)	{
 CGImageRef CreateCGImageRefFromResizedVVMTLTextureImage(id<VVMTLTextureImage> inImg, NSSize imgSize)	{
 	//	if the image occupies the whole texture, just call the function that downloads the whole texture
 	NSSize			rawImgSize = inImg.srcRect.size;
-	if (NSEqualSizes(rawImgSize, imgSize))	{
+	if (NSEqualSizes(rawImgSize, imgSize) && !IsMTLPixelFormatCompressed(inImg.texture.pixelFormat) && !inImg.flipV && !inImg.flipH)	{
 		return CreateCGImageRefFromMTLTexture(inImg.texture);
 	}
 	
