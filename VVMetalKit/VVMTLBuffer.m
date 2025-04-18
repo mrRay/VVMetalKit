@@ -58,7 +58,7 @@
 - (void) dealloc	{
 	//NSLog(@"%s ... %@",__func__,self);
 	//	if this object wants to be deleted immediately...
-	if (preferDeletion)	{
+	if (preferDeletion || pool == nil)	{
 		//	execute the recycle block immediately- we'll free the underlying resources in a sec
 		if (deletionBlock != nil)	{
 			deletionBlock(self);
