@@ -84,12 +84,16 @@
 }
 
 
-- (void) _renderCallback	{
-	//	if we don't currently have a PSO, load one!
-	//if (self.renderPSO == nil)	{
-	//	[self _loadPSO];
-	//}
-	[super _renderCallback];
+- (void) _loadPSO	{
+	//NSLog(@"%s",__func__);
+	[super _loadPSO];
+	if (self.renderPSO == nil)	{
+		NSError		*nsErr = nil;
+		self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
+		if (self.renderPSO == nil || nsErr != nil)	{
+			NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+		}
+	}
 }
 - (void) _renderSetup	{
 	//	the super populates the cmd buffer with any transitive scheduled/completed blocks
@@ -140,6 +144,13 @@
 - (void) _setMVPBuffer	{
 	NSSize			renderSize = self.renderSize;
 	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),NO,NO,self.device);
+}
+- (void) _renderCallback	{
+	//	if we don't currently have a PSO, load one!
+	//if (self.renderPSO == nil)	{
+	//	[self _loadPSO];
+	//}
+	[super _renderCallback];
 }
 - (void) _renderTeardown	{
 	//	if there's a color attachment, make sure it's retained through the end of the command buffer

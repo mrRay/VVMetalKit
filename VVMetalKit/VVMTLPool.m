@@ -36,6 +36,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 
 
+
 @interface VVMTLPool ()	{
 	id<MTLDevice>		_device;
 	NSMutableArray<id<VVMTLRecycleable>>		*_texPool;	//	FIFO, objects that are in the pool "too long" get freed
@@ -43,6 +44,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	NSMutableArray<id<VVMTLRecycleable>>		*_lutPool;	//	FIFO
 	CVMetalTextureCacheRef		_cvTexCache;
 	CMClockRef			_clock;
+	id<VVMTLTextureImage>		_emptyBlackTexture;
 }
 @property (readwrite) BOOL supportsMemoryless;
 @property (readwrite) BOOL supportsTileShaders;
@@ -92,12 +94,29 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 		
 		_clock = CMClockGetHostTimeClock();
+		
+		//	create the empty black texture by generating a new texture (guaranteed to be empty black as long as it's not recycled)
+		VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
+			createWithWidth:8
+			height:8
+			pixelFormat:MTLPixelFormatBGRA8Unorm
+			storage:MTLStorageModePrivate
+			usage:MTLTextureUsageShaderRead
+			bytesPerRow:0];
+		_emptyBlackTexture = [[VVMTLTextureImage alloc] initWithDescriptor:desc];
+		NSError		*nsErr = [self _generateMissingGPUAssetsInTexImg:(VVMTLTextureImage*)_emptyBlackTexture];
+		if (nsErr != nil)	{
+			NSLog(@"ERR: (%@) in %s",nsErr,__func__);
+		}
 	}
 	
 	return self;
 }
 - (CVMetalTextureCacheRef) cvTexCache	{
 	return _cvTexCache;
+}
+- (id<VVMTLTextureImage>) emptyBlackTexture	{
+	return _emptyBlackTexture;
 }
 
 

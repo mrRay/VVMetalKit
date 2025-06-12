@@ -47,6 +47,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly) BOOL supportsMemoryless;
 @property (readonly) BOOL supportsTileShaders;
 
+///	Sometimes you just need an empty black texture.  Maybe you just need to bind something on an edge case.  Always returns the same texture (so don't try to write to it)
+@property (strong,readonly) id<VVMTLTextureImage> emptyBlackTexture;
+
 ///	This method will attempt to recycle an unused texture that matches the passed desription- if none can be found, a new texture matching the description will be allocated and returned.
 - (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc;
 

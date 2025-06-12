@@ -1528,12 +1528,24 @@ char get_line_intersection(
 		return;
 	}
 	
+	NSMutableDictionary<NSNumber*,id<VVMTLTextureImage>>		*localImages = self.images;
+	id<VVMTLBuffer>		localGeometryBuffer = self.geometryBuffer;
+	id<VVMTLBuffer>		localIndexBuffer = self.indexBuffer;
 	
-	[self.images enumerateKeysAndObjectsUsingBlock:^(NSNumber *imgIdx, id<VVMTLTextureImage> imgTex, BOOL *stop)	{
+	//	if 'localImages' is empty, add a dummy texture just so the binding is non-nil
+	if (localImages.count < 1)	{
+		//NSLog(@"\t\tno actual textures, applying the empty black texture %@",VVMTLPool.global.emptyBlackTexture.texture);
 		[inRenderEnc
-			setFragmentTexture:imgTex.texture
-			atIndex:imgIdx.intValue];
-	}];
+			setFragmentTexture:VVMTLPool.global.emptyBlackTexture.texture
+			atIndex:0];
+	}
+	else	{
+		[localImages enumerateKeysAndObjectsUsingBlock:^(NSNumber *imgIdx, id<VVMTLTextureImage> imgTex, BOOL *stop)	{
+			[inRenderEnc
+				setFragmentTexture:imgTex.texture
+				atIndex:imgIdx.intValue];
+		}];
+	}
 	
 	
 	[inCB addCompletedHandler:^(id<MTLCommandBuffer> completedCB)	{
@@ -1541,20 +1553,34 @@ char get_line_intersection(
 		tmpSelf = nil;
 	}];
 	
+	[inRenderEnc useResource:self.geometryBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
+	[inRenderEnc useResource:self.indexBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
+	
 	[inRenderEnc
-		setVertexBuffer:self.geometryBuffer.buffer
+		setVertexBuffer:localGeometryBuffer.buffer
 		offset:0
 		atIndex:CMV_VS_IDX_Verts];
+	
+	[inCB addCompletedHandler:^(id<MTLCommandBuffer> completedCB)	{
+		NSMutableDictionary<NSNumber*,id<VVMTLTextureImage>>		*tmpImages = localImages;
+		id<VVMTLBuffer>		tmpGeometryBuffer = localGeometryBuffer;
+		//id<VVMTLBuffer>		tmpArrayBuffer = texArrayBuffer;
+		
+		//tmpArrayBuffer = nil;
+		tmpGeometryBuffer = nil;
+		tmpImages = nil;
+	}];
 	
 	[inRenderEnc
 		drawIndexedPrimitives:self.primitiveType
 		indexCount:self.indexBufferIndexCount
 		indexType:MTLIndexTypeUInt16
-		indexBuffer:self.indexBuffer.buffer
+		indexBuffer:localIndexBuffer.buffer
 		indexBufferOffset:0];
 }
+
 - (void) executeInRenderEncoder:(id<MTLRenderCommandEncoder>)inRenderEnc textureArgumentEncoder:(id<MTLArgumentEncoder>)inTexArgEnc commandBuffer:(id<MTLCommandBuffer>)inCB	{
-	if (inRenderEnc == nil || inCB == nil)	{
+	if (inRenderEnc == nil || inTexArgEnc == nil || inCB == nil)	{
 		return;
 	}
 	
@@ -1612,6 +1638,9 @@ char get_line_intersection(
 		tmpSelf = nil;
 		tmpBuffer = nil;
 	}];
+	
+	[inRenderEnc useResource:self.geometryBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
+	[inRenderEnc useResource:self.indexBuffer.buffer usage:MTLResourceUsageRead stages:MTLRenderStageVertex];
 	
 	[inRenderEnc
 		setVertexBuffer:self.geometryBuffer.buffer

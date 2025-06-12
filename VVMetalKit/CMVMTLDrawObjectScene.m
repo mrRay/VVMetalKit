@@ -48,10 +48,13 @@
 	}
 }
 
-- (void) _loadPSO	{
-	[super _loadPSO];
-	NSError		*nsErr = nil;
-	self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
-}
+//- (void) _loadPSO	{
+//	//NSLog(@"%s",__func__);
+//	[super _loadPSO];
+//	if (self.renderPSO == nil)	{
+//		NSError		*nsErr = nil;
+//		self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
+//	}
+//}
 
 @end
