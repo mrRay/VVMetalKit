@@ -29,12 +29,20 @@
 		NSBundle			*myBundle = [NSBundle bundleForClass:[self class]];
 		id<MTLLibrary>		defaultLibrary = [self.device newDefaultLibraryWithBundle:myBundle error:&nsErr];
 		id<MTLFunction>		func = [defaultLibrary newFunctionWithName:@"CopierMTLSceneFunc"];
+		if (func == nil)	{
+			NSLog(@"ERR: %s, func nil- lib is %@, bundle is %@/%@",__func__,defaultLibrary,myBundle,myBundle.bundlePath);
+			self = nil;
+			return self;
+		}
 		
 		self.computePSO = [self.device
 			newComputePipelineStateWithFunction:func
 			error:&nsErr];
-		if (self.computePSO == nil || nsErr != nil)
+		if (self.computePSO == nil || nsErr != nil)	{
 			NSLog(@"ERR: unable to make PSO, %@",nsErr);
+			self = nil;
+			return self;
+		}
 	}
 	return self;
 }
