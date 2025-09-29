@@ -89,9 +89,11 @@
 	[super _loadPSO];
 	if (self.renderPSO == nil)	{
 		NSError		*nsErr = nil;
-		self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
-		if (self.renderPSO == nil || nsErr != nil)	{
-			NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+		if (self.renderPSODesc != nil)	{
+			self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
+			if (self.renderPSO == nil || nsErr != nil)	{
+				NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+			}
 		}
 	}
 }
