@@ -42,6 +42,9 @@ NS_ASSUME_NONNULL_BEGIN
 //	if nil, no tint will be applied (tint color will be 1,1,1,1)
 @property (strong) NSColor * imgTint;
 
+//	how the image's alpha channel will be rendered
+@property (readwrite) VVMTLTextureImageStructAlphaRenderMode alphaRenderMode;
+
 
 @end
 

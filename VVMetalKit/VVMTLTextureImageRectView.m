@@ -47,6 +47,7 @@
 	_imgBuffer = nil;
 	_vertRect = NSZeroRect;
 	_imgTint = nil;
+	_alphaRenderMode = VVMTLTextureImageStructAlphaRenderMode_AppliedAlpha;
 	self.contentNeedsRedraw = YES;
 }
 - (void) awakeFromNib	{
@@ -139,6 +140,8 @@
 				localGeoStruct.colorMultiplier = simd_make_float4(colorVals[0], colorVals[1], colorVals[2], 1.);
 			}
 			
+			localGeoStruct.alphaRenderMode = self.alphaRenderMode;
+			
 			//	make a geometry buffer from the struct
 			self.geoBuffer = [VVMTLPool.global
 				bufferWithLength:sizeof(localGeoStruct)
@@ -206,52 +209,6 @@
 			setFragmentBuffer:localGeoBuffer.buffer
 			offset:0
 			atIndex:VVMTLTextureImageRectView_FS_Index_Geo];
-		
-		////	instead of repeatedly assembling a geometry buffer we're going to let metal do the heavy lifting here
-		//{
-		//	CGRect			viewRect = CGRectMake(0,0,viewportSize.x,viewportSize.y);
-		//	
-		//	//NSLog(@"\t\timgBuffer is %@",localImgBuffer);
-		//	//	make sure the vert buffer exists, create it if it doesn't
-		//	if (self.vertBuffer == nil)	{
-		//		const VVMTLTextureImageRectViewVertex		quadVerts[] = {
-		//			{ { CGRectGetMinX(viewRect), CGRectGetMinY(viewRect) } },
-		//			{ { CGRectGetMinX(viewRect), CGRectGetMaxY(viewRect) } },
-		//			{ { CGRectGetMaxX(viewRect), CGRectGetMinY(viewRect) } },
-		//			{ { CGRectGetMaxX(viewRect), CGRectGetMaxY(viewRect) } },
-		//		};
-		//		
-		//		self.vertBuffer = [metalLayer.device
-		//			newBufferWithBytes:quadVerts
-		//			length:sizeof(quadVerts)
-		//			options:MTLResourceStorageModeShared];
-		//	}
-		//	localVertBuffer = self.vertBuffer;
-		//	
-		//	//	make a geometry struct!
-		//	VVMTLTextureImageStruct		localGeoStruct;
-		//	
-		//	//	populate it with the contents of the img buffer (src rect of the texture that contains the image)
-		//	[localImgBuffer populateStruct:&localGeoStruct];
-		//	
-		//	//	calculate where the image will draw in my bounds, apply it to the geometry struct
-		//	localGeoStruct.dstRect = GRectFromNSRect(_vertRect);
-		//	
-		//	NSColor		*tintColor = self.imgTint;
-		//	if (tintColor == nil)	{
-		//		localGeoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
-		//	}
-		//	else	{
-		//		CGFloat		colorVals[8];
-		//		[tintColor getComponents:colorVals];
-		//		localGeoStruct.colorMultiplier = simd_make_float4(colorVals[0], colorVals[1], colorVals[2], 1.);
-		//	}
-		//	
-		//	[renderEncoder
-		//		setFragmentBytes:&localGeoStruct
-		//		length:sizeof(localGeoStruct)
-		//		atIndex:VVMTLTextureImageRectView_FS_Index_Geo];
-		//}
 		
 		[renderEncoder
 			drawPrimitives:MTLPrimitiveTypeTriangleStrip

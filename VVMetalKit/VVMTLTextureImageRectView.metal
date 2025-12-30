@@ -103,9 +103,28 @@ fragment float4 VVMTLTextureImageRectViewFragShader(
 	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::pixel);
 	//constexpr sampler		sampler(mag_filter::nearest, min_filter::nearest, address::clamp_to_edge, coord::pixel);
 	float4			color = tex.sample(sampler, samplerCoord) * displayInfo->colorMultiplier;
-	//return color;
-	float4			appliedAlphaColor = float4(color.a, color.a, color.a, 1.) * float4(color.r, color.g, color.b, 1.);
-	return appliedAlphaColor;
+	
+	float4		outputColor;
+	switch (displayInfo->alphaRenderMode) {
+		case VVMTLTextureImageStructAlphaRenderMode_NoAlpha: {
+			outputColor = float4(color.rgb, 1.0);
+			break;
+		}
+		case VVMTLTextureImageStructAlphaRenderMode_OnlyAlpha: {
+			outputColor = float4(color.a, color.a, color.a, 1.0);
+			break;
+		}
+		default:
+		case VVMTLTextureImageStructAlphaRenderMode_AppliedAlpha: {
+			outputColor = float4(color.a, color.a, color.a, 1.) * float4(color.r, color.g, color.b, 1.);
+			break;
+		}
+	}
+	
+	return outputColor;
+	
+	//float4			appliedAlphaColor = float4(color.a, color.a, color.a, 1.) * float4(color.r, color.g, color.b, 1.);
+	//return appliedAlphaColor;
 	
 }
 
