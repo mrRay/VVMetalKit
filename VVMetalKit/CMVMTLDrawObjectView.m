@@ -102,10 +102,15 @@
 		NSLog(@"ERR: current drawable tex nil in %s",__func__);
 		return;
 	}
-	passDescriptor.colorAttachments[0].texture = currentDrawable.texture;
+	
+	MTLRenderPassDescriptor		*localPassDesc;
+	@synchronized (self)	{
+		localPassDesc = [passDescriptor copy];
+	}
+	localPassDesc.colorAttachments[0].texture = currentDrawable.texture;
 	
 	//	make a render encoder, configure it
-	id<MTLRenderCommandEncoder>		renderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:passDescriptor];
+	id<MTLRenderCommandEncoder>		renderEncoder = [cmdBuffer renderCommandEncoderWithDescriptor:localPassDesc];
 	renderEncoder.label = [NSString stringWithFormat:@"%@ encoder",[self className]];
 	[renderEncoder setViewport:(MTLViewport){ 0.f, 0.f, viewportSize.x, viewportSize.y, -1.f, 1.f }];
 	[renderEncoder setRenderPipelineState:localPSO];
@@ -128,6 +133,7 @@
 	[cmdBuffer presentDrawable:currentDrawable];
 	
 	currentDrawable = nil;
+	localPassDesc = nil;
 }
 
 #pragma mark - superclass overrides

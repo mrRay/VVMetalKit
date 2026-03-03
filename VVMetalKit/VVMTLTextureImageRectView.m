@@ -171,7 +171,10 @@
 		return;
 	}
 	
-	MTLRenderPassDescriptor		*localDesc = [passDescriptor copy];
+	MTLRenderPassDescriptor		*localDesc;
+	@synchronized (self)	{
+		localDesc = [passDescriptor copy];
+	}
 	
 	localDesc.colorAttachments[0].texture = drawable.texture;
 	if (localDesc.colorAttachments[0].texture == nil)	{

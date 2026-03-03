@@ -424,10 +424,12 @@
 		//	this makes the view "transparent" (areas with alpha of 0 will show the background of the enclosing view)
 		self.layer.opaque = NO;
 		self.layer.backgroundColor = [[NSColor clearColor] CGColor];
-		passDescriptor = [MTLRenderPassDescriptor new];
-		passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-		passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0);
-		passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+		@synchronized (self)	{
+			passDescriptor = [MTLRenderPassDescriptor new];
+			passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+			passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake(0, 0, 0, 0);
+			passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+		}
 	}
 	else	{
 		self.layer.opaque = YES;
@@ -435,10 +437,12 @@
 		[_layerBackgroundColor getComponents:components];
 		//NSLog(@"\t\tcolor was %@, comps are %0.2f, %0.2f, %0.2f",_layerBackgroundColor,components[0],components[1],components[2]);
 		self.layer.backgroundColor = [_layerBackgroundColor CGColor];
-		passDescriptor = [MTLRenderPassDescriptor new];
-		passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
-		passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake( components[0], components[1], components[2], components[3] );
-		passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+		@synchronized (self)	{
+			passDescriptor = [MTLRenderPassDescriptor new];
+			passDescriptor.colorAttachments[0].loadAction = MTLLoadActionClear;
+			passDescriptor.colorAttachments[0].clearColor = MTLClearColorMake( components[0], components[1], components[2], components[3] );
+			passDescriptor.colorAttachments[0].storeAction = MTLStoreActionStore;
+		}
 	}
 }
 - (NSColor *) layerBackgroundColor	{
