@@ -22,6 +22,9 @@
 #define VVMINY(r) ((r.size.height>=0) ? (r.origin.y) : (r.origin.y+r.size.height))
 #define VVMAXY(r) ((r.size.height>=0) ? (r.origin.y+r.size.height) : (r.origin.y))
 
+//	simple bitmask check
+#define A_HAS_B(a,b) (((a)&(b))==(b))
+
 
 
 
@@ -80,6 +83,12 @@
 	//NSDate			*methodStartDate = [NSDate date];
 	//NSLog(@"%s ... %@, %p",__func__,self.label,cmdBuffer);
 	//NSLog(@"\tmy bounds are %@",NSStringFromRect(self.bounds));
+	
+	//	if my parent window is occluded, bail
+	if (!A_HAS_B(self.localWindow.occlusionState, NSWindowOcclusionStateVisible))	{
+		return;
+	}
+	
 	VVMTLTextureImage	*localImgBuffer = nil;
 	id<MTLBuffer>		localMVPBuffer = nil;
 	id<MTLBuffer>		localVertBuffer = nil;

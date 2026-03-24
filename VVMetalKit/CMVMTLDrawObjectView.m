@@ -6,6 +6,7 @@
 //
 
 #import "CMVMTLDrawObjectView.h"
+#import "VVMacros.h"
 
 @implementation CMVMTLDrawObjectView
 
@@ -67,6 +68,12 @@
 		[self drawObjects:@[inDrawObj] inCommandBuffer:cmdBuffer];
 }
 - (void) drawObjects:(NSArray<CMVMTLDrawObject*> *)inDrawObjs inCommandBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
+
+	//	if my parent window is occluded, bail
+	if (!A_HAS_B(self.localWindow.occlusionState, NSWindowOcclusionStateVisible))	{
+		return;
+	}
+	
 	//	get local copies of some buffers and stuff we'll need to draw
 	id<MTLBuffer>		localMVPBuffer = nil;
 	//id<MTLBuffer>		localVertBuffer = nil;
