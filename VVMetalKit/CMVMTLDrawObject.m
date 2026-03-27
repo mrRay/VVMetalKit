@@ -62,18 +62,52 @@ typedef NS_ENUM(NSUInteger, VVRectAnchor)	{
 static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor);
 static inline VVPOINT VVRectGetAnchorPoint(VVRECT inRect, VVRectAnchor inAnchor)	{
 	VVPOINT		returnMe = inRect.origin;
+	VVPOINT		tmp;
 	switch (inAnchor)	{
-	case VVRectAnchor_Center:	returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(inRect.size.width/2.,inRect.size.height/2.) );		break;
-	case VVRectAnchor_TL:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(0., inRect.size.height) );		break;
-	case VVRectAnchor_TR:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(inRect.size.width, inRect.size.height) );		break;
-	case VVRectAnchor_BL:
-		//	do nothing- rect's origin is already the bottom left!
-		break;
-	case VVRectAnchor_BR:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(inRect.size.width, 0.) );		break;
-	case VVRectAnchor_TM:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(inRect.size.width/2., inRect.size.height) );		break;
-	case VVRectAnchor_RM:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(inRect.size.width, inRect.size.height/2.) );		break;
-	case VVRectAnchor_BM:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(inRect.size.width/2., 0.) );		break;
-	case VVRectAnchor_LM:		returnMe = VVADDPOINT( inRect.origin, VVMAKEPOINT(0., inRect.size.height/2.) );		break;
+		case VVRectAnchor_Center:	{
+			tmp = VVMAKEPOINT(inRect.size.width/2.,inRect.size.height/2.);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_TL:	{
+			tmp = VVMAKEPOINT(0., inRect.size.height);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_TR:	{
+			tmp = VVMAKEPOINT(inRect.size.width, inRect.size.height);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_BL:	{
+			//	do nothing- rect's origin is already the bottom left!
+			break;
+		}
+		case VVRectAnchor_BR:	{
+			tmp = VVMAKEPOINT(inRect.size.width, 0.);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_TM:	{
+			tmp = VVMAKEPOINT(inRect.size.width/2., inRect.size.height);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_RM:	{
+			tmp = VVMAKEPOINT(inRect.size.width, inRect.size.height/2.);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_BM:	{
+			tmp = VVMAKEPOINT(inRect.size.width/2., 0.);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
+		case VVRectAnchor_LM:	{
+			tmp = VVMAKEPOINT(0., inRect.size.height/2.);
+			returnMe = VVADDPOINT( inRect.origin, tmp );
+			break;
+		}
 	}
 	return returnMe;
 }
