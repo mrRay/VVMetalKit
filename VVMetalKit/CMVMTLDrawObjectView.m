@@ -70,7 +70,7 @@
 - (void) drawObjects:(NSArray<CMVMTLDrawObject*> *)inDrawObjs inCommandBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
 
 	//	if my parent window is occluded, bail
-	if (!A_HAS_B(self.localWindow.occlusionState, NSWindowOcclusionStateVisible))	{
+	if (!A_HAS_B(self.localOcclusionState, NSWindowOcclusionStateVisible))	{
 		return;
 	}
 	

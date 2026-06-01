@@ -82,6 +82,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (atomic,readwrite) NSRect localFrame;
 ///	Local, thread-safe version of NSView's `window` property.
 @property (atomic,readwrite,weak) NSWindow * localWindow;
+///	Local, thread-safe version of [localWindow occlusionState].  Defaults to 0 until the view has a window.
+@property (atomic,readwrite) NSWindowOcclusionState localOcclusionState;
 ///	Local, thread-safe version of NSView's `hidden` property.
 @property (atomic,readwrite) BOOL localHidden;
 ///	Local, thread-safe version of NSView's `visibleRect` property.

@@ -73,6 +73,7 @@
 	self.localFrame = self.frame;
 	self.localBackingBounds = [self convertRectToLocalBackingBounds:self.bounds];
 	self.localWindow = self.window;
+	self.localOcclusionState = 0;
 	self.localHidden = self.hidden;
 	self.localVisibleRect = self.visibleRect;
 }
@@ -81,6 +82,8 @@
 }
 - (void) dealloc	{
 	//NSLog(@"%s ... %@",__func__,self);
+	//	stop observing occlusion changes for any window
+	[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidChangeOcclusionStateNotification object:nil];
 	self.colorspace = NULL;
 }
 
@@ -207,9 +210,27 @@
 }
 - (void) viewWillMoveToWindow:(NSWindow *)n	{
 	//NSLog(@"%s",__func__);
+	//	move the occlusion-state observer to the new window so 'localOcclusionState' tracks it.
+	//	-[NSWindow occlusionState] is main-thread-only; this hook (and the notification) run on the
+	//	main thread, so reading occlusionState here- and seeding from the new window- is legal.
+	NSWindow		*oldWindow = self.localWindow;
+	if (oldWindow != n)	{
+		if (oldWindow != nil)
+			[[NSNotificationCenter defaultCenter] removeObserver:self name:NSWindowDidChangeOcclusionStateNotification object:oldWindow];
+		if (n != nil)
+			[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(_occlusionStateChangedNotification:) name:NSWindowDidChangeOcclusionStateNotification object:n];
+	}
+	self.localOcclusionState = (n==nil) ? 0 : n.occlusionState;
 	self.localWindow = n;
 	self.localVisibleRect = self.visibleRect;
 	[super viewWillMoveToWindow:n];
+}
+- (void) _occlusionStateChangedNotification:(NSNotification *)note	{
+	//	delivered on the main thread (window notifications post on main)- cache the value so off-main
+	//	render threads can read 'localOcclusionState' without touching AppKit.
+	NSWindow		*noteWindow = note.object;
+	if (noteWindow != nil)
+		self.localOcclusionState = noteWindow.occlusionState;
 }
 - (void) setHidden:(BOOL)n	{
 	[super setHidden:n];
