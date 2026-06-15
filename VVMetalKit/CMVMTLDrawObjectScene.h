@@ -27,6 +27,8 @@ NS_ASSUME_NONNULL_BEGIN
 ///	This object will draw its contents in the scene every time it renders.
 @property (strong,nullable) CMVMTLDrawObject * drawObject;
 
+@property (readonly,nonatomic) id<MTLArgumentEncoder> textureArgumentEncoder;
+
 @end
 
 

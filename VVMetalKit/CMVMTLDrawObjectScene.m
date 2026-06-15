@@ -9,6 +9,16 @@
 #import "CustomMetalView.h"
 #import "CMVMTLDrawObject.h"
 
+
+
+
+@interface CMVMTLDrawObjectScene ()
+@property (readwrite,nonatomic) id<MTLArgumentEncoder> textureArgumentEncoder;
+@end
+
+
+
+
 @implementation CMVMTLDrawObjectScene
 
 - (nullable instancetype) initWithDevice:(id<MTLDevice>)inDevice	{
@@ -41,20 +51,36 @@
 	if (localDrawObject != nil)	{
 		//[localDrawObject executeInRenderEncoder:self.renderEncoder commandBuffer:self.commandBuffer];
 		
-		id<MTLFunction>		localFragFunc = self.renderPSODesc.fragmentFunction;
-		id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+		id<MTLArgumentEncoder>		argEncoder = self.textureArgumentEncoder;
 		[localDrawObject executeInRenderEncoder:self.renderEncoder textureArgumentEncoder:argEncoder commandBuffer:self.commandBuffer];
 		localDrawObject = nil;
 	}
 }
 
-//- (void) _loadPSO	{
-//	//NSLog(@"%s",__func__);
-//	[super _loadPSO];
-//	if (self.renderPSO == nil)	{
-//		NSError		*nsErr = nil;
-//		self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
-//	}
-//}
+- (void) _loadPSO	{
+	//NSLog(@"%s",__func__);
+	if (self.renderPSO == nil)	{
+		self.textureArgumentEncoder = nil;
+	}
+	[super _loadPSO];
+}
+
+@synthesize textureArgumentEncoder=_textureArgumentEncoder;
+- (void) setTextureArgumentEncoder:(id<MTLArgumentEncoder>)n	{
+	_textureArgumentEncoder = n;
+}
+- (id<MTLArgumentEncoder>) textureArgumentEncoder	{
+	if (_textureArgumentEncoder != nil)
+		return _textureArgumentEncoder;
+	id<MTLFunction>		localFunc = self.renderPSODesc.fragmentFunction;
+	if (localFunc == nil)
+		return nil;
+	_textureArgumentEncoder = [localFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+	return _textureArgumentEncoder;
+}
+
+- (BOOL) isACMVMTLDrawObjectScene	{
+	return YES;
+}
 
 @end

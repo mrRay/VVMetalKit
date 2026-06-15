@@ -7,6 +7,7 @@
 
 @interface CustomMetalView ()
 @property (readwrite) double localToBackingBoundsMultiplier;
+@property (readwrite,nullable) id<MTLArgumentEncoder> textureArgumentEncoder;
 @end
 
 
@@ -260,6 +261,11 @@
 }
 
 
+- (BOOL) isACustomMetalView	{
+	return YES;
+}
+
+
 #pragma mark - backend
 
 
@@ -471,4 +477,32 @@
 }
 
 
+@synthesize textureArgumentEncoder=_textureArgumentEncoder;
+- (void) setTextureArgumentEncoder:(id<MTLArgumentEncoder>)n	{
+	_textureArgumentEncoder = n;
+}
+- (id<MTLArgumentEncoder>) textureArgumentEncoder	{
+	if (_textureArgumentEncoder != nil)
+		_textureArgumentEncoder = nil;
+	id<MTLFunction>		localFunction = psoDesc.fragmentFunction;
+	_textureArgumentEncoder = [localFunction newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+	return _textureArgumentEncoder;
+}
+
+
+@end
+
+
+
+
+@implementation NSObject (NSObject_CustomMetalViewAdditions)
+- (BOOL) isACustomMetalView	{
+	return NO;
+}
+- (BOOL) isACMVMTLDrawObjectView	{
+	return NO;
+}
+- (BOOL) isACMVMTLDrawObjectScene	{
+	return NO;
+}
 @end

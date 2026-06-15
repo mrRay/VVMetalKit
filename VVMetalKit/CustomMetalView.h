@@ -34,6 +34,7 @@ NS_ASSUME_NONNULL_BEGIN
 	MTLRenderPassDescriptor			*passDescriptor;
 	MTLRenderPipelineDescriptor		*psoDesc;
 	id<MTLRenderPipelineState>		pso;
+	id<MTLArgumentEncoder>		argEncoder;
 	vector_uint2			viewportSize;
 	CAMetalLayer			*metalLayer;
 	id<CAMetalDrawable>		currentDrawable;
@@ -51,6 +52,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readwrite) MTLPixelFormat pixelFormat;
 ///	The view will draw using this colorspace- defaults to `RenderProperties.global.colorspace`, so it may be more convenient to set that property on app init and then let views pick up the value from there.
 @property (readwrite,nullable) CGColorSpaceRef colorspace;
+
+@property (readonly,nullable) id<MTLArgumentEncoder> textureArgumentEncoder;
 
 ///	Set it to nil and any pixels with an alpha < 1 in the layer will be composited as transparent in the window hierarchy
 @property (strong,nullable) NSColor * layerBackgroundColor;
@@ -91,6 +94,15 @@ NS_ASSUME_NONNULL_BEGIN
 ///	Local, thread-safe version of NSView's `convertRectToBacking:` method.
 - (NSRect) convertRectToLocalBackingBounds:(NSRect)n;
 
+@end
+
+
+
+
+@interface NSObject (NSObject_CustomMetalViewAdditions)
+@property (nonatomic,readonly) BOOL isACustomMetalView;
+@property (nonatomic,readonly) BOOL isACMVMTLDrawObjectView;
+@property (nonatomic,readonly) BOOL isACMVMTLDrawObjectScene;
 @end
 
 

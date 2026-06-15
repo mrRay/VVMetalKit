@@ -124,10 +124,9 @@
 	[renderEncoder setVertexBuffer:localMVPBuffer offset:0 atIndex:CMV_VS_IDX_MVP];
 	
 	//	execute the draw object(s)
+	id<MTLArgumentEncoder>		argEncoder = self.textureArgumentEncoder;
 	for (CMVMTLDrawObject * drawObj in inDrawObjs)	{
 		if (drawObj != nil)	{
-			id<MTLFunction>		localFragFunc = psoDesc.fragmentFunction;
-			id<MTLArgumentEncoder>		argEncoder = [localFragFunc newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
 			[drawObj executeInRenderEncoder:renderEncoder textureArgumentEncoder:argEncoder commandBuffer:cmdBuffer];
 		}
 	}
@@ -199,6 +198,10 @@
 	
 		return sizeChanged;
 	}
+}
+
+- (BOOL) isACMVMTLDrawObjectView	{
+	return YES;
 }
 
 @end
