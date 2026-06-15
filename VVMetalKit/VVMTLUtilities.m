@@ -689,15 +689,26 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 		}
 		//	else we can just blast the pixel data pretty much directly to the texture
 		else	{
-			id<VVMTLTextureImage>		returnMe = [VVMTLPool.global
-				bufferBackedTexSized:rawSize
-				pixelFormat:dstPxlFmt
-				basePtr:basePtr
-				bytesPerRow:imgDataBytesPerRow
-				bufferDeallocator:^(void *pointer, NSUInteger length)	{
-					NSData * tmpData = frameData;
-					tmpData = nil;
-				}];
+			//	the no-copy wrap requires a page-aligned base ptr- smaller CG data allocations come from malloc zones and aren't page-aligned, so those fall back to copying the data into a pool buffer
+			id<VVMTLTextureImage>		returnMe = nil;
+			if (((uintptr_t)basePtr % (uintptr_t)NSPageSize()) == 0)	{
+				returnMe = [VVMTLPool.global
+					bufferBackedTexSized:rawSize
+					pixelFormat:dstPxlFmt
+					basePtr:basePtr
+					bytesPerRow:imgDataBytesPerRow
+					bufferDeallocator:^(void *pointer, NSUInteger length)	{
+						NSData * tmpData = frameData;
+						tmpData = nil;
+					}];
+			}
+			if (returnMe == nil)	{
+				returnMe = [VVMTLPool.global
+					bufferBackedTexSized:rawSize
+					pixelFormat:dstPxlFmt
+					basePtr:basePtr
+					bytesPerRow:imgDataBytesPerRow];
+			}
 			frameData = nil;
 			return returnMe;
 		}
@@ -746,8 +757,8 @@ id<VVMTLTextureImage> CreateTextureFromResizedCGImage(CGImageRef inImg, NSSize t
 	
 	[returnMe.buffer.buffer didModifyRange:NSMakeRange(0,totalBytesToWrite)];
 	[VVMTLPool.global timestampThis:returnMe];
-	
-	return nil;
+
+	return returnMe;
 }
 
 

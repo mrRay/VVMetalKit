@@ -1261,6 +1261,11 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		length:targetLength
 		options:resourceStorageMode
 		deallocator:d];
+	//	no-copy buffer creation fails if 'b' isn't page-aligned- return nil instead of a wrapper with a nil buffer
+	if (returnMe.buffer == nil)	{
+		NSLog(@"ERR: unable to make no-copy buffer (%ld bytes, basePtr %p) in %s",targetLength,b,__func__);
+		return nil;
+	}
 	[self timestampThis:returnMe];
 	return returnMe;
 }
@@ -1428,14 +1433,20 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 		//	else it's just a plain ol' texture
 		else	{
-			
+
 			texture = [_device newTextureWithDescriptor:texDesc];
 			n.texture = texture;
 			[self _labelTexture:n];
 		}
 	}
-	
-	
+
+	//	if we still don't have a texture, creation failed- return an error so callers vend nil instead of a texture-less image.
+	//	mark the failed image for deletion, or its dealloc will recycle a texture-less copy back into the pool (which vends recycled objects as-is)
+	if (n.texture == nil)	{
+		n.preferDeletion = YES;
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"unable to create texture (%dx%d, fmt %X, bpr %d, backing %d.%d.%d)",(int)desc.width,(int)desc.height,(uint32_t)desc.pfmt,(int)bytesPerRow,desc.mtlBufferBacking,desc.iosfcBacking,desc.cvpbBacking] }];
+	}
+
 	return nil;
 }
 - (NSError *) _generateMissingGPUAssetsInBuffer:(VVMTLBuffer *)n	{
@@ -1450,10 +1461,15 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	VVMTLBufferDescriptor		*desc = (VVMTLBufferDescriptor*)n.descriptor;
 	MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(desc.storage);
 	buffer = [self.device newBufferWithLength:desc.length options:resourceStorageMode];
-	
+
 	n.buffer = buffer;
 	n.pool = self;
-	
+
+	if (buffer == nil)	{
+		n.preferDeletion = YES;
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"unable to create buffer (%ld bytes)",(unsigned long)desc.length] }];
+	}
+
 	return nil;
 }
 - (NSError *) _generateMissingGPUAssetsInTexLUT:(VVMTLTextureLUT *)n	{
