@@ -23,67 +23,108 @@ using namespace metal;
 
 
 
+//	---------------------------------------------------------------------------
+//	Primaries/range reference for the RGB<->YCbCr constants below. Every matrix is derived to 6 decimal 
+//	places from its BT primaries with the standard non-constant-luminance (NCL) formulas 
+//	(video-range = luma x 219/255, chroma x 224/255; full-range = no scaling).  Forward (RGB->YCbCr) and 
+//	inverse (YCbCr->RGB) for each colorimetry are exact mathematical inverses at this precision.  The 
+//	historical names encode the RANGE implicitly, which has caused confusion- consult this table rather 
+//	than guessing from the suffix.  Names are retained for backward compatibility; same-colorimetry 
+//	names (e.g. _SD and _Full) hold IDENTICAL values.
+//	
+//	  constant       | primaries | range  | luma coeff sum  | offset.r
+//	  ---------------+-----------+--------+-----------------+---------
+//	  _601           | 601       | video  | 0.858824(219/255)| 16/255
+//	  _709           | 709       | video  | 0.858824(219/255)| 16/255
+//	  _BT2020Video   | 2020      | video  | 0.858824(219/255)| 16/255
+//	  _SD / _Full    | 601       | full   | 1.0   (255/255) | 0
+//	  _HD            | 709       | full   | 1.0   (255/255) | 0
+//	  _BT2020        | 2020      | full   | 1.0   (255/255) | 0
+//	
+//	Note _HD is BT.709 FULL-range (the historically confusing name), and _SD is BT.601 full-range, 
+//	identical to _Full.  The primaries x range grid is now complete: the BT.2020 VIDEO-range cell was 
+//	the one missing combination and is added below as _BT2020Video.
+//	---------------------------------------------------------------------------
+//
+//the {..} groups are COLUMNS (Metal float3x3 is column-major).  for the forward (RGB->YCbCr) matrices the columns are the R, G, B contributions to {Y,Cb,Cr}; for the inverse (YCbCr->RGB) matrices the columns are the Y, Cb, Cr contributions to {R,G,B}.
+
 constant float3x3 kTransMatrix_YCbCr_to_RGB_601{
-	{ 1.164, 1.164, 1.164 },
-	{ 0.0, -0.392, 2.017 },
-	{ 1.596, -0.813, 0.0 }
+	{ 1.164384, 1.164384, 1.164384 },
+	{ 0.0, -0.391762, 2.017232 },
+	{ 1.596027, -0.812968, 0.0 }
 };
 constant float3x3 kTransMatrix_YCbCr_to_RGB_709{
-	{ 1.1644, 1.1644, 1.1644 },
-	{ 0.0, -0.2132, 2.1124 },
-	{ 1.7927, -0.5329, 0.0 }
+	{ 1.164384, 1.164384, 1.164384 },
+	{ 0.0, -0.213249, 2.112402 },
+	{ 1.792741, -0.532909, 0.0 }
 };
+//	BT.601 full-range.  FIXES the prior _Full inverse, which had 1.773/1.403 where
+//	the correct BT.601 full-range values are 1.772/1.402 (== _SD, same colorimetry).
 constant float3x3 kTransMatrix_YCbCr_to_RGB_Full{
 	{ 1.0, 1.0, 1.0 },
-	{ 0.0, -0.344, 1.773 },
-	{ 1.403, -0.714, 0.0 }
+	{ 0.0, -0.344136, 1.772 },
+	{ 1.402, -0.714136, 0.0 }
 };
+//	BT.601 full-range, identical to _Full (same colorimetry, different historical name).
 constant float3x3 kTransMatrix_YCbCr_to_RGB_SD{
 	{ 1.0, 1.0, 1.0 },
-	{ 0.0, -0.344, 1.772 },
-	{ 1.402, -0.714, 0. }
+	{ 0.0, -0.344136, 1.772 },
+	{ 1.402, -0.714136, 0.0 }
 };
 constant float3x3 kTransMatrix_YCbCr_to_RGB_HD{
 	{ 1.0, 1.0, 1.0 },
-	{ 0.0, -0.187, 1.856 },
-	{ 1.575, -0.468, 0.0 }
+	{ 0.0, -0.187324, 1.8556 },
+	{ 1.5748, -0.468124, 0.0 }
 };
 constant float3x3 kTransMatrix_YCbCr_to_RGB_BT2020{
 	{ 1.0, 1.0, 1.0 },
-	{ 0.0, -0.16455312684366, 1.8814 },
-	{ 1.4746, -0.57135312684366, 0.0 }
+	{ 0.0, -0.164553, 1.8814 },
+	{ 1.4746, -0.571353, 0.0 }
+};
+//	BT.2020 video-range (the previously-missing grid cell- NOT a duplicate).
+constant float3x3 kTransMatrix_YCbCr_to_RGB_BT2020Video{
+	{ 1.164384, 1.164384, 1.164384 },
+	{ 0.0, -0.187326, 2.141772 },
+	{ 1.678674, -0.650424, 0.0 }
 };
 
 
 constant float3x3 kTransMatrix_RGB_to_YCbCr_601{
-	{ 0.257, -0.148, 0.439 },
-	{ 0.504, -0.291, -0.368 },
-	{ 0.098, 0.439, -0.071 }
+	{ 0.256788, -0.148223, 0.439216 },
+	{ 0.504129, -0.290993, -0.367788 },
+	{ 0.097906, 0.439216, -0.071427 }
 };
 constant float3x3 kTransMatrix_RGB_to_YCbCr_709{
-	{ 0.183, -0.101, 0.439 },
-	{ 0.614, -0.339, -0.399 },
-	{ 0.062, 0.439, -0.040 }
+	{ 0.182586, -0.100644, 0.439216 },
+	{ 0.614231, -0.338572, -0.398942 },
+	{ 0.062007, 0.439216, -0.040274 }
 };
 constant float3x3 kTransMatrix_RGB_to_YCbCr_Full{
 	{ 0.299, -0.168736, 0.5 },
 	{ 0.587, -0.331264, -0.418688 },
 	{ 0.114, 0.5, -0.081312 }
 };
+//	BT.601 full-range, identical to _Full (was a 3-decimal rounding of it; now brought into exact agreement).
 constant float3x3 kTransMatrix_RGB_to_YCbCr_SD{
-	{ 0.299, -0.169, 0.5 },
-	{ 0.587, -0.331, -0.419 },
-	{ 0.114, 0.5, -0.081 }
+	{ 0.299, -0.168736, 0.5 },
+	{ 0.587, -0.331264, -0.418688 },
+	{ 0.114, 0.5, -0.081312 }
 };
 constant float3x3 kTransMatrix_RGB_to_YCbCr_HD{
-	{ 0.213, -0.115, 0.5 },
-	{ 0.715, -0.385, -0.454 },
-	{ 0.072, 0.5, -0.046 }
+	{ 0.2126, -0.114572, 0.5 },
+	{ 0.7152, -0.385428, -0.454153 },
+	{ 0.0722, 0.5, -0.045847 }
 };
 constant float3x3 kTransMatrix_RGB_to_YCbCr_BT2020{
 	{ 0.2627, -0.13963, 0.5 },
-	{ 0.678, -0.3603699373, -0.4597857046 },
-	{ 0.0593, 0.5, -0.0402142954 }
+	{ 0.678, -0.36037, -0.459786 },
+	{ 0.0593, 0.5, -0.040214 }
+};
+//	BT.2020 video-range (the previously-missing grid cell- NOT a duplicate).
+constant float3x3 kTransMatrix_RGB_to_YCbCr_BT2020Video{
+	{ 0.225613, -0.122655, 0.439216 },
+	{ 0.582282, -0.316560, -0.403890 },
+	{ 0.050928, 0.439216, -0.035325 }
 };
 
 
@@ -93,6 +134,7 @@ constexpr constant float3 kTransOffset_YCbCr_to_RGB_Full{ 0./255., 128./255., 12
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_SD{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_HD{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_YCbCr_to_RGB_BT2020{ 0./255., 128./255., 128./255. };
+constexpr constant float3 kTransOffset_YCbCr_to_RGB_BT2020Video{ 16./255., 128./255., 128./255. };
 
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_601{ 16./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_709{ 16./255., 128./255., 128./255. };
@@ -100,6 +142,16 @@ constexpr constant float3 kTransOffset_RGB_to_YCbCr_Full{ 0./255., 128./255., 12
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_SD{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_HD{ 0./255., 128./255., 128./255. };
 constexpr constant float3 kTransOffset_RGB_to_YCbCr_BT2020{ 0./255., 128./255., 128./255. };
+constexpr constant float3 kTransOffset_RGB_to_YCbCr_BT2020Video{ 16./255., 128./255., 128./255. };
+
+
+//	normalized RGB->YCbCr clamp limits for the swizzle encode.  there are only ever three cases:
+//	legacy (no clamp- the historical default), video-range, and full-range.  defined here as constant
+//	globals so the shader can reference them (by pointer) instead of materializing them per call.
+constexpr constant float3 kSwizzleYCbCrClampLo_Video{ 16./255., 16./255., 16./255. };
+constexpr constant float3 kSwizzleYCbCrClampHi_Video{ 235./255., 240./255., 240./255. };
+constexpr constant float3 kSwizzleYCbCrClampLo_Full { 0., 0., 0. };
+constexpr constant float3 kSwizzleYCbCrClampHi_Full { 1., 1., 1. };
 
 
 static inline float3 GammaConvert_BT709_nonLinearToLinear(float3 nonlinear);

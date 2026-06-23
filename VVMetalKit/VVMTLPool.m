@@ -21,6 +21,9 @@
 #import "VVMTLTextureLUT.h"
 #import "VVMTLTextureLUTDescriptor.h"
 
+#import "VVMTLSurfaceImage.h"
+#import "VVMTLSurfaceImageDescriptor.h"
+
 
 
 
@@ -42,6 +45,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	NSMutableArray<id<VVMTLRecycleable>>		*_texPool;	//	FIFO, objects that are in the pool "too long" get freed
 	NSMutableArray<id<VVMTLRecycleable>>		*_bufferPool;	//	FIFO.
 	NSMutableArray<id<VVMTLRecycleable>>		*_lutPool;	//	FIFO
+	NSMutableArray<id<VVMTLRecycleable>>		*_surfacePool;	//	FIFO
 	CVMetalTextureCacheRef		_cvTexCache;
 	CMClockRef			_clock;
 	id<VVMTLTextureImage>		_emptyBlackTexture;
@@ -54,6 +58,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 - (NSError *) _generateMissingGPUAssetsInTexImg:(VVMTLTextureImage *)n;
 - (NSError *) _generateMissingGPUAssetsInBuffer:(VVMTLBuffer *)n;
 - (NSError *) _generateMissingGPUAssetsInTexLUT:(VVMTLTextureLUT *)n;
+- (NSError *) _generateMissingGPUAssetsInSurfaceImage:(VVMTLSurfaceImage *)n;
 @end
 
 
@@ -79,6 +84,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		_texPool = [[NSMutableArray alloc] init];
 		_bufferPool = [[NSMutableArray alloc] init];
 		_lutPool = [[NSMutableArray alloc] init];
+		_surfacePool = [[NSMutableArray alloc] init];
 		_supportsMemoryless = ([_device supportsFamily:MTLGPUFamilyApple8] || [_device supportsFamily:MTLGPUFamilyApple7]);
 		_supportsTileShaders = ([_device supportsFamily:MTLGPUFamilyApple4]);
 		
@@ -135,6 +141,9 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		}
 		else if ([(NSObject*)n isVVMTLTextureLUT])	{
 			[_lutPool insertObject:n atIndex:0];
+		}
+		else if ([(NSObject*)n isVVMTLSurfaceImage])	{
+			[_surfacePool insertObject:n atIndex:0];
 		}
 	}
 }
@@ -197,6 +206,16 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			++tmpIndex;
 		}
 	}
+	else if ([(NSObject*)n isVVMTLSurfaceImageDescriptor])	{
+		for (id<VVMTLRecycleable> pooledObject in _surfacePool)	{
+			if ([n matchForRecycling:pooledObject.descriptor])	{
+				returnMe = pooledObject;
+				[_surfacePool removeObjectAtIndex:tmpIndex];
+				break;
+			}
+			++tmpIndex;
+		}
+	}
 	else	{
 		NSLog(@"ERR: unrecognized descriptor (%@) in %s",n,__func__);
 	}
@@ -206,7 +225,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 - (void) housekeeping	{
 	@synchronized (self)	{
-		NSArray<NSMutableArray*>		*pools = @[ _texPool, _bufferPool, _lutPool ];
+		NSArray<NSMutableArray*>		*pools = @[ _texPool, _bufferPool, _lutPool, _surfacePool ];
 		for (NSMutableArray * pool in pools)	{
 			
 			int			tmpIndex = 0;
@@ -1138,6 +1157,53 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 }
 
 
+#pragma mark - surface image creation
+
+
+- (id<VVMTLSurfaceImage>) surfaceImageForDescriptor:(VVMTLSurfaceImageDescriptor*)inDesc	{
+	if (inDesc == nil)
+		return nil;
+	if (inDesc.width <= 0 || inDesc.height <= 0)
+		return nil;
+	VVMTLSurfaceImage		*returnMe = nil;
+	@synchronized (self)	{
+		returnMe = (VVMTLSurfaceImage*)[self _recycledObjectMatching:inDesc];
+		//	recycled match- no CVPixelBufferCreate, the asset already carries its surface/buffer/geometry
+		if (returnMe != nil)	{
+			[self timestampThis:returnMe];
+			return returnMe;
+		}
+
+		returnMe = [[VVMTLSurfaceImage alloc] initWithDescriptor:inDesc];
+		NSError			*nsErr = [self _generateMissingGPUAssetsInSurfaceImage:returnMe];
+		if (nsErr != nil)	{
+			NSLog(@"ERR (%@) in %s",nsErr,__func__);
+			return nil;
+		}
+	}
+	[self timestampThis:returnMe];
+	return returnMe;
+}
+
+
+- (id<VVMTLSurfaceImage>) ycbcr420fSurfaceImageSized:(NSSize)n	{
+	VVMTLSurfaceImageDescriptor		*desc = [VVMTLSurfaceImageDescriptor
+		createWithWidth:(NSUInteger)round(n.width)
+		height:(NSUInteger)round(n.height)
+		cvPixelFormat:kCVPixelFormatType_420YpCbCr8BiPlanarFullRange
+		storage:MTLStorageModeShared];
+	return [self surfaceImageForDescriptor:desc];
+}
+- (id<VVMTLSurfaceImage>) ycbcr420vSurfaceImageSized:(NSSize)n	{
+	VVMTLSurfaceImageDescriptor		*desc = [VVMTLSurfaceImageDescriptor
+		createWithWidth:(NSUInteger)round(n.width)
+		height:(NSUInteger)round(n.height)
+		cvPixelFormat:kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange
+		storage:MTLStorageModeShared];
+	return [self surfaceImageForDescriptor:desc];
+}
+
+
 #pragma mark - buffer creation
 
 
@@ -1362,10 +1428,10 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		
 		n.cvpb = cvpb;
 		
-		CVPixelBufferRelease(cvpb);
-		
 		bytesPerRow = CVPixelBufferGetBytesPerRow(cvpb);
 		desc.bytesPerRow = bytesPerRow;
+		
+		CVPixelBufferRelease(cvpb);
 	}
 	
 	//	if the descriptor indicates that we need an IOSurfaceRef as a backing, but we don't have one yet...
@@ -1576,12 +1642,117 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		else	{
 			texture = [_device newTextureWithDescriptor:texDesc];
 			//[self _labelTexture:texture];
-			
+
 			n.texture = texture;
 		}
 	}
-	
-	
+
+
+	return nil;
+}
+- (NSError *) _generateMissingGPUAssetsInSurfaceImage:(VVMTLSurfaceImage *)n	{
+	if (n == nil)
+		return nil;
+
+	n.pool = self;
+
+	//	if it already has its backing (e.g. a recycled asset), we're done
+	if (n.cvpb != NULL && n.wholeSurfaceBuffer != nil)
+		return nil;
+
+	VVMTLSurfaceImageDescriptor		*desc = (VVMTLSurfaceImageDescriptor *)n.descriptor;
+	NSUInteger		descWidth = desc.width;
+	NSUInteger		descHeight = desc.height;
+	OSType			cvPixelFormat = desc.cvPixelFormat;
+	if (descWidth == 0 || descHeight == 0)	{
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"Invalid dimensions (%ld x %ld)",(unsigned long)descWidth,(unsigned long)descHeight] }];
+	}
+
+	//	create the IOSurface-backed CVPixelBuffer
+	CVPixelBufferRef		cvpb = NULL;
+	CVReturn		cvErr = CVPixelBufferCreate(
+		kCFAllocatorDefault,
+		descWidth,
+		descHeight,
+		cvPixelFormat,
+		(__bridge CFDictionaryRef)@{ (NSString*)kCVPixelBufferIOSurfacePropertiesKey: @{} },
+		&cvpb);
+	if (cvErr != kCVReturnSuccess || cvpb == NULL)	{
+		n.preferDeletion = YES;
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"problem (%d) while creating pixel buffer",cvErr] }];
+	}
+	//	the setter retains the cvpb- we still hold our own local create-ref ('cvpb') until the very end of this method
+	n.cvpb = cvpb;
+
+	//	tag the color attachments so downstream consumers (the encoder) know the colorimetry.  range follows the CV format.
+	CVBufferSetAttachment(cvpb, kCVImageBufferYCbCrMatrixKey, kCVImageBufferYCbCrMatrix_ITU_R_709_2, kCVAttachmentMode_ShouldPropagate);
+	CVBufferSetAttachment(cvpb, kCVImageBufferColorPrimariesKey, kCVImageBufferColorPrimaries_ITU_R_709_2, kCVAttachmentMode_ShouldPropagate);
+	CVBufferSetAttachment(cvpb, kCVImageBufferTransferFunctionKey, kCVImageBufferTransferFunction_ITU_R_709_2, kCVAttachmentMode_ShouldPropagate);
+
+	//	derive the IOSurface (NOT retained by this call)- the setter takes the retain + use-count
+	IOSurfaceRef		iosfc = CVPixelBufferGetIOSurface(cvpb);
+	if (iosfc == NULL)	{
+		n.cvpb = NULL;
+		CVPixelBufferRelease(cvpb);
+		cvpb = NULL;
+		n.preferDeletion = YES;
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: @"problem deriving iosfc from cvpb" }];
+	}
+	n.iosfc = iosfc;
+
+	//	READ ALL GEOMETRY before releasing the local create-ref below.  read per-plane stride/offset INDEPENDENTLY (chroma stride differs from luma)- never assume bytesPerRow*height.
+	//	the surface is CPU-addressable (created with IOSurface properties)- no lock needed for address/offset arithmetic (locking is only for CPU readback).
+	size_t			planeCount = IOSurfaceGetPlaneCount(iosfc);
+	void			*surfaceBase = IOSurfaceGetBaseAddress(iosfc);
+	size_t			surfaceAllocSize = IOSurfaceGetAllocSize(iosfc);
+
+	NSUInteger		cachedOffsets[VVMTLSURFACEIMAGE_MAX_PLANES];
+	NSUInteger		cachedBytesPerRows[VVMTLSURFACEIMAGE_MAX_PLANES];
+	NSUInteger		cachedWidths[VVMTLSURFACEIMAGE_MAX_PLANES];
+	NSUInteger		cachedHeights[VVMTLSURFACEIMAGE_MAX_PLANES];
+
+	//	a non-planar IOSurface reports a plane count of 0- treat it as a single (whole-surface) plane so geometry is still cached
+	NSUInteger		effectivePlaneCount = (planeCount == 0) ? 1 : (NSUInteger)planeCount;
+	if (effectivePlaneCount > VVMTLSURFACEIMAGE_MAX_PLANES)
+		effectivePlaneCount = VVMTLSURFACEIMAGE_MAX_PLANES;
+	for (NSUInteger p=0; p<effectivePlaneCount; ++p)	{
+		if (planeCount == 0)	{
+			cachedOffsets[p] = 0;
+			cachedBytesPerRows[p] = IOSurfaceGetBytesPerRow(iosfc);
+			cachedWidths[p] = IOSurfaceGetWidth(iosfc);
+			cachedHeights[p] = IOSurfaceGetHeight(iosfc);
+		}
+		else	{
+			void		*planeBase = IOSurfaceGetBaseAddressOfPlane(iosfc, p);
+			cachedOffsets[p] = (NSUInteger)((uint8_t*)planeBase - (uint8_t*)surfaceBase);
+			cachedBytesPerRows[p] = IOSurfaceGetBytesPerRowOfPlane(iosfc, p);
+			cachedWidths[p] = IOSurfaceGetWidthOfPlane(iosfc, p);
+			cachedHeights[p] = IOSurfaceGetHeightOfPlane(iosfc, p);
+		}
+	}
+	[n setPlaneCount:effectivePlaneCount offsets:cachedOffsets bytesPerRows:cachedBytesPerRows widths:cachedWidths heights:cachedHeights];
+
+	//	the whole-surface no-copy buffer aliases the IOSurface memory.  no-op deallocator: the IOSurface (owned by the CVPixelBuffer) owns this memory- releasing the MTLBuffer must NOT free it.
+	//	IOSurface base/alloc are page-aligned, satisfying newBufferWithBytesNoCopy.  bufferWithLengthNoCopy: sets preferDeletion=YES so this buffer is freed-not-pooled (only the VVMTLSurfaceImage recycles, carrying its own buffer forward).
+	id<VVMTLBuffer>		wholeBuffer = [self
+		bufferWithLengthNoCopy:surfaceAllocSize
+		storage:desc.storage
+		basePtr:surfaceBase
+		bufferDeallocator:^(void *p, NSUInteger l){}];
+	if (wholeBuffer == nil)	{
+		n.iosfc = NULL;
+		n.cvpb = NULL;
+		CVPixelBufferRelease(cvpb);
+		cvpb = NULL;
+		n.preferDeletion = YES;
+		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"unable to make no-copy surface buffer (%ld bytes)",(unsigned long)surfaceAllocSize] }];
+	}
+	n.wholeSurfaceBuffer = wholeBuffer;
+
+	//	all geometry has been read from the retained n.cvpb/n.iosfc- release the local create-ref LAST (no read after release).
+	CVPixelBufferRelease(cvpb);
+	cvpb = NULL;
+
 	return nil;
 }
 

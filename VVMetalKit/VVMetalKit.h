@@ -38,6 +38,9 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 #import <VVMetalKit/VVMTLTextureImageDescriptor.h>
 #import <VVMetalKit/VVMTLTextureLUT.h>
 #import <VVMetalKit/VVMTLTextureLUTDescriptor.h>
+#import <VVMetalKit/VVMTLSurfaceImage.h>
+#import <VVMetalKit/VVMTLSurfaceImageDescriptor.h>
+#import <VVMetalKit/VVMTLSurfaceImage+Swizzle.h>
 #import <VVMetalKit/VVMTLPool.h>
 
 #import <VVMetalKit/VVMTLScene.h>

@@ -4,6 +4,7 @@
 #import "RenderProperties.h"
 #import "SwizzleMTLSceneTypes.h"
 #import "VVMTLScene_priv.h"
+#import "VVMTLSurfaceImage.h"
 //#import <VVCore/VVCore.h>
 
 
@@ -245,6 +246,48 @@
 	//	[blitEncoder synchronizeResource:outDst];
 	//	[blitEncoder endEncoding];
 	//}
+}
+- (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstSurfaceImage:(id<VVMTLSurfaceImage>)inDstSurface swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	if (inSrc==nil || inDstSurface==nil || inDstSurface.wholeSurfaceBuffer==nil)	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return;
+	}
+
+	//	write into the surface's whole-surface no-copy buffer (which aliases the IOSurface backing the CVPixelBuffer).
+	//	inInfo.dstImg must already describe the surface's actual per-plane geometry- see VVMTLSurfaceImage(Swizzle).
+	[self
+		convertSrcRGBTexture:inSrc
+		dstBuffer:inDstSurface.wholeSurfaceBuffer
+		dstRGBTexture:nil
+		swizzleInfo:inInfo
+		inCommandBuffer:inCB];
+
+	//	keep the surface alive until the write completes, so the host can hand off surf.cvpb in its own completion handler without the surface (and its backing) being recycled out from under the GPU
+	[inCB addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
+		id<VVMTLSurfaceImage>		keepAlive = inDstSurface;
+		keepAlive = nil;
+	}];
+}
+- (void) convertSrcSurfaceImage:(id<VVMTLSurfaceImage>)inSrcSurface dstRGBTexture:(id<VVMTLTextureImage>)outTex swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	if (inSrcSurface==nil || inSrcSurface.wholeSurfaceBuffer==nil || outTex==nil)	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return;
+	}
+
+	//	read from the surface's whole-surface no-copy buffer (which aliases the IOSurface backing the CVPixelBuffer).
+	//	inInfo.srcImg must already describe the surface's actual per-plane geometry- see VVMTLSurfaceImage(Swizzle).  the buffer-source base method sets readSrcImgFromBuffer.
+	[self
+		convertSrcBuffer:inSrcSurface.wholeSurfaceBuffer
+		dstBuffer:nil
+		dstRGBTexture:outTex
+		swizzleInfo:inInfo
+		inCommandBuffer:inCB];
+
+	//	keep the surface alive until the read completes, so the host can hand off the surface in its own completion handler without the surface (and its backing) being recycled out from under the GPU
+	[inCB addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
+		id<VVMTLSurfaceImage>		keepAlive = inSrcSurface;
+		keepAlive = nil;
+	}];
 }
 
 - (void) renderCallback	{

@@ -81,6 +81,12 @@
 		1AC4AC242A5EFED900119888 /* VVMTLTextureLUT.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */; };
 		1AC4AC272A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AC4AC282A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */; };
+		DDDDDD0000000000000000B1 /* VVMTLSurfaceImage.h in Headers */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F1 /* VVMTLSurfaceImage.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DDDDDD0000000000000000B2 /* VVMTLSurfaceImage.m in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F2 /* VVMTLSurfaceImage.m */; };
+		DDDDDD0000000000000000B3 /* VVMTLSurfaceImageDescriptor.h in Headers */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F3 /* VVMTLSurfaceImageDescriptor.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DDDDDD0000000000000000B4 /* VVMTLSurfaceImageDescriptor.m in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F4 /* VVMTLSurfaceImageDescriptor.m */; };
+		DDDDDD0000000000000000B5 /* VVMTLSurfaceImage+Swizzle.h in Headers */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F5 /* VVMTLSurfaceImage+Swizzle.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		DDDDDD0000000000000000B6 /* VVMTLSurfaceImage+Swizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F6 /* VVMTLSurfaceImage+Swizzle.m */; };
 		1ACE29A22CC0329000735675 /* AAPLMathUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ACE29A32CC0329000735675 /* AAPLMathUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */; };
 		1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
@@ -164,6 +170,12 @@
 		1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureLUT.m; sourceTree = "<group>"; };
 		1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureLUTDescriptor.h; sourceTree = "<group>"; };
 		1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLTextureLUTDescriptor.m; sourceTree = "<group>"; };
+		DDDDDD0000000000000000F1 /* VVMTLSurfaceImage.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLSurfaceImage.h; sourceTree = "<group>"; };
+		DDDDDD0000000000000000F2 /* VVMTLSurfaceImage.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLSurfaceImage.m; sourceTree = "<group>"; };
+		DDDDDD0000000000000000F3 /* VVMTLSurfaceImageDescriptor.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLSurfaceImageDescriptor.h; sourceTree = "<group>"; };
+		DDDDDD0000000000000000F4 /* VVMTLSurfaceImageDescriptor.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMTLSurfaceImageDescriptor.m; sourceTree = "<group>"; };
+		DDDDDD0000000000000000F5 /* VVMTLSurfaceImage+Swizzle.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "VVMTLSurfaceImage+Swizzle.h"; sourceTree = "<group>"; };
+		DDDDDD0000000000000000F6 /* VVMTLSurfaceImage+Swizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "VVMTLSurfaceImage+Swizzle.m"; sourceTree = "<group>"; };
 		1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAPLMathUtilities.h; sourceTree = "<group>"; };
 		1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AAPLMathUtilities.m; sourceTree = "<group>"; };
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
@@ -219,6 +231,12 @@
 				1AC4AC222A5EFED900119888 /* VVMTLTextureLUT.m */,
 				1AC4AC252A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h */,
 				1AC4AC262A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m */,
+				DDDDDD0000000000000000F1 /* VVMTLSurfaceImage.h */,
+				DDDDDD0000000000000000F2 /* VVMTLSurfaceImage.m */,
+				DDDDDD0000000000000000F3 /* VVMTLSurfaceImageDescriptor.h */,
+				DDDDDD0000000000000000F4 /* VVMTLSurfaceImageDescriptor.m */,
+				DDDDDD0000000000000000F5 /* VVMTLSurfaceImage+Swizzle.h */,
+				DDDDDD0000000000000000F6 /* VVMTLSurfaceImage+Swizzle.m */,
 				1A20CF0C2A4A1A3700F2EDBB /* VVMTLPool.h */,
 				1A20CF0D2A4A1A3700F2EDBB /* VVMTLPool.m */,
 				1A20CF002A46213B00F2EDBB /* VVMTLRecyclingPool.h */,
@@ -342,6 +360,9 @@
 				1A20CF0A2A499BCF00F2EDBB /* VVMTLTextureImageDescriptor.h in Headers */,
 				1AC4AC232A5EFED900119888 /* VVMTLTextureLUT.h in Headers */,
 				1AC4AC272A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.h in Headers */,
+				DDDDDD0000000000000000B1 /* VVMTLSurfaceImage.h in Headers */,
+				DDDDDD0000000000000000B3 /* VVMTLSurfaceImageDescriptor.h in Headers */,
+				DDDDDD0000000000000000B5 /* VVMTLSurfaceImage+Swizzle.h in Headers */,
 				1A20CF0E2A4A1A3700F2EDBB /* VVMTLPool.h in Headers */,
 				1A0AEA982A55B6F6003BBFBE /* VVMTLUtilities.h in Headers */,
 				1ABE24682A4DF47200317187 /* VVMTLScene_priv.h in Headers */,
@@ -446,6 +467,9 @@
 				1ABE24602A4DE8B400317187 /* VVMTLTextureImageView.m in Sources */,
 				1AC4AC242A5EFED900119888 /* VVMTLTextureLUT.m in Sources */,
 				1AC4AC282A5EFEEA00119888 /* VVMTLTextureLUTDescriptor.m in Sources */,
+				DDDDDD0000000000000000B2 /* VVMTLSurfaceImage.m in Sources */,
+				DDDDDD0000000000000000B4 /* VVMTLSurfaceImageDescriptor.m in Sources */,
+				DDDDDD0000000000000000B6 /* VVMTLSurfaceImage+Swizzle.m in Sources */,
 				1A0AEA992A55B6F6003BBFBE /* VVMTLUtilities.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

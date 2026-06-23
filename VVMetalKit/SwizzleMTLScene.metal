@@ -20,6 +20,22 @@ using namespace metal;
 
 
 
+//	the matrix/offset (and, for encode, the normalized clamp limits) for one RGB<->YCbCr conversion, selected by primaries x range.
+//	everything is in NORMALIZED space so it is bit-depth independent- the per-format code applies its own *255/*1023/*65535 scaling AFTER this.
+//	these are bundles of POINTERS into the 'constant'-address-space globals (matrices/offsets/clamps)- nothing is copied by value, so building one is just selecting a few pointers.
+//	(defined up here, before the forward declarations, because ReadNormRGBFromSrcBufferAtLoc takes a YCbCrDecodeParams.)
+struct YCbCrEncodeParams	{
+	constant float3x3	* mat;		//	RGB -> YCbCr
+	constant float3		* offset;	//	added after the matrix multiply
+	constant float3		* clampLo;	//	normalized lower clamp limit, or nullptr for the legacy (no-clamp) default- matches the pre-colorRange shader's formula
+	constant float3		* clampHi;	//	normalized upper clamp limit (only valid if clampLo != nullptr)
+};
+struct YCbCrDecodeParams	{
+	constant float3x3	* mat;		//	YCbCr -> RGB
+	constant float3		* offset;	//	subtracted before the matrix multiply
+};
+
+
 //	just unpacks data from packed/planar pixel formats.
 //	returns the normalized values of the channels from the passed src buffer/opInfo at the passed location
 //	doesn't convert any colors- only converts ints (code point values) to normalized float vals, at most
@@ -27,8 +43,9 @@ using namespace metal;
 float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleShaderImageInfo & imgInfo, uint2 loc);
 
 
-//	'dstLoc' is the location of the pixel in the SOURCE IMAGE- we want to retrieve the val of the pixel at this loc in the source image
-void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 dstLoc);
+//	'dstLoc' is the location of the pixel in the SOURCE IMAGE- we want to retrieve the val of the pixel at this loc in the source image.
+//	'dec' is the YCbCr->RGB decode params
+void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 dstLoc, YCbCrDecodeParams dec);
 
 
 //	populates the passed array of 'normRGB' values from the passed 'srcBuffer', using 'opInfo' (which describes the nature of 'srcBuffer')
@@ -45,6 +62,82 @@ void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<flo
 
 //	last part of the process.  takes the normalized RGB color vals, and uses them to populate the dst image with them
 void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInfo & opInfo, thread float4 * normRGB, uint2 gid);
+
+
+
+
+#pragma mark - YCbCr colorimetry selection
+
+
+//	resolves the encode (RGB->YCbCr) matrix/offset/clamp for the requested primaries x range, returning POINTERS into constant memory (no per-call copy).
+static inline YCbCrEncodeParams SwizzleYCbCrEncodeParams(SwizzleColorPrimaries prim, SwizzleColorRange range)	{
+	YCbCrEncodeParams	returnMe;
+
+	//	resolve the matrix family (legacy primaries == 709).  'range' picks video vs full within each family; legacy range uses the video matrix/offset.
+	bool	wantFull = (range == SwizzleColorRange_full);
+	switch (prim)	{
+	case SwizzleColorPrimaries_601:
+		returnMe.mat = wantFull ? &kTransMatrix_RGB_to_YCbCr_Full : &kTransMatrix_RGB_to_YCbCr_601;
+		returnMe.offset = wantFull ? &kTransOffset_RGB_to_YCbCr_Full : &kTransOffset_RGB_to_YCbCr_601;
+		break;
+	case SwizzleColorPrimaries_2020:
+		returnMe.mat = wantFull ? &kTransMatrix_RGB_to_YCbCr_BT2020 : &kTransMatrix_RGB_to_YCbCr_BT2020Video;
+		returnMe.offset = wantFull ? &kTransOffset_RGB_to_YCbCr_BT2020 : &kTransOffset_RGB_to_YCbCr_BT2020Video;
+		break;
+	case SwizzleColorPrimaries_709:
+	case SwizzleColorPrimaries_legacy:
+	default:
+		returnMe.mat = wantFull ? &kTransMatrix_RGB_to_YCbCr_HD : &kTransMatrix_RGB_to_YCbCr_709;
+		returnMe.offset = wantFull ? &kTransOffset_RGB_to_YCbCr_HD : &kTransOffset_RGB_to_YCbCr_709;
+		break;
+	}
+
+	//	resolve the clamp.  legacy == no clamp (historical, nullptr); video/full point at the normalized-space clamp globals.
+	switch (range)	{
+	case SwizzleColorRange_video:
+		returnMe.clampLo = &kSwizzleYCbCrClampLo_Video;
+		returnMe.clampHi = &kSwizzleYCbCrClampHi_Video;
+		break;
+	case SwizzleColorRange_full:
+		returnMe.clampLo = &kSwizzleYCbCrClampLo_Full;
+		returnMe.clampHi = &kSwizzleYCbCrClampHi_Full;
+		break;
+	case SwizzleColorRange_legacy:
+	default:
+		returnMe.clampLo = nullptr;
+		returnMe.clampHi = nullptr;
+		break;
+	}
+
+	return returnMe;
+}
+
+
+//	resolves the decode (YCbCr->RGB) matrix/offset for the requested primaries x range, returning POINTERS into constant memory (no per-call copy).  no clamp- decode produces RGB.
+static inline YCbCrDecodeParams SwizzleYCbCrDecodeParams(SwizzleColorPrimaries prim, SwizzleColorRange range)	{
+	YCbCrDecodeParams	returnMe;
+
+	//	legacy range decodes with the video matrix/offset (matching the historical hardcoded video-range path).
+	bool	wantFull = (range == SwizzleColorRange_full);
+	switch (prim)	{
+	case SwizzleColorPrimaries_601:
+		returnMe.mat = wantFull ? &kTransMatrix_YCbCr_to_RGB_Full : &kTransMatrix_YCbCr_to_RGB_601;
+		returnMe.offset = wantFull ? &kTransOffset_YCbCr_to_RGB_Full : &kTransOffset_YCbCr_to_RGB_601;
+		break;
+	case SwizzleColorPrimaries_2020:
+		returnMe.mat = wantFull ? &kTransMatrix_YCbCr_to_RGB_BT2020 : &kTransMatrix_YCbCr_to_RGB_BT2020Video;
+		returnMe.offset = wantFull ? &kTransOffset_YCbCr_to_RGB_BT2020 : &kTransOffset_YCbCr_to_RGB_BT2020Video;
+		break;
+	case SwizzleColorPrimaries_709:
+	case SwizzleColorPrimaries_legacy:
+	default:
+		returnMe.mat = wantFull ? &kTransMatrix_YCbCr_to_RGB_HD : &kTransMatrix_YCbCr_to_RGB_709;
+		returnMe.offset = wantFull ? &kTransOffset_YCbCr_to_RGB_HD : &kTransOffset_YCbCr_to_RGB_709;
+		break;
+	}
+
+	return returnMe;
+}
 
 
 
@@ -492,7 +585,7 @@ float4 UnpackNormChannelValsAtLoc(constant void * srcBuffer, constant SwizzleSha
 }
 
 
-void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInSrc)	{
+void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 locInSrc, YCbCrDecodeParams dec)	{
 	uint2			sampleLoc( clamp((int)locInSrc.x,(int)0,(int)opInfo.srcImg.res[0]-1), clamp((int)locInSrc.y,(int)0,(int)opInfo.srcImg.res[1]-1) );
 	//GPoint		dstLoc = MakePoint(locInSrc.x, locInSrc.y);
 	//	if the pixel we're populating is outside the bounds of the source image, it's solid black
@@ -614,39 +707,24 @@ void ReadNormRGBFromSrcBufferAtLoc(thread float4 * normRGB, constant void * srcB
 	case SwizzlePF_UYVY_PL_420_UI_8:
 		{
 			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
-		
-			//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer (and reordered YCbCr into YCbCr) and provided us with all three vals, we just have to convert them to RGB.
-			
+
+			//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer (and reordered YCbCr into YCbCr) and provided us with all three vals, we just have to convert them to RGB.  'dec' was resolved once by the caller and passed in.
 			float4		tmpVals;
-			tmpVals.rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709) * fadeToBlackMultiplier.rgb;
+			tmpVals.rgb = *dec.mat * (rawVals.rgb - *dec.offset) * fadeToBlackMultiplier.rgb;
 			tmpVals.a = 1.0;
 			*normRGB = tmpVals;
-		
-			//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_601 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_601) * fadeToBlackMultiplier.rgb;
-			//*normRGB.rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709) * fadeToBlackMultiplier.rgb;
-			//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_Full * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_Full) * fadeToBlackMultiplier.rgb;
-			//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_SD * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_SD) * fadeToBlackMultiplier.rgb;
-			//normRGB[pixelIndex].rgb = kTransMatrix_YCbCr_to_RGB_HD * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_HD) * fadeToBlackMultiplier.rgb;
-		
-			//*normRGB.a = 1.0;
 		}
 		break;
 	case SwizzlePF_UYVA_PKPL_422_UI_8:
 	case SwizzlePF_UYVA_PKPL_422_UI_16:
 		{
 			float4			rawVals = UnpackNormChannelValsAtLoc(srcBuffer, opInfo.srcImg, sampleLoc);
-			
-			//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.
-			
+
+			//	in this case, the src img is YCbCr.  UnpackNormChannelValsAtLoc() has unpacked the buffer and provided us with all three vals, we just have to convert them to RGB.  'dec' was resolved once by the caller and passed in.
 			float4		tmpVals;
-			tmpVals.rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709) * fadeToBlackMultiplier.rgb;
-			//tmpVals.a = 1.0;
+			tmpVals.rgb = *dec.mat * (rawVals.rgb - *dec.offset) * fadeToBlackMultiplier.rgb;
 			tmpVals.a = rawVals.a * fadeToBlackMultiplier.a;
 			*normRGB = tmpVals;
-			
-			//*normRGB.rgb = kTransMatrix_YCbCr_to_RGB_709 * (rawVals.rgb - kTransOffset_YCbCr_to_RGB_709) * fadeToBlackMultiplier.rgb;
-			
-			//*normRGB.a = rawVals.a;
 		}
 		break;
 	}
@@ -665,7 +743,10 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 	//				****** IMPORTANT *******
 	//	this function assumes that the src and dst buffers have the same resolution!
 	//	this function DOES NOT PERFORM ANY INTERPOLATION
-	
+
+	//	resolve the YCbCr->RGB decode params ONCE for this thread and pass them down (only used if the src is YCbCr).
+	YCbCrDecodeParams		dec = SwizzleYCbCrDecodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 	unsigned int			pixelIndex = 0;
 	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
 		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
@@ -686,14 +767,18 @@ void PopulateNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBu
 				srcNorm.y = 1. - srcNorm.y;
 			//	convert the normalized src img coords to pixel src img coords
 			GPoint		srcPixel = MakePoint( srcNorm.x * opInfo.srcImg.res[0], srcNorm.y * opInfo.srcImg.res[1] );
-			ReadNormRGBFromSrcBufferAtLoc(normRGB + pixelIndex, srcBuffer, opInfo, uint2(srcPixel.x, srcPixel.y));
-			
+			ReadNormRGBFromSrcBufferAtLoc(normRGB + pixelIndex, srcBuffer, opInfo, uint2(srcPixel.x, srcPixel.y), dec);
+
 			++pixelIndex;
 		}
 	}
 }
 void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant void * srcBuffer, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
-	
+
+	//	resolve the YCbCr->RGB decode params ONCE for this thread and pass them down (only used if the src is YCbCr).
+	//	this matters most here- the resamplers below call ReadNormRGBFromSrcBufferAtLoc up to 16x (bicubic) per output pixel.
+	YCbCrDecodeParams		dec = SwizzleYCbCrDecodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 	unsigned int			pixelIndex = 0;
 	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
 		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
@@ -724,10 +809,10 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			float4			row2[4];
 			float4			row3[4];
 			for (int i=0; i<4; ++i)	{
-				ReadNormRGBFromSrcBufferAtLoc( &row0[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+0) );
-				ReadNormRGBFromSrcBufferAtLoc( &row1[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+1) );
-				ReadNormRGBFromSrcBufferAtLoc( &row2[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+2) );
-				ReadNormRGBFromSrcBufferAtLoc( &row3[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+3) );
+				ReadNormRGBFromSrcBufferAtLoc( &row0[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+0), dec );
+				ReadNormRGBFromSrcBufferAtLoc( &row1[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+1), dec );
+				ReadNormRGBFromSrcBufferAtLoc( &row2[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+2), dec );
+				ReadNormRGBFromSrcBufferAtLoc( &row3[i], srcBuffer, opInfo, uint2(startCoords.x+i, startCoords.y+3), dec );
 			}
 			normRGB[pixelIndex] = BicubicInterpolation(&row0[0], &row1[0], &row2[0], &row3[0], mixVals);
 #else
@@ -740,10 +825,10 @@ void PopulateAndResampleNormRGBFromSrcBuffer(thread float4 * normRGB, constant v
 			float4			botLeft;
 			float4			botRight;
 			
-			ReadNormRGBFromSrcBufferAtLoc(&topLeft, srcBuffer, opInfo, uint2(minVals.x, maxVals.y));
-			ReadNormRGBFromSrcBufferAtLoc(&topRight, srcBuffer, opInfo, uint2(maxVals.x, maxVals.y));
-			ReadNormRGBFromSrcBufferAtLoc(&botLeft, srcBuffer, opInfo, uint2(minVals.x, minVals.y));
-			ReadNormRGBFromSrcBufferAtLoc(&botRight, srcBuffer, opInfo, uint2(maxVals.x, minVals.y));
+			ReadNormRGBFromSrcBufferAtLoc(&topLeft, srcBuffer, opInfo, uint2(minVals.x, maxVals.y), dec);
+			ReadNormRGBFromSrcBufferAtLoc(&topRight, srcBuffer, opInfo, uint2(maxVals.x, maxVals.y), dec);
+			ReadNormRGBFromSrcBufferAtLoc(&botLeft, srcBuffer, opInfo, uint2(minVals.x, minVals.y), dec);
+			ReadNormRGBFromSrcBufferAtLoc(&botRight, srcBuffer, opInfo, uint2(maxVals.x, minVals.y), dec);
 			
 			normRGB[pixelIndex] = BilinearInterpolation(topLeft, topRight, botLeft, botRight, mixVals);
 #endif
@@ -1042,25 +1127,27 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 		{
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
-			
-			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
-			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			for (unsigned int pixelIndex = 0; pixelIndex < (opInfo.dstPixelsToProcess[0]*opInfo.dstPixelsToProcess[1]); ++pixelIndex)	{
-				//	convert normalized RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr (clamp in normalized space- bit-depth independent)
 				float4		normDstVal;
-				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+				if (enc.clampLo)
+					normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 				normDstVal.a = normRGB[pixelIndex].a;
-				
+
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
 				dstVals[pixelIndex] = uchar4(round(normDstVal * 255.));
 			}
-			
+
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + ((opInfo.dstImg.planes[0].offset + offsetInBytes)/SIZEOF_UINT8);
-			
+
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
 			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;	//	Cb, adds chroma subsampling
 			++wPtr;
@@ -1076,25 +1163,27 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 		{
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
-			
-			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
-			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			for (unsigned int pixelIndex = 0; pixelIndex < (opInfo.dstPixelsToProcess[0]*opInfo.dstPixelsToProcess[1]); ++pixelIndex)	{
-				//	convert normalized RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr (clamp in normalized space- bit-depth independent)
 				float4		normDstVal;
-				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+				if (enc.clampLo)
+					normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 				normDstVal.a = normRGB[pixelIndex].a;
-				
+
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
 				dstVals[pixelIndex] = uchar4(round(normDstVal * 255.));
 			}
-			
+
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
-			
+
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
 			*wPtr = dstVals[0].r;	//	Y from the first pixel
 			++wPtr;
@@ -1110,16 +1199,18 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 		{
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			float4		dstVals[MAX_PIXELS_TO_PROCESS];
-			
-			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
-			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			for (unsigned int pixelIndex = 0; pixelIndex < (opInfo.dstPixelsToProcess[0]*opInfo.dstPixelsToProcess[1]); ++pixelIndex)	{
-				//	convert normalized RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr (clamp in normalized space- bit-depth independent)
 				float4		normDstVal;
-				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+				if (enc.clampLo)
+					normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 				normDstVal.a = normRGB[pixelIndex].a;
-				
+
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (10-bit vals in this case)
 				dstVals[pixelIndex] = round(normDstVal * 1023.);
 			}
@@ -1154,25 +1245,27 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 		{
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			uchar4		dstVals[MAX_PIXELS_TO_PROCESS];
-			
-			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
-			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			for (unsigned int pixelIndex = 0; pixelIndex < (opInfo.dstPixelsToProcess[0]*opInfo.dstPixelsToProcess[1]); ++pixelIndex)	{
-				//	convert normalized RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr (clamp in normalized space- bit-depth independent)
 				float4		normDstVal;
-				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+				if (enc.clampLo)
+					normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 				normDstVal.a = normRGB[pixelIndex].a;
-				
+
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
 				dstVals[pixelIndex] = uchar4(round(normDstVal * 255.));
 			}
-			
+
 			//	figure out the base address at which we need to start writing pixels
 			size_t		bytesPerPixel = 8 * 2 / 8;	//	8 bits per channel, 2 channels per pixel, 8 bits per byte
 			size_t		offsetInBytes = (gid.y * opInfo.dstPixelsToProcess[1] * opInfo.dstImg.planes[0].bytesPerRow) + (gid.x * opInfo.dstPixelsToProcess[0] * bytesPerPixel);
 			device uint8_t		*wPtr = (device uint8_t *)dstBuffer + ((opInfo.dstImg.planes[0].offset + offsetInBytes)/SIZEOF_UINT8);
-			
+
 			//	(combine and) write the pixels (this is where we go from 444 to 422)
 			*wPtr = (dstVals[0].g + dstVals[1].g) / 2;	//	Cb, adds chroma subsampling
 			++wPtr;
@@ -1182,7 +1275,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			++wPtr;
 			*wPtr = dstVals[1].r;	//	Y from the second pixel
 			++wPtr;
-			
+
 			//	get the A value
 			size_t		alphaPlaneOffsetInBytes = opInfo.dstImg.planes[1].offset;
 			size_t		alphaPlaneBytesPerPixel = SIZEOF_UINT8;
@@ -1199,27 +1292,29 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 		{
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			ushort4		dstVals[MAX_PIXELS_TO_PROCESS];
-			
-			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
-			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			for (unsigned int pixelIndex = 0; pixelIndex < (opInfo.dstPixelsToProcess[0]*opInfo.dstPixelsToProcess[1]); ++pixelIndex)	{
-				//	convert normalized RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr (clamp in normalized space- bit-depth independent)
 				float4		normDstVal;
-				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+				if (enc.clampLo)
+					normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 				normDstVal.a = normRGB[pixelIndex].a;
-				
+
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (16-bit vals in this case)
 				dstVals[pixelIndex] = ushort4(round(normDstVal * 65535.));
 			}
-			
+
 			uint2		basePairLoc = dstLoc;
 			//if (basePairLoc.x % 2 != 0)
 			//	basePairLoc.x = basePairLoc.x - 1;
 			basePairLoc.x -= basePairLoc.x % 2;	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
-			
+
 			device uint16_t		*wPtr;
-			
+
 			//	first there's a plane of Y values
 			size_t		yPlaneOffsetInBytes = 0;
 			size_t		yBytesPerRow = SIZEOF_UINT16 * opInfo.dstImg.res[0];
@@ -1228,7 +1323,7 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			*wPtr = dstVals[0].r;
 			++wPtr;
 			*wPtr = dstVals[1].r;
-			
+
 			//	after the y plane there's another plane of interleaved (422 subsampling) Cb/Cr values
 			size_t		cbcrPlaneOffsetInBytes = yPlaneOffsetInBytes + (yBytesPerRow * opInfo.dstImg.res[1]);
 			size_t		cbcrPlaneBytesPerRow = SIZEOF_UINT16 * opInfo.dstImg.res[0];
@@ -1244,27 +1339,29 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 			
 			//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 			ushort4		dstVals[MAX_PIXELS_TO_PROCESS];
-			
-			const float3x3		mat = kTransMatrix_RGB_to_YCbCr_709;
-			const float3		offsets = kTransOffset_RGB_to_YCbCr_709;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			for (unsigned int pixelIndex = 0; pixelIndex < (opInfo.dstPixelsToProcess[0]*opInfo.dstPixelsToProcess[1]); ++pixelIndex)	{
-				//	convert normalized RGB to normalized YCbCr
+				//	convert normalized RGB to normalized YCbCr (clamp in normalized space- bit-depth independent)
 				float4		normDstVal;
-				normDstVal.rgb = (mat * normRGB[pixelIndex].rgb) + offsets;
+				normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+				if (enc.clampLo)
+					normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 				normDstVal.a = normRGB[pixelIndex].a;
-				
+
 				//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (16-bit vals in this case)
 				dstVals[pixelIndex] = ushort4(round(normDstVal * 65535.));
 			}
-			
+
 			uint2		basePairLoc = dstLoc;
 			//if (basePairLoc.x % 2 != 0)
 			//	basePairLoc.x = basePairLoc.x - 1;
 			basePairLoc.x -= basePairLoc.x % 2;	//	if the location of the pixel we're checking isn't an even multiple of 2, the base pair is the previous pixel
-			
+
 			device uint16_t		*wPtr;
-			
+
 			//	first there's a plane of Y values
 			size_t		yPlaneOffsetInBytes = 0;
 			size_t		yBytesPerRow = SIZEOF_UINT16 * opInfo.dstImg.res[0];
@@ -1298,11 +1395,14 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 	case SwizzlePF_UYVY_PKPL_420_UI_8:
 		{
 			uint2			loc = uint2( gid.x * opInfo.dstPixelsToProcess[0], gid.y * opInfo.dstPixelsToProcess[1] );
-			
+
 			size_t				bytesPerPixel;
 			size_t				offsetInBytes;
 			device uint8_t		*wPtr;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			bytesPerPixel = 1;
 			unsigned int		pixelIndex = 0;
 			unsigned int		cb = 0;
@@ -1312,20 +1412,23 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 					//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 					uchar4		ycbcr;
 					float4		normDstVal;
-					normDstVal.rgb = (kTransMatrix_RGB_to_YCbCr_709 * normRGB[pixelIndex].rgb) + kTransOffset_RGB_to_YCbCr_709;
+					normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+					//	clamp in normalized space- bit-depth independent
+					if (enc.clampLo)
+						normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 					normDstVal.a = normRGB[pixelIndex].a;
 					//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
 					ycbcr = uchar4(round(normDstVal * 255.));
-					
+
 					//	write the Y value to the Y plane
 					offsetInBytes = ((loc.y + yPixel) * opInfo.dstImg.planes[0].bytesPerRow) + ((loc.x + xPixel) * bytesPerPixel);
 					wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);
 					*wPtr = ycbcr.r;
-					
+
 					//	add the Cb and Cr values to the local cb and cr vars- we're going to average these vals across all 4 pixels (chroma sumbsampling)
 					cb += ycbcr.g;
 					cr += ycbcr.b;
-					
+
 					++pixelIndex;
 				}
 			}
@@ -1351,11 +1454,14 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 	case SwizzlePF_UYVY_PL_420_UI_8:
 		{
 			uint2			loc = uint2( gid.x * opInfo.dstPixelsToProcess[0], gid.y * opInfo.dstPixelsToProcess[1] );
-			
+
 			size_t				bytesPerPixel;
 			size_t				offsetInBytes;
 			device uint8_t		*wPtr;
-			
+
+			//	select the encode matrix/offset/clamp here, then reuse it across the per-pixel loop below
+			YCbCrEncodeParams	enc = SwizzleYCbCrEncodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+
 			bytesPerPixel = 1;
 			unsigned int		pixelIndex = 0;
 			unsigned int		cb = 0;
@@ -1365,11 +1471,14 @@ void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInf
 					//	we were passed normalized RGB color vals- convert 'em to the dst color format (YCbCr in this case)
 					uchar4		ycbcr;
 					float4		normDstVal;
-					normDstVal.rgb = (kTransMatrix_RGB_to_YCbCr_709 * normRGB[pixelIndex].rgb) + kTransOffset_RGB_to_YCbCr_709;
+					normDstVal.rgb = (*enc.mat * normRGB[pixelIndex].rgb) + *enc.offset;
+					//	clamp in normalized space- bit-depth independent
+					if (enc.clampLo)
+						normDstVal.rgb = clamp(normDstVal.rgb, *enc.clampLo, *enc.clampHi);
 					normDstVal.a = normRGB[pixelIndex].a;
 					//	convert normalized YCbCr to the code point vals we'll want to (combine and) write (8-bit vals in this case)
 					ycbcr = uchar4(round(normDstVal * 255.));
-					
+
 					//	write the Y value to the Y plane
 					offsetInBytes = ((loc.y + yPixel) * opInfo.dstImg.planes[0].bytesPerRow) + ((loc.x + xPixel) * bytesPerPixel);
 					wPtr = (device uint8_t *)dstBuffer + (opInfo.dstImg.planes[0].offset/SIZEOF_UINT8) + (offsetInBytes/SIZEOF_UINT8);

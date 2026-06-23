@@ -14,9 +14,11 @@
 @protocol VVMTLTextureImage;
 @protocol VVMTLBuffer;
 @protocol VVMTLTextureLUT;
+@protocol VVMTLSurfaceImage;
 @protocol VVMTLTimestamp;
 @class VVMTLTextureImageDescriptor;
 @class VVMTLTextureLUTDescriptor;
+@class VVMTLSurfaceImageDescriptor;
 
 NS_ASSUME_NONNULL_BEGIN
 
@@ -101,6 +103,13 @@ NS_ASSUME_NONNULL_BEGIN
 - (id<VVMTLTextureLUT>) bufferBacked1DLUTSized:(MTLSize)n;
 - (id<VVMTLTextureLUT>) bufferBacked2DLUTSized:(MTLSize)n;
 - (id<VVMTLTextureLUT>) bufferBacked3DLUTSized:(MTLSize)n;
+
+///	This method will attempt to recycle an unused IOSurface-backed planar image that matches the passed description- if none can be found, a new one (with a fresh CVPixelBuffer/IOSurface) will be allocated and returned.  The same CVPixelBuffer is reused frame to frame for matching descriptors.
+- (id<VVMTLSurfaceImage>) surfaceImageForDescriptor:(VVMTLSurfaceImageDescriptor*)inDesc;
+///	Convenience- a recycled (or new) biplanar 4:2:0 8-bit full-range (`'420f'`) IOSurface-backed image of the given size.
+- (id<VVMTLSurfaceImage>) ycbcr420fSurfaceImageSized:(NSSize)n;
+///	Convenience- a recycled (or new) biplanar 4:2:0 8-bit video-range (`'420v'`) IOSurface-backed image of the given size.
+- (id<VVMTLSurfaceImage>) ycbcr420vSurfaceImageSized:(NSSize)n;
 
 ///	Returns a buffer with the passed length and storage mode.  May return an existing buffer if one's available- otherwise, a new buffer will be allocated.
 - (id<VVMTLBuffer>) bufferWithLength:(size_t)inLength storage:(MTLStorageMode)inStorage;

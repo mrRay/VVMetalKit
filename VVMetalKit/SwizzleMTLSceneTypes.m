@@ -236,6 +236,30 @@ SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithBytesPerRow(SwizzlePF inPF,
 }
 
 
+SwizzleShaderImageInfo MakeSwizzleShaderImageInfoWithPlanes(SwizzlePF inPF, unsigned int inWidth, unsigned int inHeight, unsigned int inPlaneCount, const SwizzleShaderImagePlaneInfo * inPlanes)	{
+	SwizzleShaderImageInfo		returnMe;
+	returnMe.pf = inPF;
+	returnMe.res[0] = inWidth;
+	returnMe.res[1] = inHeight;
+
+	unsigned int		planeCount = inPlaneCount;
+	if (planeCount > MAX_NUM_PLANES)
+		planeCount = MAX_NUM_PLANES;
+	returnMe.planeCount = planeCount;
+	//	copy each plane's offset/bytesPerRow verbatim- the whole point of this builder is to honor caller-supplied (e.g. IOSurface) plane geometry instead of computing naive offsets
+	for (unsigned int i=0; i<planeCount; ++i)	{
+		returnMe.planes[i].offset = inPlanes[i].offset;
+		returnMe.planes[i].bytesPerRow = inPlanes[i].bytesPerRow;
+	}
+	//	zero any unused plane slots so the struct is fully defined
+	for (unsigned int i=planeCount; i<MAX_NUM_PLANES; ++i)	{
+		returnMe.planes[i].offset = 0;
+		returnMe.planes[i].bytesPerRow = 0;
+	}
+	return returnMe;
+}
+
+
 BOOL SwizzleShaderImageInfoEquality(SwizzleShaderImageInfo *a, SwizzleShaderImageInfo *b)	{
 	if (a == nil && b == nil)
 		return YES;
@@ -301,6 +325,8 @@ SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, Swizzl
 	returnMe.flipH = false;
 	returnMe.flipV = false;
 	returnMe.fadeToBlack = 0.0;
+	returnMe.colorRange = SwizzleColorRange_legacy;	//	default to the historical unclamped video-range behavior so existing callers are unchanged
+	returnMe.colorPrimaries = SwizzleColorPrimaries_legacy;	//	default to the historical 709 primaries so existing callers are unchanged
 	returnMe.readSrcImgFromBuffer = false;
 	//returnMe.dstPixelsToProcess = XXX;	//	NO do not do this here, the backend populates this at runtime during rendering
 	returnMe.dstPixelsToProcess[0] = 0;	//	doesn't matter, populated by swizzler
