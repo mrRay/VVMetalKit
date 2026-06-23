@@ -489,7 +489,15 @@ static inline float RGBtoLuma(float3 inRGB)	{
 }
 
 
-#endif
+static inline float RGBtoSaturation(float3 inRGB) {
+	float		var_Min = fmin( inRGB.r, fmin(inRGB.g, inRGB.b) );	// Min. value of RGB
+	float		var_Max = fmax( inRGB.r, fmax(inRGB.g, inRGB.b) );	// Max. value of RGB
+	
+	return ( var_Max + var_Min ) / 2.;
+}
+
+
+#endif		//	__METAL_VERSION__
 
 
 
