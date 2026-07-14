@@ -20,8 +20,9 @@ NS_ASSUME_NONNULL_BEGIN
 
 @interface VVMTLRenderScene : VVMTLScene
 
-@property (strong,nonatomic,nullable) MTLRenderPipelineDescriptor * renderPSODesc;
-@property (strong,nonatomic,nullable) id<MTLRenderPipelineState> renderPSO;
+//	atomic: subclasses (e.g. MSLCompModeScene) reassign these on the main thread during comp-mode reload while render threads read them
+@property (strong,atomic,nullable) MTLRenderPipelineDescriptor * renderPSODesc;
+@property (strong,atomic,nullable) id<MTLRenderPipelineState> renderPSO;
 
 @property (readonly,nonatomic) MTLRenderPassDescriptor * renderPassDescriptor;
 @property (readonly,nonatomic) id<MTLRenderCommandEncoder> renderEncoder;
