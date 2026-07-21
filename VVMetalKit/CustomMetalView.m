@@ -240,6 +240,11 @@
 }
 //@synthesize needsDisplay=myNeedsDisplay;
 - (void) setNeedsDisplay:(BOOL)n	{
+	//	off-main this view redraws from its threaded drawNow callback (cached local* geometry),
+	//	so this call is a no-op for rendering here — skip it rather than touch NSView's main-thread-only
+	//	cached-visible-rect bookkeeping (visibleRect read + dirty mark) off-main and strand a later resize.
+	if (![NSThread isMainThread])
+		return;
 	//myNeedsDisplay = n;
 	if (n)	{
 		self.contentNeedsRedraw = YES;
@@ -250,6 +255,8 @@
 		[self.delegate redrawView:self];
 }
 - (void) setNeedsDisplayInRect:(NSRect)n	{
+	if (![NSThread isMainThread])
+		return;
 	self.contentNeedsRedraw = YES;
 	self.localVisibleRect = self.visibleRect;
 	[super setNeedsDisplayInRect:n];
