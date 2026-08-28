@@ -49,6 +49,13 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	CVMetalTextureCacheRef		_cvTexCache;
 	CMClockRef			_clock;
 	id<VVMTLTextureImage>		_emptyBlackTexture;
+	//	Self-tick timer that calls -housekeeping every 500ms regardless
+	//	of render activity. Without it, non-EVERYFRAME modules that go
+	//	idle (e.g. hello-world parked behind requestRedraw) leave the
+	//	recycle bins full forever — a quick resize-driven texture churn
+	//	pins big-size textures in the pool until the next manual
+	//	housekeeping call. See -_startHousekeepingTimer.
+	dispatch_source_t	_housekeepingTimer;
 }
 @property (readwrite) BOOL supportsMemoryless;
 @property (readwrite) BOOL supportsTileShaders;
@@ -114,10 +121,45 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		if (nsErr != nil)	{
 			NSLog(@"ERR: (%@) in %s",nsErr,__func__);
 		}
+		[self _startHousekeepingTimer];
 	}
-	
+
 	return self;
 }
+
+- (void) dealloc	{
+	if (_housekeepingTimer != nil)	{
+		dispatch_source_cancel(_housekeepingTimer);
+		_housekeepingTimer = nil;
+	}
+}
+
+//	Internal 250ms self-tick on a utility-QoS queue. The pool's
+//	-housekeeping is @synchronized(self), so it composes safely with
+//	external per-frame callers; double-bumps just speed eviction. The
+//	timer is created suspended (dispatch_source default) and resumed
+//	immediately so it starts firing the first interval after init.
+//	At 250ms × MAX_MTLTEXTUREIMAGE_LIFETIME (30), idle items drain
+//	in ~7.5s — slow enough to avoid evicting items mid-resize, fast
+//	enough that non-EVERYFRAME modules don't leave the pool full for
+//	a noticeable wait after a resize storm.
+- (void) _startHousekeepingTimer	{
+	dispatch_queue_t q = dispatch_get_global_queue(QOS_CLASS_UTILITY, 0);
+	_housekeepingTimer = dispatch_source_create(DISPATCH_SOURCE_TYPE_TIMER, 0, 0, q);
+	if (_housekeepingTimer == nil) return;
+	uint64_t intervalNs = 250ull * NSEC_PER_MSEC;
+	dispatch_source_set_timer(_housekeepingTimer,
+		dispatch_time(DISPATCH_TIME_NOW, (int64_t)intervalNs),
+		intervalNs,
+		25ull * NSEC_PER_MSEC);     //	leeway: timer coalescing is fine here
+	__weak typeof(self) weakSelf = self;
+	dispatch_source_set_event_handler(_housekeepingTimer, ^{
+		typeof(self) strongSelf = weakSelf;
+		if (strongSelf != nil) [strongSelf housekeeping];
+	});
+	dispatch_resume(_housekeepingTimer);
+}
+
 - (CVMetalTextureCacheRef) cvTexCache	{
 	return _cvTexCache;
 }
@@ -254,6 +296,91 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			CVMetalTextureCacheFlush(_cvTexCache,0);
 		}
 	}	//	@synchronized
+}
+
+
+//	Short labels for the most common MTLPixelFormat values. Falls back
+//	to the numeric value for anything unrecognized so the snapshot still
+//	carries useful info even for exotic formats.
+static NSString * VVMTLPoolPixelFormatName(MTLPixelFormat pfmt)	{
+	switch (pfmt)	{
+		case MTLPixelFormatBGRA8Unorm:        return @"BGRA8";
+		case MTLPixelFormatBGRA8Unorm_sRGB:   return @"BGRA8_sRGB";
+		case MTLPixelFormatRGBA8Unorm:        return @"RGBA8";
+		case MTLPixelFormatRGBA8Unorm_sRGB:   return @"RGBA8_sRGB";
+		case MTLPixelFormatRGBA16Float:       return @"RGBA16F";
+		case MTLPixelFormatRGBA32Float:       return @"RGBA32F";
+		case MTLPixelFormatRGB10A2Unorm:      return @"RGB10A2";
+		case MTLPixelFormatR8Unorm:           return @"R8";
+		case MTLPixelFormatDepth32Float:      return @"Depth32F";
+		case MTLPixelFormatStencil8:          return @"Stencil8";
+		case MTLPixelFormatDepth32Float_Stencil8: return @"D32F_S8";
+		default:                              return [NSString stringWithFormat:@"fmt%lu", (unsigned long)pfmt];
+	}
+}
+
+- (NSDictionary *) poolSnapshot	{
+	NSMutableArray<NSDictionary*>	*texRows = [NSMutableArray array];
+	NSMutableArray<NSDictionary*>	*bufRows = [NSMutableArray array];
+	NSMutableArray<NSDictionary*>	*lutRows = [NSMutableArray array];
+	@synchronized (self)	{
+		//	Textures: bytes = bytesPerRow * height * max(1, sampleCount).
+		//	bytesPerRow is computed lazily on the descriptor (0 means
+		//	"not yet derived"); use the same VVMTLUtilities helper the
+		//	pool itself uses internally to keep numbers consistent.
+		for (id<VVMTLRecycleable> obj in _texPool)	{
+			id<VVMTLRecycleableDescriptor> d = obj.descriptor;
+			if (![(NSObject*)d isVVMTLTextureImageDescriptor]) continue;
+			VVMTLTextureImageDescriptor	*td = (VVMTLTextureImageDescriptor*)d;
+			NSSize sz = NSMakeSize((CGFloat)td.width, (CGFloat)td.height);
+			size_t bpr = td.bytesPerRow;
+			if (bpr == 0)	{
+				bpr = BytesPerRowFromMTLPixelFormatAndSize(td.pfmt, &sz);
+			}
+			NSUInteger samples = (td.sampleCount > 0) ? (NSUInteger)td.sampleCount : 1u;
+			uint64_t bytes = (uint64_t)bpr * (uint64_t)td.height * (uint64_t)samples;
+			NSString *label = [NSString stringWithFormat:@"%lu × %lu %@",
+				(unsigned long)td.width,
+				(unsigned long)td.height,
+				VVMTLPoolPixelFormatName(td.pfmt)];
+			if (samples > 1)	{
+				label = [label stringByAppendingFormat:@" × %luMSAA", (unsigned long)samples];
+			}
+			[texRows addObject:@{
+				@"label": label,
+				@"bytes": @(bytes),
+				@"age":   @(obj.recycleCount),
+			}];
+		}
+		//	Buffers: bytes = descriptor.length.
+		for (id<VVMTLRecycleable> obj in _bufferPool)	{
+			id<VVMTLRecycleableDescriptor> d = obj.descriptor;
+			if (![(NSObject*)d isVVMTLBufferDescriptor]) continue;
+			VVMTLBufferDescriptor *bd = (VVMTLBufferDescriptor*)d;
+			NSString *label = [NSString stringWithFormat:@"MTLBuffer %lu B", (unsigned long)bd.length];
+			[bufRows addObject:@{
+				@"label": label,
+				@"bytes": @((uint64_t)bd.length),
+				@"age":   @(obj.recycleCount),
+			}];
+		}
+		//	LUTs: bytes unknown without poking the LUT descriptor's
+		//	type-specific size; report 0 and let the label carry the
+		//	identity so the user at least sees they exist.
+		for (id<VVMTLRecycleable> obj in _lutPool)	{
+			NSString *label = [NSString stringWithFormat:@"LUT %@", NSStringFromClass([(NSObject*)obj.descriptor class])];
+			[lutRows addObject:@{
+				@"label": label,
+				@"bytes": @(0ULL),
+				@"age":   @(obj.recycleCount),
+			}];
+		}
+	}
+	return @{
+		@"textures": texRows,
+		@"buffers":  bufRows,
+		@"luts":     lutRows,
+	};
 }
 
 

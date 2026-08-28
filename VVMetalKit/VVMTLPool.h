@@ -120,6 +120,20 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void) timestampThis:(nullable id<VVMTLTimestamp>)n;
 
+///	Immutable snapshot of the pool's three FIFO recycle bins (textures,
+///	buffers, LUTs). Used by host inspection panels to gauge GPU memory
+///	parked in the pool waiting for reuse — particularly useful for
+///	spotting growth that follows viewport resizes, where old-size
+///	textures linger until housekeeping ages them out.
+///	Returns @{ @"textures": NSArray, @"buffers": NSArray, @"luts": NSArray }
+///	with each entry an NSDictionary row record:
+///	  @"label" (NSString) — pre-formatted "WxH PixelFormat" or "MTLBuffer N B"
+///	  @"bytes" (NSNumber, uint64) — best-effort byte cost
+///	  @"age"   (NSNumber, int)    — recycleCount (frames spent unused)
+///	Acquired under the same @synchronized(self) lock as -housekeeping,
+///	so the snapshot is consistent with the recycle/eviction state.
+- (NSDictionary *) poolSnapshot;
+
 @end
 
 
