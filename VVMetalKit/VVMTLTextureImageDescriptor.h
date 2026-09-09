@@ -42,7 +42,8 @@ NS_ASSUME_NONNULL_BEGIN
 @property (assign,readwrite) BOOL mtlBufferBacking;	//	NO by default, if YES we're looking for a texture backed by a id<VVMTLBuffer>
 @property (assign,readwrite) BOOL iosfcBacking;	//	NO by default, if YES we're looking for a texture backed by an IOSurfaceRef
 @property (assign,readwrite) BOOL cvpbBacking;	//	NO by default, if YES we're looking for a texture backed by a CVPixelBufferRef (or maybe a texture backed by an IOSurface backed by a CVPixelBufferRef!)
-@property (assign,readwrite) NSUInteger bytesPerRow;	//	0 by default- convenience variable, used to pass specific bytes per row values around when there is a backing with padding
+///	0 by default, the pool calculates and aligns the stride for you.  Generally this property is used to REQUEST a specific bytes per row- but a REQUEST is not a GUARANTEE, so if you're tracking this value then you should always read it back from the returned object to make sure you know what you're working with!
+@property (assign,readwrite) NSUInteger bytesPerRow;
 
 @end
 

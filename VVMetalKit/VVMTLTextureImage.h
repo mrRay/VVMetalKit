@@ -49,7 +49,7 @@
 ///	If non-null, provides the backing for the texture (and maybe the iosfc). Receiver "retains" the CVPixelBufferRef for its lifetime.
 @property (assign,readwrite,nullable) CVPixelBufferRef cvpb;
 
-///	This is a convenience property- if it's non-zero, the backend will use it when allocating texture backings.  if it's 0 (the default value), the backend will automatically calculate an appropriate bytesPerRow.  You should use this if the bytesPerRow of your backing have any padding or alignment requirements.
+///	The stride the texture's backing actually uses, in bytes
 @property (assign,readwrite) size_t bytesPerRow;
 
 ///	Populates the passed struct ptr with data that describes how to draw this image, taking into account the src rect and h/v flippedness.

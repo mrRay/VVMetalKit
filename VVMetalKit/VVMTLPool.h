@@ -52,7 +52,7 @@ NS_ASSUME_NONNULL_BEGIN
 ///	Sometimes you just need an empty black texture.  Maybe you just need to bind something on an edge case.  Always returns the same texture (so don't try to write to it)
 @property (strong,readonly) id<VVMTLTextureImage> emptyBlackTexture;
 
-///	This method will attempt to recycle an unused texture that matches the passed desription- if none can be found, a new texture matching the description will be allocated and returned.
+///	This method will attempt to recycle an unused texture that matches the passed desription- if none can be found, a new texture matching the description will be allocated and returned.  Note: if the descriptor is buffer-backed, try to pass 0 on `inDesc.bytesPerRow` and then read the `bytesPerRow` back from the returned object- if you request a specific `bytesPerRow`, it must be aligned to `-[MTLDevice minimumLinearTextureAlignmentForPixelFormat:]`!
 - (id<VVMTLTextureImage>) textureForDescriptor:(VVMTLTextureImageDescriptor*)inDesc;
 
 - (id<VVMTLTextureImage>) bgra8TexSized:(NSSize)n;
@@ -71,11 +71,11 @@ NS_ASSUME_NONNULL_BEGIN
 //- (id<VVMTLTextureImage>) rgbaFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
 //- (id<VVMTLTextureImage>) rgbaBufferBackedFloatTexSized:(NSSize)n;
 
-//	does NOT copy the passed data buffer- just declares it as the backing to a MTLBuffer, which in turn backs a MTLTexture.
+//	does NOT copy the passed data buffer- just declares it as the backing to a MTLBuffer, which in turn backs a MTLTexture.  NOTE: `bpr` must already be aligned to `-[MTLDevice minimumLinearTextureAlignmentForPixelFormat:]`!
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;
-//	DOES copy the passed data buffer!
+//	DOES copy the passed data buffer!  NOTE: `bpr` MUST already be aligned to `-[MTLDevice minimumLinearTextureAlignmentForPixelFormat:]`
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt basePtr:(void*)b bytesPerRow:(uint32_t)bpr;
-//	creates an empty buffer-backed texture
+//	Creates an empty buffer-backed texture, allocating the backing itself.  Any value passed to `bpr` is treated as a MINIMUM and will be rounded up to the nearest `-[MTLDevice minimumLinearTextureAlignmentForPixelFormat:]`- if the bytes per row is important to you, read it back from the returned object so you know what you're working with!  Passing 0 as the `bpr` is totally fine and probably the best course of action
 - (id<VVMTLTextureImage>) bufferBackedTexSized:(NSSize)s pixelFormat:(MTLPixelFormat)pfmt bytesPerRow:(uint32_t)bpr;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatTexSized:(NSSize)n;
 //- (id<VVMTLTextureImage>) rgbaHalfFloatBufferBackedTexSized:(NSSize)s basePtr:(void*)b bytesPerRow:(uint32_t)bpr bufferDeallocator:(void (^)(void *pointer, NSUInteger length))d;

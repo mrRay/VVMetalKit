@@ -64,6 +64,25 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 
 
+//	Returns 0 to mean "do not round" (nil device or a pixel format that can't back a linear texture)
+static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, MTLPixelFormat inPfmt)	{
+	if (inDevice == nil || IsMTLPixelFormatCompressed(inPfmt))
+		return 0;
+	switch (inPfmt)	{
+	case MTLPixelFormatDepth16Unorm:
+	case MTLPixelFormatDepth32Float:
+	case MTLPixelFormatStencil8:
+	case MTLPixelFormatDepth24Unorm_Stencil8:
+	case MTLPixelFormatDepth32Float_Stencil8:
+	case MTLPixelFormatX32_Stencil8:
+	case MTLPixelFormatX24_Stencil8:
+		return 0;
+	default:
+		return [inDevice minimumLinearTextureAlignmentForPixelFormat:inPfmt];
+	}
+}
+
+
 @implementation VVMTLPool
 
 
@@ -168,7 +187,7 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 			bytesPerRow = BytesPerRowFromMTLPixelFormatAndSize(recast.pfmt, &adjustedImgSize);
 			
 			if (recast.mtlBufferBacking || recast.iosfcBacking || recast.cvpbBacking)	{
-				NSUInteger		tmpAlignment = [self.device minimumTextureBufferAlignmentForPixelFormat:recast.pfmt];
+				NSUInteger		tmpAlignment = LinearTextureAlignmentForPixelFormat(self.device, recast.pfmt);
 				if (tmpAlignment > 0)	{
 					bytesPerRow = ROUNDAUPTOMULTOFB(bytesPerRow,tmpAlignment);
 				}
@@ -736,9 +755,11 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	void		*contents = (void *)[VVMTLTextureImage.buffer.buffer contents];
 	*/
 	
-	size_t			targetLength = bpr * s.height;
-	if (targetLength % 4096 != 0)
-		targetLength = 4096 - (targetLength % 4096) + targetLength;
+	//	round the requested stride up to the device's linear texture alignment (if appropriate)
+	//	NOTE: do NOT do this in the basePtr: variants- the memory is the caller's, and a larger pitch overreads it!
+	NSUInteger		linearAlignment = LinearTextureAlignmentForPixelFormat(self.device, pfmt);
+	if (bpr > 0 && linearAlignment > 0)
+		bpr = (uint32_t)ROUNDAUPTOMULTOFB(bpr, linearAlignment);
 	
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
 		createWithWidth:round(s.width)
@@ -771,6 +792,12 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 	returnMe.pool = self;
 	returnMe.preferDeletion = YES;
 	returnMe.descriptor = desc;
+	//	this path never runs _generateMissingGPUAssetsInTexImg:, so the stride has to be read off the wrapped texture
+	//	this path never runs _generateMissingGPUAssetsInTexImg:, so the stride has to be resolved here.  a buffer-backed texture knows its own; anything else reports the natural stride, same as the allocator paths do.
+	NSSize		tmpSize = NSMakeSize(n.width, n.height);
+	returnMe.bytesPerRow = (n.bufferBytesPerRow != 0)
+		? n.bufferBytesPerRow
+		: BytesPerRowFromMTLPixelFormatAndSize(n.pixelFormat, &tmpSize);
 	return returnMe;
 }
 
@@ -1429,7 +1456,10 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		n.cvpb = cvpb;
 		
 		bytesPerRow = CVPixelBufferGetBytesPerRow(cvpb);
-		desc.bytesPerRow = bytesPerRow;
+		
+		//	do NOT write this back into desc- the descriptor is the pool's recycling key and was already normalized 
+		//	before matching, so mutating it here means no later request ever matches this texture again
+		//desc.bytesPerRow = bytesPerRow;
 		
 		CVPixelBufferRelease(cvpb);
 	}
@@ -1459,13 +1489,17 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		n.iosfc = iosfc;
 		
 		bytesPerRow = IOSurfaceGetBytesPerRow(iosfc);
-		desc.bytesPerRow = bytesPerRow;
+		
+		//	do NOT write this back into desc- the descriptor is the pool's recycling key and was already normalized
+		//	before matching, so mutating it here means no later request ever matches this texture again
+		//desc.bytesPerRow = bytesPerRow;
 	}
 	
 	//	if the descriptor indicates that we need a MTLBuffer (via id<VVMTLBuffer>) as a backing, but we don't have one yet...
 	if (mtlBufferBacking && buffer == nil)	{
-		NSUInteger		alignment = [self.device minimumLinearTextureAlignmentForPixelFormat:descPixelFormat];
-		bytesPerRow = ROUNDAUPTOMULTOFB(bytesPerRow, alignment);
+		NSUInteger		alignment = LinearTextureAlignmentForPixelFormat(self.device, descPixelFormat);
+		if (alignment > 0)
+			bytesPerRow = ROUNDAUPTOMULTOFB(bytesPerRow, alignment);
 		size_t			targetBufferLength = bytesPerRow * size.height;
 		buffer = [self bufferWithLength:targetBufferLength storage:desc.storage];
 		n.buffer = buffer;
@@ -1513,6 +1547,19 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 		return [NSError errorWithDomain:@"VVMTLPool" code:0 userInfo:@{ NSLocalizedDescriptionKey: [NSString stringWithFormat:@"unable to create texture (%dx%d, fmt %X, bpr %d, backing %d.%d.%d)",(int)desc.width,(int)desc.height,(uint32_t)desc.pfmt,(int)bytesPerRow,desc.mtlBufferBacking,desc.iosfcBacking,desc.cvpbBacking] }];
 	}
 
+	//	the stride the texture actually uses can differ from the stride the descriptor asked for- the buffer path rounds
+	//	up to the device's linear alignment above, and an IOSurface/CVPixelBuffer we didn't allocate carries whatever
+	//	padding its creator chose.  report the real stride here, following the same backing precedence the texture was
+	//	created with, so callers that write into the backing write at the pitch the GPU reads at.
+	if (buffer != nil)
+		n.bytesPerRow = bytesPerRow;
+	else if (iosfc != NULL)
+		n.bytesPerRow = IOSurfaceGetBytesPerRow(iosfc);
+	else if (cvpb != NULL)
+		n.bytesPerRow = CVPixelBufferGetBytesPerRow(cvpb);
+	else
+		n.bytesPerRow = bytesPerRow;
+	
 	return nil;
 }
 - (NSError *) _generateMissingGPUAssetsInBuffer:(VVMTLBuffer *)n	{
