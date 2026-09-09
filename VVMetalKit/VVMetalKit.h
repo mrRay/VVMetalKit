@@ -6,6 +6,9 @@ FOUNDATION_EXPORT double VVMetalKitVersionNumber;
 //! Project version string for VVMetalKit.
 FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 
+//	the API version of this framework, readable at runtime
+FOUNDATION_EXPORT const NSInteger VVMetalKitAPIVersion;
+
 #import <Metal/Metal.h>
 
 #import <VVMetalKit/RenderProperties.h>

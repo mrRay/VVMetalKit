@@ -89,6 +89,7 @@
 		DDDDDD0000000000000000B6 /* VVMTLSurfaceImage+Swizzle.m in Sources */ = {isa = PBXBuildFile; fileRef = DDDDDD0000000000000000F6 /* VVMTLSurfaceImage+Swizzle.m */; };
 		1ACE29A22CC0329000735675 /* AAPLMathUtilities.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1ACE29A32CC0329000735675 /* AAPLMathUtilities.m in Sources */ = {isa = PBXBuildFile; fileRef = 1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */; };
+		1AFA00012E00000100000001 /* VVMetalKitAPIVersion.m in Sources */ = {isa = PBXBuildFile; fileRef = 1AFA00012E00000100000002 /* VVMetalKitAPIVersion.m */; };
 		1AFBC01326FBD021002D7995 /* SwizzleMTLSceneTypes.h in Headers */ = {isa = PBXBuildFile; fileRef = 1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		1AFC446E2CAD8EB300EF3FEB /* VVMTLTextureImageShaderFuncs.h in Headers */ = {isa = PBXBuildFile; fileRef = 1AFC446D2CAD8D5A00EF3FEB /* VVMTLTextureImageShaderFuncs.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
@@ -178,6 +179,7 @@
 		DDDDDD0000000000000000F6 /* VVMTLSurfaceImage+Swizzle.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "VVMTLSurfaceImage+Swizzle.m"; sourceTree = "<group>"; };
 		1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AAPLMathUtilities.h; sourceTree = "<group>"; };
 		1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AAPLMathUtilities.m; sourceTree = "<group>"; };
+		1AFA00012E00000100000002 /* VVMetalKitAPIVersion.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = VVMetalKitAPIVersion.m; sourceTree = "<group>"; };
 		1ADE965F26FBB12200148612 /* SwizzleMTLSceneTypes.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SwizzleMTLSceneTypes.h; sourceTree = "<group>"; };
 		1AFC446D2CAD8D5A00EF3FEB /* VVMTLTextureImageShaderFuncs.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = VVMTLTextureImageShaderFuncs.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -298,6 +300,7 @@
 				1A0FBE91260E1C2E00FF39BB /* Info.plist */,
 				1ACE29A02CC0329000735675 /* AAPLMathUtilities.h */,
 				1ACE29A12CC0329000735675 /* AAPLMathUtilities.m */,
+				1AFA00012E00000100000002 /* VVMetalKitAPIVersion.m */,
 			);
 			path = VVMetalKit;
 			sourceTree = "<group>";
@@ -438,6 +441,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				1ACE29A32CC0329000735675 /* AAPLMathUtilities.m in Sources */,
+				1AFA00012E00000100000001 /* VVMetalKitAPIVersion.m in Sources */,
 				1A47F8452A55E30C0087942C /* CIMTLScene.m in Sources */,
 				1A6A02D82AF3DDC4003B12BF /* CMVMTLDrawObject.m in Sources */,
 				1A2F3FC72CE37EB6005B2C79 /* CMVMTLDrawObjectScene.m in Sources */,
