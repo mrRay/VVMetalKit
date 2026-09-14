@@ -286,20 +286,10 @@
 	if (self.colorspace != NULL)
 		metalLayer.colorspace = self.colorspace;
 	
-	//	subclasses should override this method, call the super, and then make the pso here.  it would look something like this:
-	/*
-	NSError				*nsErr = nil;
-	NSBundle			*myBundle = [NSBundle bundleForClass:[CustomMetalView class]];
-	id<MTLLibrary>		defaultLibrary = [device newDefaultLibraryWithBundle:myBundle error:&nsErr];
-	id<MTLFunction>		vertFunc = [defaultLibrary newFunctionWithName:@"CustomMetalViewVertShader"];
-	id<MTLFunction>		fragFunc = [defaultLibrary newFunctionWithName:@"CustomMetalViewFragShader"];
-
+	//	subclasses that draw with other shaders override _loadShaderFunctions- the PSO itself is built by _loadPSO, here and again on any draw that finds it missing
 	psoDesc = [[MTLRenderPipelineDescriptor alloc] init];
-	psoDesc.vertexFunction = vertFunc;
-	psoDesc.fragmentFunction = fragFunc;
 	psoDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
 	
-	//	commented out- this was an attempt to make VVMTLTextureImageRectView "transparent" (0 alpha would display view behind it)
 	psoDesc.alphaToCoverageEnabled = NO;
 	psoDesc.colorAttachments[0].blendingEnabled = YES;
 	
@@ -318,8 +308,32 @@
 	//psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 	//psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
 	
+	pso = nil;
+	self.textureArgumentEncoder = nil;
+	[self _loadPSO];
+}
+- (void) _loadShaderFunctions	{
+	NSBundle			*myBundle = [NSBundle bundleForClass:[CustomMetalView class]];
+	id<MTLLibrary>		defaultLibrary = [device newDefaultLibraryWithBundle:myBundle error:nil];
+	psoDesc.vertexFunction = [defaultLibrary newFunctionWithName:@"CustomMetalViewVertShader"];
+	psoDesc.fragmentFunction = [defaultLibrary newFunctionWithName:@"CustomMetalViewFragShader"];
+}
+- (void) _loadPSO	{
+	if (pso != nil || device == nil || psoDesc == nil)
+		return;
+	if (psoDesc.vertexFunction == nil || psoDesc.fragmentFunction == nil)	{
+		//	retried on every draw until the funcs load- Metal aborts the process (assertion, not an NSError) on a PSO build without them, so draw nothing instead
+		[self _loadShaderFunctions];
+		if (psoDesc.vertexFunction == nil || psoDesc.fragmentFunction == nil)	{
+			NSLog(@"ERR: %@ has no shader functions, not building its PSO in %s",NSStringFromClass(self.class),__func__);
+			return;
+		}
+	}
+	NSError		*nsErr = nil;
 	pso = [device newRenderPipelineStateWithDescriptor:psoDesc error:&nsErr];
-	*/
+	if (pso == nil || nsErr != nil)	{
+		NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+	}
 }
 - (void) drawInCmdBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
 	//	intentionally blank, override this in your subclass

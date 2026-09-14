@@ -34,6 +34,9 @@ NS_ASSUME_NONNULL_BEGIN
 - (void) _setViewport;
 - (void) _setMVPBuffer;
 
+//	subclasses are expected to override this to populate `self.renderPSODesc.vertexFunction` and `.fragmentFunction`
+- (void) _loadShaderFunctions;
+
 @end
 
 

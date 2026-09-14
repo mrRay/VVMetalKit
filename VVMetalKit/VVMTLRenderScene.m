@@ -50,8 +50,6 @@
 		//self.renderPassDescriptor.colorAttachments[0].storeAction = MTLStoreActionMultisampleResolve;
 		
 		self.renderPSODesc = [[MTLRenderPipelineDescriptor alloc] init];
-		//self.renderPSODesc.vertexFunction = vertFunc;
-		//self.renderPSODesc.fragmentFunction = fragFunc;
 		self.renderPSODesc.colorAttachments[0].pixelFormat = MTLPixelFormatBGRA8Unorm;
 		
 		self.renderPSODesc.alphaToCoverageEnabled = NO;
@@ -72,8 +70,6 @@
 		//self.renderPSODesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
 		//self.renderPSODesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
 		
-		//	subclasses still need to create their pipeline state objects...
-		//self.renderPSO = [inDevice newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
 	}
 	return self;
 }
@@ -87,15 +83,25 @@
 - (void) _loadPSO	{
 	//NSLog(@"%s",__func__);
 	[super _loadPSO];
-	if (self.renderPSO == nil)	{
-		NSError		*nsErr = nil;
-		if (self.renderPSODesc != nil)	{
-			self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:self.renderPSODesc error:&nsErr];
-			if (self.renderPSO == nil || nsErr != nil)	{
-				NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
-			}
+	MTLRenderPipelineDescriptor		*localDesc = self.renderPSODesc;
+	if (self.renderPSO != nil || localDesc == nil)
+		return;
+	if (localDesc.vertexFunction == nil || localDesc.fragmentFunction == nil)	{
+		//	ask for the shader funcs every time we need a PSO and don't have them, so a load that failed (bundle unreadable at the time) is retried on the next render.  if they still aren't there we can't build one- Metal aborts the process (hard assertion, not an NSError) on a PSO build without them- so the scene draws nothing this frame instead
+		[self _loadShaderFunctions];
+		if (localDesc.vertexFunction == nil || localDesc.fragmentFunction == nil)	{
+			NSLog(@"ERR: %@ (%@) has no shader functions, not building its PSO in %s",NSStringFromClass(self.class),localDesc.label,__func__);
+			return;
 		}
 	}
+	NSError		*nsErr = nil;
+	self.renderPSO = [self.device newRenderPipelineStateWithDescriptor:localDesc error:&nsErr];
+	if (self.renderPSO == nil || nsErr != nil)	{
+		NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+	}
+}
+- (void) _loadShaderFunctions	{
+	//	intentionally blank- subclasses override this to populate self.renderPSODesc
 }
 - (void) _renderSetup	{
 	//	the super populates the cmd buffer with any transitive scheduled/completed blocks
@@ -148,10 +154,10 @@
 	self.mvpBuffer = CreateOrthogonalMVPBufferForCanvas(NSMakeRect(0,0,renderSize.width,renderSize.height),NO,NO,self.device);
 }
 - (void) _renderCallback	{
-	//	if we don't currently have a PSO, load one!
-	//if (self.renderPSO == nil)	{
-	//	[self _loadPSO];
-	//}
+	[self _loadPSO];
+	//	no PSO means the shader funcs didn't load- skip the pass, _loadPSO tries again next render
+	if (self.renderPSO == nil)
+		return;
 	[super _renderCallback];
 }
 - (void) _renderTeardown	{

@@ -160,8 +160,12 @@
 			localGeoBuffer = self.geoBuffer;
 		}
 		
+		[self _loadPSO];
 		localPSO = pso;
 	}
+	//	no PSO means the shader funcs didn't load- draw nothing, _loadPSO tries again next draw
+	if (localPSO == nil)
+		return;
 	
 	if (metalLayer.device==nil || metalLayer==nil)	{
 		NSLog(@"ERR: bailing, %s",__func__);
@@ -272,43 +276,16 @@
 - (void) setDevice:(id<MTLDevice>)n	{
 	@synchronized (self)	{
 		[super setDevice:n];
-		NSError				*nsErr = nil;
-		NSBundle			*myBundle = [NSBundle bundleForClass:[VVMTLTextureImageRectView class]];
-		id<MTLLibrary>		defaultLibrary = [device newDefaultLibraryWithBundle:myBundle error:&nsErr];
-		id<MTLFunction>		vertFunc = [defaultLibrary newFunctionWithName:@"VVMTLTextureImageRectViewVertShader"];
-		id<MTLFunction>		fragFunc = [defaultLibrary newFunctionWithName:@"VVMTLTextureImageRectViewFragShader"];
-	
-		MTLRenderPipelineDescriptor		*psDesc = [[MTLRenderPipelineDescriptor alloc] init];
-		//psDesc.previewLabel = @"VVMTLTextureImageRectView pipeline";
-		psDesc.vertexFunction = vertFunc;
-		psDesc.fragmentFunction = fragFunc;
-		psDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
-		
-		//	commented out- this was an attempt to make VVMTLTextureImageRectView "transparent" (0 alpha would display view behind it)
-		psDesc.alphaToCoverageEnabled = NO;
-		psDesc.colorAttachments[0].blendingEnabled = YES;
-		
-		psDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
-		psDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
-		
-		//	"GL over" is:
-		psDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-		psDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-		psDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-		psDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-		
-		//	"GL add" is:
-		//psDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-		//psDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-		//psDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
-		//psDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-		
-		pso = [device newRenderPipelineStateWithDescriptor:psDesc error:&nsErr];
-		
 		self.vertBuffer = nil;
 		self.mvpBuffer = nil;
 	}
 	self.contentNeedsRedraw = YES;
+}
+- (void) _loadShaderFunctions	{
+	NSBundle			*myBundle = [NSBundle bundleForClass:[VVMTLTextureImageRectView class]];
+	id<MTLLibrary>		defaultLibrary = [device newDefaultLibraryWithBundle:myBundle error:nil];
+	psoDesc.vertexFunction = [defaultLibrary newFunctionWithName:@"VVMTLTextureImageRectViewVertShader"];
+	psoDesc.fragmentFunction = [defaultLibrary newFunctionWithName:@"VVMTLTextureImageRectViewFragShader"];
 }
 - (BOOL) reconfigureDrawable	{
 	@synchronized (self)	{

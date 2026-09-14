@@ -44,6 +44,10 @@ NS_ASSUME_NONNULL_BEGIN
 
 ///	You MUST set the view's device to a valid value or it won't draw!
 - (void) setDevice:(id<MTLDevice>)n;
+///	Populates psoDesc's vertexFunction and fragmentFunction (the CustomMetalView shaders by default).  _loadPSO calls it whenever it needs a PSO and the descriptor is missing either function, so a load that failed is retried on the next draw- subclasses that draw with other shaders override this.
+- (void) _loadShaderFunctions;
+///	Builds pso from psoDesc if there isn't one yet.  Does nothing (and logs once) while the shader functions are missing- Metal aborts the process on a PSO build without them.
+- (void) _loadPSO;
 
 ///	Sets the view's delegate.
 @property (weak) IBOutlet id<CustomMetalViewDelegate> delegate;

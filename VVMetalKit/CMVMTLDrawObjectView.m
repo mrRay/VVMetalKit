@@ -91,8 +91,12 @@
 		}
 		localMVPBuffer = self.mvpBuffer;
 		
+		[self _loadPSO];
 		localPSO = pso;
 	}
+	//	no PSO means the shader funcs didn't load- draw nothing, _loadPSO tries again next draw
+	if (localPSO == nil)
+		return;
 	
 	if (metalLayer.device==nil || metalLayer==nil)	{
 		NSLog(@"ERR: bailing, %s",__func__);
@@ -146,44 +150,7 @@
 
 - (void) setDevice:(id<MTLDevice>)n	{
 	@synchronized (self)	{
-		//	call the super first!
 		[super setDevice:n];
-		
-		//	configure the render pipeline
-		NSError				*nsErr = nil;
-		NSBundle			*myBundle = [NSBundle bundleForClass:[CustomMetalView class]];
-		id<MTLLibrary>		defaultLibrary = [n newDefaultLibraryWithBundle:myBundle error:&nsErr];
-		id<MTLFunction>		vertFunc = [defaultLibrary newFunctionWithName:@"CustomMetalViewVertShader"];
-		id<MTLFunction>		fragFunc = [defaultLibrary newFunctionWithName:@"CustomMetalViewFragShader"];
-		
-		psoDesc = [[MTLRenderPipelineDescriptor alloc] init];
-		//psoDesc.previewLabel = @"VVMTLImgBufferView pipeline";
-		psoDesc.vertexFunction = vertFunc;
-		psoDesc.fragmentFunction = fragFunc;
-		psoDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
-		psoDesc.colorAttachments[0].writeMask = MTLColorWriteMaskAll;
-		
-		//	commented out- this was an attempt to make MTLImgBufferRectView "transparent" (0 alpha would display view behind it)
-		psoDesc.alphaToCoverageEnabled = NO;
-		psoDesc.colorAttachments[0].blendingEnabled = YES;
-		psoDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
-		psoDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
-		
-		//	"GL over" is:
-		psoDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-		psoDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-		psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-		psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-		
-		//	"GL add" is:
-		//psoDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-		//psoDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-		//psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
-		//psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-		
-		//	make the PSO
-		pso = [device newRenderPipelineStateWithDescriptor:psoDesc error:&nsErr];
-		
 		self.mvpBuffer = nil;
 	}
 	self.contentNeedsRedraw = YES;
