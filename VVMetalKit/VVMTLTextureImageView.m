@@ -21,15 +21,19 @@
 
 - (void) setImgBuffer:(id<VVMTLTextureImage>)inBuffer	{
 	//NSLog(@"%s ... %@",__func__,inBuffer);
-	self.vertRect = NSRectThatFitsRectInRect(inBuffer.srcRect, NSMakeRect(0,0,viewportSize.x,viewportSize.y), SizingModeFit);
-	[super setImgBuffer:inBuffer];
+	@synchronized (self)	{
+		self.vertRect = NSRectThatFitsRectInRect(inBuffer.srcRect, NSMakeRect(0,0,viewportSize.x,viewportSize.y), SizingModeFit);
+		[super setImgBuffer:inBuffer];
+	}
 }
 
 - (BOOL) reconfigureDrawable	{
-	BOOL		returnMe = [super reconfigureDrawable];
-	if (self.imgBuffer != nil)
-		self.vertRect = NSRectThatFitsRectInRect(self.imgBuffer.srcRect, NSMakeRect(0,0,viewportSize.x,viewportSize.y), SizingModeFit);
-	return returnMe;
+	@synchronized (self)	{
+		BOOL		returnMe = [super reconfigureDrawable];
+		if (self.imgBuffer != nil)
+			self.vertRect = NSRectThatFitsRectInRect(self.imgBuffer.srcRect, NSMakeRect(0,0,viewportSize.x,viewportSize.y), SizingModeFit);
+		return returnMe;
+	}
 }
 
 - (void) setLayerBackgroundColor:(NSColor *)n	{

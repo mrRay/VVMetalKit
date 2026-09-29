@@ -277,40 +277,42 @@
 
 
 - (void) setDevice:(id<MTLDevice>)n	{
-	device = n;
-	
-	metalLayer.device = device;
-	
-	metalLayer.pixelFormat = self.pixelFormat;
-	
-	if (self.colorspace != NULL)
-		metalLayer.colorspace = self.colorspace;
-	
-	//	subclasses that draw with other shaders override _loadShaderFunctions- the PSO itself is built by _loadPSO, here and again on any draw that finds it missing
-	psoDesc = [[MTLRenderPipelineDescriptor alloc] init];
-	psoDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
-	
-	psoDesc.alphaToCoverageEnabled = NO;
-	psoDesc.colorAttachments[0].blendingEnabled = YES;
-	
-	psoDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
-	psoDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
-	
-	//	"GL over" is:
-	psoDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-	psoDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-	psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
-	psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-	
-	//	"GL add" is:
-	//psoDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
-	//psoDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
-	//psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
-	//psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
-	
-	pso = nil;
-	self.textureArgumentEncoder = nil;
-	[self _loadPSO];
+	@synchronized (self)	{
+		device = n;
+		
+		metalLayer.device = device;
+		
+		metalLayer.pixelFormat = self.pixelFormat;
+		
+		if (self.colorspace != NULL)
+			metalLayer.colorspace = self.colorspace;
+		
+		//	subclasses that draw with other shaders override _loadShaderFunctions- the PSO itself is built by _loadPSO, here and again on any draw that finds it missing
+		psoDesc = [[MTLRenderPipelineDescriptor alloc] init];
+		psoDesc.colorAttachments[0].pixelFormat = metalLayer.pixelFormat;
+		
+		psoDesc.alphaToCoverageEnabled = NO;
+		psoDesc.colorAttachments[0].blendingEnabled = YES;
+		
+		psoDesc.colorAttachments[0].rgbBlendOperation = MTLBlendOperationAdd;
+		psoDesc.colorAttachments[0].alphaBlendOperation = MTLBlendOperationAdd;
+		
+		//	"GL over" is:
+		psoDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+		psoDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+		psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorOneMinusSourceAlpha;
+		psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+		
+		//	"GL add" is:
+		//psoDesc.colorAttachments[0].sourceRGBBlendFactor = MTLBlendFactorSourceAlpha;
+		//psoDesc.colorAttachments[0].sourceAlphaBlendFactor = MTLBlendFactorOne;
+		//psoDesc.colorAttachments[0].destinationRGBBlendFactor = MTLBlendFactorDestinationAlpha;
+		//psoDesc.colorAttachments[0].destinationAlphaBlendFactor = MTLBlendFactorOne;
+		
+		pso = nil;
+		self.textureArgumentEncoder = nil;
+		[self _loadPSO];
+	}
 }
 - (void) _loadShaderFunctions	{
 	NSBundle			*myBundle = [NSBundle bundleForClass:[CustomMetalView class]];
@@ -319,20 +321,22 @@
 	psoDesc.fragmentFunction = [defaultLibrary newFunctionWithName:@"CustomMetalViewFragShader"];
 }
 - (void) _loadPSO	{
-	if (pso != nil || device == nil || psoDesc == nil)
-		return;
-	if (psoDesc.vertexFunction == nil || psoDesc.fragmentFunction == nil)	{
-		//	retried on every draw until the funcs load- Metal aborts the process (assertion, not an NSError) on a PSO build without them, so draw nothing instead
-		[self _loadShaderFunctions];
-		if (psoDesc.vertexFunction == nil || psoDesc.fragmentFunction == nil)	{
-			NSLog(@"ERR: %@ has no shader functions, not building its PSO in %s",NSStringFromClass(self.class),__func__);
+	@synchronized (self)	{
+		if (pso != nil || device == nil || psoDesc == nil)
 			return;
+		if (psoDesc.vertexFunction == nil || psoDesc.fragmentFunction == nil)	{
+			//	retried on every draw until the funcs load- Metal aborts the process (assertion, not an NSError) on a PSO build without them, so draw nothing instead
+			[self _loadShaderFunctions];
+			if (psoDesc.vertexFunction == nil || psoDesc.fragmentFunction == nil)	{
+				NSLog(@"ERR: %@ has no shader functions, not building its PSO in %s",NSStringFromClass(self.class),__func__);
+				return;
+			}
 		}
-	}
-	NSError		*nsErr = nil;
-	pso = [device newRenderPipelineStateWithDescriptor:psoDesc error:&nsErr];
-	if (pso == nil || nsErr != nil)	{
-		NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+		NSError		*nsErr = nil;
+		pso = [device newRenderPipelineStateWithDescriptor:psoDesc error:&nsErr];
+		if (pso == nil || nsErr != nil)	{
+			NSLog(@"ERR: unable to make PSO in %s, %@",__func__,nsErr);
+		}
 	}
 }
 - (void) drawInCmdBuffer:(id<MTLCommandBuffer>)cmdBuffer	{
@@ -503,11 +507,13 @@
 	_textureArgumentEncoder = n;
 }
 - (id<MTLArgumentEncoder>) textureArgumentEncoder	{
-	if (_textureArgumentEncoder != nil)
-		_textureArgumentEncoder = nil;
-	id<MTLFunction>		localFunction = psoDesc.fragmentFunction;
-	_textureArgumentEncoder = [localFunction newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
-	return _textureArgumentEncoder;
+	@synchronized (self)	{
+		if (_textureArgumentEncoder != nil)
+			_textureArgumentEncoder = nil;
+		id<MTLFunction>		localFunction = psoDesc.fragmentFunction;
+		_textureArgumentEncoder = [localFunction newArgumentEncoderWithBufferIndex:CMV_FS_Idx_Tex];
+		return _textureArgumentEncoder;
+	}
 }
 
 
