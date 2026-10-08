@@ -240,6 +240,31 @@
 		imageWithMTLTexture:texture
 		options:optsDict];
 	
+	return [self _cropAndOrientCIImage:returnMe orientation:orientation];
+}
+- (CIImage *) createIOSurfaceCIImageWithColorSpace:(CGColorSpaceRef)cs	{
+	IOSurfaceRef		surface = texture.iosurface;
+	if (surface == NULL)
+		return nil;
+	
+	CGImagePropertyOrientation		orientation = self.CIImagePropertyOrientation;
+	NSMutableDictionary		*optsDict = [NSMutableDictionary dictionaryWithCapacity:0];
+	if (cs != NULL)	{
+		optsDict[kCIImageColorSpace] = (__bridge id)cs;
+	}
+	optsDict[kCIImageApplyOrientationProperty] = @( orientation );
+	
+	CIImage			*returnMe = [CIImage
+		imageWithIOSurface:surface
+		options:optsDict];
+	//	mirror so the IOSurface image matches imageWithMTLTexture:'s Metal-context image, which the shared crop/orientation tail assumes- this also makes it upright in QC's GL context
+	returnMe = [returnMe imageByApplyingCGOrientation:kCGImagePropertyOrientationDownMirrored];
+	
+	return [self _cropAndOrientCIImage:returnMe orientation:orientation];
+}
+- (CIImage *) _cropAndOrientCIImage:(CIImage *)inImg orientation:(CGImagePropertyOrientation)orientation	{
+	CIImage			*returnMe = inImg;
+	
 	//	if the image needs to be cropped (if srcRect differs from a rect made with the texture dims), do so now
 	NSRect			fullFrameRect = NSMakeRect(0,0,width,height);
 	if (!NSEqualRects(fullFrameRect,srcRect))	{

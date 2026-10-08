@@ -57,6 +57,8 @@
 
 ///	Creates and returns a CIImage backed by the receiver's id<MTLTexture>, taking into account cropping and flippedness.  IMPORTANT: the returned CIImage RETAINS THE TEXTURE OBJECT THAT GENERATED IT FOR THE LIFETIME OF THE CIImage!
 - (CIImage * __nonnull) createCIImageWithColorSpace:(CGColorSpaceRef __nullable)cs;
+///	Like createCIImageWithColorSpace:, but built with imageWithIOSurface: from texture.iosurface, so nil when the texture has no IOSurface: CoreImage's OpenGL-backed contexts drop a Metal-texture image's IOSurface after a render and never restore it, so images that a GL CIContext renders more than once must be built from the IOSurface.
+- (CIImage * __nullable) createIOSurfaceCIImageWithColorSpace:(CGColorSpaceRef __nullable)cs;
 
 ///	The 'srcRect' property of a VVMTLImage uses a coordinate system with an origin in the bottom-left corner of the window.  metal expects a coordinate system that uses the top-left corner as the origin.
 @property (readonly) NSRect mtlSrcRect;
