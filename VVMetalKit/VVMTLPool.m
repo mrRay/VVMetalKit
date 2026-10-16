@@ -1286,36 +1286,34 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 	//}
 	
 	VVMTLBufferDescriptor		*desc = [VVMTLBufferDescriptor createWithLength:targetLength storage:inStorage];
-	VVMTLBuffer			*returnMe = nil;
-	@synchronized (self)	{
-		returnMe = (VVMTLBuffer*)[self _recycledObjectMatching:desc];
-		//	if we found a recycled object that matches our specs...
-		if (returnMe != nil)	{
-			//	if the base ptr is non-nil, copy the data do the buffer- make no attempt to synchronize it (this should be done deterministically on a specific command buffer)
-			if (b != NULL)	{
-				id<MTLBuffer>		mtlBuffer = returnMe.buffer;
-				memcpy( mtlBuffer.contents, b, inLength );
-				if (desc.storage == MTLStorageModeManaged)	{
-					[mtlBuffer didModifyRange:NSMakeRange(0, inLength)];
-				}
+	//	the lock is held only for the fetch- a buffer out of the pool is this call's alone, so the copy (or the allocation on a miss) must not run under it
+	VVMTLBuffer			*returnMe = (VVMTLBuffer*)[self recycledObjectMatching:desc];
+	//	if we found a recycled object that matches our specs...
+	if (returnMe != nil)	{
+		//	if the base ptr is non-nil, copy the data do the buffer- make no attempt to synchronize it (this should be done deterministically on a specific command buffer)
+		if (b != NULL)	{
+			id<MTLBuffer>		mtlBuffer = returnMe.buffer;
+			memcpy( mtlBuffer.contents, b, inLength );
+			if (desc.storage == MTLStorageModeManaged)	{
+				[mtlBuffer didModifyRange:NSMakeRange(0, inLength)];
 			}
 		}
-		//	else we didn't find a recycled object that matches our specs- create one!
+	}
+	//	else we didn't find a recycled object that matches our specs- create one!
+	else	{
+		MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
+		id<MTLBuffer>		mtlBuffer = nil;
+		if (b == NULL)	{
+			mtlBuffer = [self.device newBufferWithLength:targetLength options:resourceStorageMode];
+		}
 		else	{
-			MTLResourceOptions		resourceStorageMode = MTLResourceStorageModeForMTLStorageMode(inStorage);
-			id<MTLBuffer>		mtlBuffer = nil;
-			if (b == NULL)	{
-				mtlBuffer = [self.device newBufferWithLength:targetLength options:resourceStorageMode];
-			}
-			else	{
-				mtlBuffer = [self.device newBufferWithBytes:b length:targetLength options:resourceStorageMode];
-			}
-			
-			returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
-			returnMe.buffer = mtlBuffer;
-			returnMe.pool = self;
-			returnMe.preferDeletion = NO;
+			mtlBuffer = [self.device newBufferWithBytes:b length:targetLength options:resourceStorageMode];
 		}
+		
+		returnMe = [[VVMTLBuffer alloc] initWithDescriptor:desc];
+		returnMe.buffer = mtlBuffer;
+		returnMe.pool = self;
+		returnMe.preferDeletion = NO;
 	}
 	[self timestampThis:returnMe];
 	return returnMe;
