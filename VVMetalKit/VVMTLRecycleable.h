@@ -33,8 +33,8 @@ typedef void (^VVMTLRecycleableRecycleBlock)(__nonnull id<VVMTLRecycleable>);
 
 ///	NO by default.  If YES, the receiver will not be recycled and its underlying assets will be freed upon its deletion.
 @property (readwrite) BOOL preferDeletion;
-///	Used internally- the number of cycles that the receiver has spent in the pool.  When this gets high enough, it will be removed from the pool and deleted.
-@property (readwrite) int recycleCount;
+///	Used internally- the pool's own bookkeeping of when the receiver was given back to it, in seconds of the pool's host-time clock (a host-clock reading, not a calendar time, and not the receiver's `time`).  The pool stamps it as it takes the receiver back, and once the receiver has sat idle in the pool for the pool's `idleLifetime`, `-housekeeping` removes it from the pool and deletes it.  0 on any item a client holds.
+@property (readwrite) NSTimeInterval pooledSince;
 
 ///	The descriptor that was likely used to help generate the receiver, and is used to check to see if other recycleables are compatible for re-use.
 @property (copy,readwrite,nonnull) id<VVMTLRecycleableDescriptor> descriptor;

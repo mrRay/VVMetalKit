@@ -5,4 +5,4 @@
 
 #import "VVMetalKit.h"
 
-const NSInteger		VVMetalKitAPIVersion = 1;
+const NSInteger		VVMetalKitAPIVersion = 3;

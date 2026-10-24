@@ -61,7 +61,7 @@
 		//	VVMTLRecycleable conformance
 		pool = nil;
 		preferDeletion = NO;
-		recycleCount = 0;
+		pooledSince = 0;
 		descriptor = [n copy];
 		_supportingObject = nil;
 		_supportingContext = NULL;
@@ -242,7 +242,7 @@
 	//	VVMTLRecycleable conformance
 	returnMe.pool = pool;
 	returnMe.preferDeletion = YES;	//	delete the copy immediately on release (it took its own refs above)
-	returnMe.recycleCount = 0;
+	returnMe.pooledSince = 0;
 	returnMe.descriptor = [(NSObject*)descriptor copy];
 	returnMe.deletionBlock = nil;
 
@@ -316,7 +316,7 @@
 
 @synthesize pool;
 @synthesize preferDeletion;
-@synthesize recycleCount;
+@synthesize pooledSince;
 @synthesize descriptor;
 @synthesize supportingObject=_supportingObject;
 @synthesize supportingContext=_supportingContext;

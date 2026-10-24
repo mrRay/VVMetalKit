@@ -29,6 +29,8 @@ NS_ASSUME_NONNULL_BEGIN
 		- Recycling assets is almost always significantly faster/more efficient than trashing and re-generating them repeatedly.
 		- Has a global singleton accessible via the class method- your app probably only needs one instance of this class
 		- Generates both `VVMTLTextureImage` and `VVMTLBuffer` instances
+		- Hands out what it holds first in, first out: an item given back goes to the end of its list, and a request takes the matching item that has waited longest, so every request of a description works through that description's idle items in turn rather than reusing the same few.
+		- Keeps an idle item for `idleLifetime` seconds of its host-time clock, 2 by default, whatever rate `-housekeeping` is called at: each call deletes every item whose idle time- now less the time it was given back- is at least `idleLifetime`, and nothing is deleted between calls, so a client that never calls it keeps everything.  While a description is in use its items cycle and none is deleted, so the pool keeps as many of it as the last few seconds' demand has needed.  The same lifetime and order govern textures and surfaces, and that is what the lifetime costs them: an idle texture or surface of a size nothing asks for any more- after a resize, say- is kept for up to the lifetime however often `-housekeeping` is called, and memory a client wants back sooner is had by lowering `idleLifetime`.
 */
 
 
@@ -48,6 +50,9 @@ NS_ASSUME_NONNULL_BEGIN
 @property (readonly) CVMetalTextureCacheRef cvTexCache;
 @property (readonly) BOOL supportsMemoryless;
 @property (readonly) BOOL supportsTileShaders;
+
+///	How long, in seconds of the pool's host-time clock (`CMClockGetHostTimeClock()`, the clock `-timestampThis:` reads), an item may sit idle in the pool before `-housekeeping` deletes it- 2.0 by default.  An item is due when its idle time is at least this, not more than it, so 0 deletes everything idle at the next call.  Textures and surfaces are kept for the same lifetime as buffers.  Reading and writing it take the pool's lock, so it may be changed from any thread.
+@property (readwrite) NSTimeInterval idleLifetime;
 
 ///	Sometimes you just need an empty black texture.  Maybe you just need to bind something on an edge case.  Always returns the same texture (so don't try to write to it)
 @property (strong,readonly) id<VVMTLTextureImage> emptyBlackTexture;

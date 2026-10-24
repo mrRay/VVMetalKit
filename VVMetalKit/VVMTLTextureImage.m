@@ -60,7 +60,7 @@
 		//	VVMTLRecycleable conformance
 		pool = nil;
 		preferDeletion = NO;
-		recycleCount = 0;
+		pooledSince = 0;
 		descriptor = [n copy];
 		_supportingObject = nil;
 		_supportingContext = NULL;
@@ -317,7 +317,7 @@
 	//	VVMTLRecycleable conformance
 	returnMe.pool = srcTex.pool;
 	returnMe.preferDeletion = YES;	//	we just wait to delete the copy immediately (it will retain the original)
-	returnMe.recycleCount = 0;
+	returnMe.pooledSince = 0;
 	returnMe.descriptor = [(NSObject*)srcTex.descriptor copy];
 	//returnMe.supportingObject = nil;	//	do not copy any of the supporting stuff- the original's handling all this.
 	//returnMe.supportingContext = nil;
@@ -395,7 +395,7 @@
 
 @synthesize pool;
 @synthesize preferDeletion;
-@synthesize recycleCount;
+@synthesize pooledSince;
 @synthesize descriptor;
 @synthesize supportingObject=_supportingObject;
 - (void) setSupportingObject:(id)n	{

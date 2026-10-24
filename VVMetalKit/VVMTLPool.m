@@ -28,7 +28,6 @@
 
 
 #define A_HAS_B(a,b) (((a)&(b))==(b))
-#define MAX_MTLTEXTUREIMAGE_LIFETIME 30
 #define ROUNDAUPTOMULTOFB(A,B) ((((A)%(B))==0) ? (A) : ((A) + ((B)-((A)%(B)))))
 
 static NSUInteger TEXINDEX = 0;
@@ -42,12 +41,13 @@ static VVMTLPool * __nullable _globalVVMTLPool = nil;
 
 @interface VVMTLPool ()	{
 	id<MTLDevice>		_device;
-	NSMutableArray<id<VVMTLRecycleable>>		*_texPool;	//	FIFO, objects that are in the pool "too long" get freed
+	NSMutableArray<id<VVMTLRecycleable>>		*_texPool;	//	FIFO, objects that are idle in the pool for _idleLifetime get freed
 	NSMutableArray<id<VVMTLRecycleable>>		*_bufferPool;	//	FIFO.
 	NSMutableArray<id<VVMTLRecycleable>>		*_lutPool;	//	FIFO
 	NSMutableArray<id<VVMTLRecycleable>>		*_surfacePool;	//	FIFO
 	CVMetalTextureCacheRef		_cvTexCache;
 	CMClockRef			_clock;
+	NSTimeInterval		_idleLifetime;	//	seconds of _clock.  guarded by @synchronized (self)
 	id<VVMTLTextureImage>		_emptyBlackTexture;
 }
 @property (readwrite) BOOL supportsMemoryless;
@@ -119,6 +119,7 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 		}
 		
 		_clock = CMClockGetHostTimeClock();
+		_idleLifetime = 2.0;
 		
 		//	create the empty black texture by generating a new texture (guaranteed to be empty black as long as it's not recycled)
 		VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
@@ -143,6 +144,16 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 - (id<VVMTLTextureImage>) emptyBlackTexture	{
 	return _emptyBlackTexture;
 }
+- (NSTimeInterval) idleLifetime	{
+	@synchronized (self)	{
+		return _idleLifetime;
+	}
+}
+- (void) setIdleLifetime:(NSTimeInterval)n	{
+	@synchronized (self)	{
+		_idleLifetime = n;
+	}
+}
 
 
 #pragma mark - VVMTLRecyclingPool conformance
@@ -152,17 +163,19 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 	if (n == nil)
 		return;
 	@synchronized (self)	{
-		if ([(NSObject*)n isVVMTLTextureImage])	{
-			[_texPool insertObject:n atIndex:0];
-		}
-		else if ([(NSObject*)n isVVMTLBuffer])	{
-			[_bufferPool insertObject:n atIndex:0];
-		}
-		else if ([(NSObject*)n isVVMTLTextureLUT])	{
-			[_lutPool insertObject:n atIndex:0];
-		}
-		else if ([(NSObject*)n isVVMTLSurfaceImage])	{
-			[_surfacePool insertObject:n atIndex:0];
+		NSMutableArray<id<VVMTLRecycleable>>		*pool = nil;
+		if ([(NSObject*)n isVVMTLTextureImage])
+			pool = _texPool;
+		else if ([(NSObject*)n isVVMTLBuffer])
+			pool = _bufferPool;
+		else if ([(NSObject*)n isVVMTLTextureLUT])
+			pool = _lutPool;
+		else if ([(NSObject*)n isVVMTLSurfaceImage])
+			pool = _surfacePool;
+		//	appended, so the item that has waited longest is the first a request finds
+		if (pool != nil)	{
+			n.pooledSince = CMTimeGetSeconds(CMClockGetTime(_clock));
+			[pool addObject:n];
 		}
 	}
 }
@@ -239,11 +252,16 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 		NSLog(@"ERR: unrecognized descriptor (%@) in %s",n,__func__);
 	}
 	
+	//	the stamp is the pool's bookkeeping, and is 0 on anything a client holds
+	if (returnMe != nil)
+		returnMe.pooledSince = 0;
+	
 	return returnMe;
 }
 
 - (void) housekeeping	{
 	@synchronized (self)	{
+		NSTimeInterval		now = CMTimeGetSeconds(CMClockGetTime(_clock));
 		NSArray<NSMutableArray*>		*pools = @[ _texPool, _bufferPool, _lutPool, _surfacePool ];
 		for (NSMutableArray * pool in pools)	{
 			
@@ -251,16 +269,12 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 			NSMutableIndexSet		*indexesToDelete = nil;
 			
 			for (id<VVMTLRecycleable> pooledObject in pool)	{
-				int			tmpCount = pooledObject.recycleCount;
-				if (tmpCount >= MAX_MTLTEXTUREIMAGE_LIFETIME)	{
+				if (now - pooledObject.pooledSince >= _idleLifetime)	{
 					if (indexesToDelete == nil)
 						indexesToDelete = [[NSMutableIndexSet alloc] init];
 					[indexesToDelete addIndex:tmpIndex];
+					//	without this its -dealloc would recycle a fresh copy straight back into the pool
 					pooledObject.preferDeletion = YES;
-				}
-				else	{
-					++tmpCount;
-					pooledObject.recycleCount = tmpCount;
 				}
 				++tmpIndex;
 			}

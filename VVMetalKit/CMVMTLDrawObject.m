@@ -199,21 +199,73 @@ char get_line_intersection(
 
 
 
+//	every index the class writes or reads goes through these two, so that the object's index type alone decides the width of a slot.  'inSlot' counts indexes, not bytes.  callers refuse a value that does not fit the type before writing anything (see -maxVertexCount), so the 16-bit store never truncates a vertex number.
+static inline void CMVMTLDrawObjectWriteIndex(void *inIndexes, MTLIndexType inType, uint32_t inSlot, uint32_t inValue)	{
+	if (inType == MTLIndexTypeUInt32)
+		((uint32_t *)inIndexes)[inSlot] = inValue;
+	else
+		((uint16_t *)inIndexes)[inSlot] = (uint16_t)inValue;
+}
+static inline uint32_t CMVMTLDrawObjectReadIndex(const void *inIndexes, MTLIndexType inType, uint32_t inSlot)	{
+	if (inType == MTLIndexTypeUInt32)
+		return ((const uint32_t *)inIndexes)[inSlot];
+	return ((const uint16_t *)inIndexes)[inSlot];
+}
+
+//	a filled arc's count and its encoder both take its segments from here, so that the indexes the encoder writes are always the indexes the count reserved.  NO when the arc has no finite number of segments, or more than a uint32_t vertex count can carry once its end vertex and its centre are added.
+static inline BOOL CMVMTLDrawObjectFilledArcSegments(double inRadius, double inStartRadians, double inEndRadians, uint32_t *outSegmentsInArc)	{
+	//	calculate the circumference of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
+	double		circumferenceInPixels = PI * 2. * inRadius;
+	double		numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	if (numSegmentsInCircumference < 1.)
+		numSegmentsInCircumference = 1.;
+	
+	double		numSegmentsInArc = ceil( (inEndRadians-inStartRadians)/(2.*PI) * numSegmentsInCircumference );
+	if (numSegmentsInArc < 1.)
+		numSegmentsInArc = 1.;
+	//	also false for a NaN, which no comparison above caught
+	if (!(numSegmentsInArc <= (double)(UINT32_MAX - 2)))
+		return NO;
+	
+	*outSegmentsInArc = (uint32_t)numSegmentsInArc;
+	return YES;
+}
+
+
+
+
 @implementation CMVMTLDrawObject
 
 + (instancetype) createWithGeometryBufferSizeInBytes:(uint32_t)inGeoSize indexBufferSizeInBytes:(uint32_t)inIndexSize	{
 	return [[CMVMTLDrawObject alloc] initWithGeometryBufferSizeInBytes:inGeoSize indexBufferSizeInBytes:inIndexSize];
 }
++ (instancetype) createWithGeometryBufferSizeInBytes:(uint32_t)inGeoSize indexBufferSizeInBytes:(uint32_t)inIndexSize indexType:(MTLIndexType)inIndexType	{
+	return [[CMVMTLDrawObject alloc] initWithPrimitiveType:MTLPrimitiveTypeTriangleStrip indexType:inIndexType geometryBufferSizeInBytes:inGeoSize indexBufferSizeInBytes:inIndexSize];
+}
 + (instancetype) createWithGeometryBufferCount:(uint32_t)inVertCount indexBufferCount:(uint32_t)inIndexCount	{
 	return [[CMVMTLDrawObject alloc] initWithGeometryBufferCount:inVertCount indexBufferCount:inIndexCount];
 }
++ (instancetype) createWithGeometryBufferCount:(uint32_t)inVertCount indexBufferCount:(uint32_t)inIndexCount indexType:(MTLIndexType)inIndexType	{
+	uint64_t		geoSize = (uint64_t)sizeof(CMVSimpleVertex) * inVertCount;
+	uint64_t		indexSize = (uint64_t)((inIndexType == MTLIndexTypeUInt32) ? sizeof(uint32_t) : sizeof(uint16_t)) * inIndexCount;
+	if (geoSize > UINT32_MAX || indexSize > UINT32_MAX)	{
+		NSLog(@"ERR: buffer size beyond uint32_t, %s",__func__);
+		return nil;
+	}
+	return [[CMVMTLDrawObject alloc] initWithPrimitiveType:MTLPrimitiveTypeTriangleStrip indexType:inIndexType geometryBufferSizeInBytes:(uint32_t)geoSize indexBufferSizeInBytes:(uint32_t)indexSize];
+}
 
-- (instancetype) initWithPrimitiveType:(MTLPrimitiveType)inPrimType geometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize	{
+- (instancetype) initWithPrimitiveType:(MTLPrimitiveType)inPrimType indexType:(MTLIndexType)inIndexType geometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize	{
 	self = [super init];
 	if (inDrawSize < 1 || inIndexSize < 1)
 		self = nil;
+	if (inIndexType != MTLIndexTypeUInt16 && inIndexType != MTLIndexTypeUInt32)	{
+		NSLog(@"ERR: unknown index type (%lu), %s",(unsigned long)inIndexType,__func__);
+		self = nil;
+	}
 	if (self != nil)	{
 		_primitiveType = inPrimType;
+		_indexType = inIndexType;
 		_geometryBuffer = [VVMTLPool.global bufferWithLength:inDrawSize storage:MTLStorageModeShared];
 		_indexBuffer = [VVMTLPool.global bufferWithLength:inIndexSize storage:MTLStorageModeShared];
 		_geometryBufferBytesPerVertex = 0;
@@ -224,6 +276,9 @@ char get_line_intersection(
 		self.geometryBufferBytesPerVertex = sizeof(CMVSimpleVertex);
 	}
 	return self;
+}
+- (instancetype) initWithPrimitiveType:(MTLPrimitiveType)inPrimType geometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize	{
+	return [self initWithPrimitiveType:inPrimType indexType:MTLIndexTypeUInt16 geometryBufferSizeInBytes:inDrawSize indexBufferSizeInBytes:inIndexSize];
 }
 
 - (instancetype) initWithGeometryBufferSizeInBytes:(uint32_t)inDrawSize indexBufferSizeInBytes:(uint32_t)inIndexSize	{
@@ -238,19 +293,30 @@ char get_line_intersection(
 
 - (void *) geometryBufferHead	{
 	void		*base = _geometryBuffer.buffer.contents;
-	return (base + (_geometryBufferVertexCount * _geometryBufferBytesPerVertex));
+	return (base + ((size_t)_geometryBufferVertexCount * _geometryBufferBytesPerVertex));
 }
 - (void *) indexBufferHead	{
 	void		*base = _indexBuffer.buffer.contents;
-	return (base + (_indexBufferIndexCount * sizeof(uint16_t)));
+	return (base + ((size_t)_indexBufferIndexCount * self.bytesPerIndex));
 }
+//	the pool rounds a length up to 4096 bytes, so a buffer asked for close to UINT32_MAX bytes is 2^32 long: divide the full length and clamp, never truncate it first
 - (uint32_t) availableVertexes	{
-	uint32_t		maxVertexCount = (uint32_t)_geometryBuffer.buffer.length / _geometryBufferBytesPerVertex;
+	uint32_t		maxVertexCount = (uint32_t)MIN(_geometryBuffer.buffer.length / _geometryBufferBytesPerVertex, (NSUInteger)UINT32_MAX);
 	return maxVertexCount - _geometryBufferVertexCount;
 }
 - (uint32_t) availableIndexes	{
-	uint32_t		maxIndexCount = (uint32_t)_indexBuffer.buffer.length / 2;
+	uint32_t		maxIndexCount = (uint32_t)MIN(_indexBuffer.buffer.length / self.bytesPerIndex, (NSUInteger)UINT32_MAX);
 	return maxIndexCount - _indexBufferIndexCount;
+}
+- (uint32_t) bytesPerIndex	{
+	return (_indexType == MTLIndexTypeUInt32) ? sizeof(uint32_t) : sizeof(uint16_t);
+}
+- (uint32_t) restartIndex	{
+	return (_indexType == MTLIndexTypeUInt32) ? 0xFFFFFFFF : 0xFFFF;
+}
+- (uint32_t) maxVertexCount	{
+	//	vertex numbers run from 0 to one below the restart value, so the restart value is also the count
+	return self.restartIndex;
 }
 - (BOOL) appendDrawCommandsFrom:(CMVMTLDrawObject *)n	{
 	if (n == nil)	{
@@ -273,19 +339,35 @@ char get_line_intersection(
 	
 	//	the index buffers in the draw object we were passed are relative to the draw object's indexes- we have to offset to get the indexes relative to the receiver!
 	uint32_t		incomingVertexOffset = self.geometryBufferVertexCount;
+	uint32_t		maxVertexCount = self.maxVertexCount;
+	if ((uint64_t)incomingVertexOffset + incomingVertexCount > maxVertexCount)	{
+		NSLog(@"ERR: append would name a vertex beyond the index type, %s",__func__);
+		return NO;
+	}
 	
-	memcpy( self.geometryBufferHead, n.geometryBuffer.buffer.contents, incomingVertexCount * n.geometryBufferBytesPerVertex );
+	MTLIndexType	rType = n.indexType;
+	uint32_t		rRestart = n.restartIndex;
+	const void		*rIndexes = n.indexBuffer.buffer.contents;
+	//	an index naming a vertex the passed object doesn't hold can still wrap once offset, so every index is checked before any is written
+	for (uint32_t i=0; i<incomingIndexCount; ++i)	{
+		uint32_t		tmpIndex = CMVMTLDrawObjectReadIndex(rIndexes, rType, i);
+		if (tmpIndex != rRestart && (uint64_t)tmpIndex + incomingVertexOffset >= maxVertexCount)	{
+			NSLog(@"ERR: append would name a vertex beyond the index type, %s",__func__);
+			return NO;
+		}
+	}
 	
-	//memcpy( self.indexBufferHead, n.indexBuffer.buffer.contents, incomingIndexCount * 2 );
-	uint16_t		*wPtr = self.indexBufferHead;
-	uint16_t		*rPtr = n.indexBuffer.buffer.contents;
-	for (int i=0; i<incomingIndexCount; ++i)	{
-		if (*rPtr == 0xFFFF)
-			*wPtr = 0xFFFF;
+	memcpy( self.geometryBufferHead, n.geometryBuffer.buffer.contents, (size_t)incomingVertexCount * n.geometryBufferBytesPerVertex );
+	
+	MTLIndexType	wType = self.indexType;
+	uint32_t		wRestart = self.restartIndex;
+	void			*wIndexes = self.indexBufferHead;
+	for (uint32_t i=0; i<incomingIndexCount; ++i)	{
+		uint32_t		tmpIndex = CMVMTLDrawObjectReadIndex(rIndexes, rType, i);
+		if (tmpIndex == rRestart)
+			CMVMTLDrawObjectWriteIndex(wIndexes, wType, i, wRestart);
 		else
-			*wPtr = ((*rPtr) + incomingVertexOffset);
-		++rPtr;
-		++wPtr;
+			CMVMTLDrawObjectWriteIndex(wIndexes, wType, i, tmpIndex + incomingVertexOffset);
 	}
 	
 	self.geometryBufferVertexCount = self.geometryBufferVertexCount + incomingVertexCount;
@@ -303,54 +385,60 @@ char get_line_intersection(
 - (BOOL) encodeQuad:(NSRect)inRect withImage:(id<VVMTLTextureImage>)inImg texIndex:(int8_t)inTexIndex color:(NSColor *)inColor	{
 	//	figure out how large the geometry and index buffers will need to be to accommodate these draw calls
 	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
-	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
+	uint64_t		newGeometryBufferVertexCount = geometryBufferVertexCount;	//	64-bit, so that no sum can wrap and pass the checks below
 	uint32_t		indexBufferIndexCount = self.indexBufferIndexCount;
-	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
-	uint32_t		bytesPerIndex = 2;
+	uint64_t		newIndexBufferIndexCount = indexBufferIndexCount;
+	MTLIndexType	indexType = self.indexType;
+	uint32_t		bytesPerIndex = self.bytesPerIndex;
+	uint32_t		restartIndex = self.restartIndex;
 	
 	switch (self.primitiveType)	{
 	case MTLPrimitiveTypePoint:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + 4;
-			newIndexBufferIndexCount = indexBufferIndexCount + 4;	//	4 idxs
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + 4;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + 4;	//	4 idxs
 		}
 		break;
 	case MTLPrimitiveTypeLine:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + 4;
-			newIndexBufferIndexCount = indexBufferIndexCount + 8;	//	(2 idxs) x 4
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + 4;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + 8;	//	(2 idxs) x 4
 		}
 		break;
 	case MTLPrimitiveTypeLineStrip:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + 4;
-			newIndexBufferIndexCount = indexBufferIndexCount + 6;	//	4 idxs + 1 idx (back to first point) + 1 stop bit
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + 4;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + 6;	//	4 idxs + 1 idx (back to first point) + 1 stop bit
 		}
 		break;
 	case MTLPrimitiveTypeTriangle:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + 4;
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + 4;
 			//newIndexBufferIndexCount = _indexBufferIndexCount + 8;	//	3 idxs + 1 stop bit + 3 idxs + 1 stop bit = 8 idxs
-			newIndexBufferIndexCount = indexBufferIndexCount + 6;	//	3 idxs + 3 idxs = 6 idxs
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + 6;	//	3 idxs + 3 idxs = 6 idxs
 		}
 		break;
 	case MTLPrimitiveTypeTriangleStrip:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + 4;
-			newIndexBufferIndexCount = indexBufferIndexCount + 5;	//	4 idxs + 1 stop bit
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + 4;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + 5;	//	4 idxs + 1 stop bit
 		}
 		break;
 	}
 	
-	//	make sure that our geometry and index buffers are large enough to accommodate the additional data
-	uint32_t		tmpMaxGeoSize = newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
-	uint32_t		tmpMaxIndexSize = newIndexBufferIndexCount * bytesPerIndex;
+	//	make sure that our geometry and index buffers are large enough to accommodate the additional data, and that our index type can name every new vertex
+	uint64_t		tmpMaxGeoSize = (uint64_t)newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
+	uint64_t		tmpMaxIndexSize = (uint64_t)newIndexBufferIndexCount * bytesPerIndex;
 	if (tmpMaxGeoSize > self.geometryBuffer.buffer.length)	{
 		NSLog(@"ERR: encode would be beyond buffer length, %s",__func__);
 		return NO;
 	}
-	if (tmpMaxIndexSize > self.indexBuffer.buffer.length)	{
+	if (tmpMaxIndexSize > self.indexBuffer.buffer.length || newIndexBufferIndexCount > UINT32_MAX)	{
 		NSLog(@"ERR: encode would be beyond index length, %s",__func__);
+		return NO;
+	}
+	if (newGeometryBufferVertexCount > self.maxVertexCount)	{
+		NSLog(@"ERR: encode would name a vertex beyond the index type, %s",__func__);
 		return NO;
 	}
 	
@@ -397,8 +485,7 @@ char get_line_intersection(
 	CMVSimpleVertex		*baseGeoVert = rawGeoVert + geometryBufferVertexCount;
 	
 	//	get the base index buffer ptr, figure out where to write into it
-	uint16_t		*rawIdxPtr = (uint16_t *)self.indexBuffer.buffer.contents;
-	uint16_t		*baseIdxPtr = rawIdxPtr + indexBufferIndexCount;
+	void			*baseIdxPtr = self.indexBufferHead;
 	
 	//	populate geometry buffer with data that describes this quad/img- this is consistent for all primitive types...
 	for (int i=0; i<4; ++i)	{
@@ -420,65 +507,65 @@ char get_line_intersection(
 	case MTLPrimitiveTypePoint:
 		{
 			//	populate the index buffers
-			*(baseIdxPtr + 0) = (geometryBufferVertexCount + 0);
-			*(baseIdxPtr + 1) = (geometryBufferVertexCount + 1);
-			*(baseIdxPtr + 2) = (geometryBufferVertexCount + 2);
-			*(baseIdxPtr + 3) = (geometryBufferVertexCount + 3);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 0, geometryBufferVertexCount + 0);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 1, geometryBufferVertexCount + 1);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2, geometryBufferVertexCount + 2);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3, geometryBufferVertexCount + 3);
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeLine:
 		{
 			//	populate the index buffers
-			*(baseIdxPtr + 0) = (geometryBufferVertexCount + 0);	//	TL
-			*(baseIdxPtr + 1) = (geometryBufferVertexCount + 1);	//	BL
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 0, geometryBufferVertexCount + 0);	//	TL
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 1, geometryBufferVertexCount + 1);	//	BL
 			
-			*(baseIdxPtr + 2) = (geometryBufferVertexCount + 1);	//	BL
-			*(baseIdxPtr + 3) = (geometryBufferVertexCount + 3);	//	BR
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2, geometryBufferVertexCount + 1);	//	BL
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3, geometryBufferVertexCount + 3);	//	BR
 			
-			*(baseIdxPtr + 4) = (geometryBufferVertexCount + 3);	//	BR
-			*(baseIdxPtr + 5) = (geometryBufferVertexCount + 2);	//	TR
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 4, geometryBufferVertexCount + 3);	//	BR
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 5, geometryBufferVertexCount + 2);	//	TR
 			
-			*(baseIdxPtr + 6) = (geometryBufferVertexCount + 2);	//	TR
-			*(baseIdxPtr + 7) = (geometryBufferVertexCount + 0);	//	TL
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6, geometryBufferVertexCount + 2);	//	TR
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 7, geometryBufferVertexCount + 0);	//	TL
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeLineStrip:
 		{
 			//	populate the index buffers
-			*(baseIdxPtr + 0) = (geometryBufferVertexCount + 0);
-			*(baseIdxPtr + 1) = (geometryBufferVertexCount + 1);
-			*(baseIdxPtr + 2) = (geometryBufferVertexCount + 3);
-			*(baseIdxPtr + 3) = (geometryBufferVertexCount + 2);
-			*(baseIdxPtr + 4) = (geometryBufferVertexCount + 0);
-			*(baseIdxPtr + 5) = 0xFFFF;
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 0, geometryBufferVertexCount + 0);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 1, geometryBufferVertexCount + 1);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2, geometryBufferVertexCount + 3);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3, geometryBufferVertexCount + 2);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 4, geometryBufferVertexCount + 0);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 5, restartIndex);
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeTriangle:
 		{
 			//	populate the index buffers
-			*(baseIdxPtr + 0) = (geometryBufferVertexCount + 0);
-			*(baseIdxPtr + 1) = (geometryBufferVertexCount + 1);
-			*(baseIdxPtr + 2) = (geometryBufferVertexCount + 2);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 0, geometryBufferVertexCount + 0);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 1, geometryBufferVertexCount + 1);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2, geometryBufferVertexCount + 2);
 			
-			*(baseIdxPtr + 3) = (geometryBufferVertexCount + 1);
-			*(baseIdxPtr + 4) = (geometryBufferVertexCount + 2);
-			*(baseIdxPtr + 5) = (geometryBufferVertexCount + 3);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3, geometryBufferVertexCount + 1);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 4, geometryBufferVertexCount + 2);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 5, geometryBufferVertexCount + 3);
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 			
 			////	populate the index buffers
 			//*(baseIdxPtr + 0) = (_geometryBufferVertexCount + 0);
@@ -501,15 +588,15 @@ char get_line_intersection(
 	case MTLPrimitiveTypeTriangleStrip:
 		{
 			//	populate the index buffers
-			*(baseIdxPtr + 0) = (geometryBufferVertexCount + 0);
-			*(baseIdxPtr + 1) = (geometryBufferVertexCount + 1);
-			*(baseIdxPtr + 2) = (geometryBufferVertexCount + 2);
-			*(baseIdxPtr + 3) = (geometryBufferVertexCount + 3);
-			*(baseIdxPtr + 4) = 0xFFFF;
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 0, geometryBufferVertexCount + 0);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 1, geometryBufferVertexCount + 1);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2, geometryBufferVertexCount + 2);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3, geometryBufferVertexCount + 3);
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 4, restartIndex);
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	}
@@ -573,6 +660,10 @@ char get_line_intersection(
 		NSLog(@"ERR: not enough room B, %s",__func__);
 		return NO;
 	}
+	if ((uint64_t)self.geometryBufferVertexCount + 4 > self.maxVertexCount)	{
+		NSLog(@"ERR: encode would name a vertex beyond the index type, %s",__func__);
+		return NO;
+	}
 	
 	VVRectAnchor		anchorsToFetch[] = {
 		VVRectAnchor_TM,
@@ -580,23 +671,23 @@ char get_line_intersection(
 		VVRectAnchor_RM,
 		VVRectAnchor_BM
 	};
-	uint16_t			baseIndexOffset = self.geometryBufferVertexCount;
+	uint32_t			baseIndexOffset = self.geometryBufferVertexCount;
 	vector_float4		colorsVec = Vec4FromNSColor(inColor);
+	MTLIndexType		indexType = self.indexType;
 	
 	CMVSimpleVertex		*vtxPtr = self.geometryBufferHead;
-	uint16_t			*indexPtr = self.indexBufferHead;
+	void				*indexPtr = self.indexBufferHead;
 	for (int i=0; i<4; ++i)	{
 		NSPoint		tmpPoint = VVRectGetAnchorPoint( inRect, anchorsToFetch[i] );
 		vtxPtr->color = colorsVec;
 		vtxPtr->position = simd_make_float4( tmpPoint.x, tmpPoint.y, 0., 1. );
 		vtxPtr->texIndex = -1;
 		
-		*indexPtr = baseIndexOffset + i;
+		CMVMTLDrawObjectWriteIndex(indexPtr, indexType, i, baseIndexOffset + i);
 		
 		++vtxPtr;
-		++indexPtr;
 	}
-	*indexPtr = 0xFFFF;
+	CMVMTLDrawObjectWriteIndex(indexPtr, indexType, 4, self.restartIndex);
 	
 	self.geometryBufferVertexCount = self.geometryBufferVertexCount + 4;
 	self.indexBufferIndexCount = self.indexBufferIndexCount + 5;
@@ -655,56 +746,62 @@ char get_line_intersection(
 	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
 	uint32_t		indexBufferIndexCount = self.indexBufferIndexCount;
 	
-	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
-	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
-	uint32_t		bytesPerIndex = 2;
+	uint64_t		newGeometryBufferVertexCount = geometryBufferVertexCount;	//	64-bit, so that no count of points can wrap a sum and pass the checks below
+	uint64_t		newIndexBufferIndexCount = indexBufferIndexCount;
+	MTLIndexType	indexType = self.indexType;
+	uint32_t		bytesPerIndex = self.bytesPerIndex;
+	uint32_t		restartIndex = self.restartIndex;
 	
 	float			strokeOffset = inLineWidth / 2.0;
 	
 	switch (self.primitiveType)	{
 	case MTLPrimitiveTypePoint:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + inPointsCount;
-			newIndexBufferIndexCount = indexBufferIndexCount + inPointsCount;	//	'inPointsCount' idxs
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + inPointsCount;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + inPointsCount;	//	'inPointsCount' idxs
 		}
 		break;
 	case MTLPrimitiveTypeLine:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + inPointsCount;
-			newIndexBufferIndexCount = indexBufferIndexCount + ((inPointsCount - 1) * 2);	//	(inPointsCount - 1) * 2 idxs
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + inPointsCount;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + ((uint64_t)(inPointsCount - 1) * 2);	//	(inPointsCount - 1) * 2 idxs
 		}
 		break;
 	case MTLPrimitiveTypeLineStrip:
 		{
-			newGeometryBufferVertexCount = geometryBufferVertexCount + inPointsCount;
-			newIndexBufferIndexCount = indexBufferIndexCount + inPointsCount + 1;	//	inPointsCount idxs + 1 stop bit
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + inPointsCount;
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + inPointsCount + 1;	//	inPointsCount idxs + 1 stop bit
 		}
 		break;
 	case MTLPrimitiveTypeTriangle:
 		{
 			//	draw the line as pairs of triangles making really thin quads
-			newGeometryBufferVertexCount = geometryBufferVertexCount + (inPointsCount * 2);	//	we only need 2x the number of points to describe every vertex
-			newIndexBufferIndexCount = indexBufferIndexCount + ((inPointsCount - 1) * 6);	//	draw one quad (3 idxs + 3 idxs) per line segment
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + ((uint64_t)inPointsCount * 2);	//	we only need 2x the number of points to describe every vertex
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + ((uint64_t)(inPointsCount - 1) * 6);	//	draw one quad (3 idxs + 3 idxs) per line segment
 		}
 		break;
 	case MTLPrimitiveTypeTriangleStrip:
 		{
 			//	draw the line as pairs of triangles making really thin quads.  tri strip, so we can eliminate a lot of duplicate vertices from the index buffer.
-			newGeometryBufferVertexCount = geometryBufferVertexCount + (inPointsCount * 2);
-			newIndexBufferIndexCount = indexBufferIndexCount + (inPointsCount * 2) + 1;	//	draw one quad (4 idxs) per line segment + 1 "stop bit" for the whole line
+			newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + ((uint64_t)inPointsCount * 2);
+			newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + ((uint64_t)inPointsCount * 2) + 1;	//	draw one quad (4 idxs) per line segment + 1 "stop bit" for the whole line
 		}
 		break;
 	}
 	
-	//	make sure that our geometry and index buffers are large enough to accommodate the additional data
-	uint32_t		tmpMaxGeoSize = newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
-	uint32_t		tmpMaxIndexSize = newIndexBufferIndexCount * bytesPerIndex;
+	//	make sure that our geometry and index buffers are large enough to accommodate the additional data, and that our index type can name every new vertex
+	uint64_t		tmpMaxGeoSize = (uint64_t)newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
+	uint64_t		tmpMaxIndexSize = (uint64_t)newIndexBufferIndexCount * bytesPerIndex;
 	if (tmpMaxGeoSize > self.geometryBuffer.buffer.length)	{
 		NSLog(@"ERR: encode would be beyond buffer length, %s",__func__);
 		return NO;
 	}
-	if (tmpMaxIndexSize > self.indexBuffer.buffer.length)	{
+	if (tmpMaxIndexSize > self.indexBuffer.buffer.length || newIndexBufferIndexCount > UINT32_MAX)	{
 		NSLog(@"ERR: encode would be beyond index length, %s",__func__);
+		return NO;
+	}
+	if (newGeometryBufferVertexCount > self.maxVertexCount)	{
+		NSLog(@"ERR: encode would name a vertex beyond the index type, %s",__func__);
 		return NO;
 	}
 	
@@ -717,8 +814,7 @@ char get_line_intersection(
 	CMVSimpleVertex		*baseGeoVert = rawGeoVert + geometryBufferVertexCount;
 	
 	//	get the base index buffer ptr, figure out where to write into it
-	uint16_t		*rawIdxPtr = (uint16_t *)self.indexBuffer.buffer.contents;
-	uint16_t		*baseIdxPtr = rawIdxPtr + indexBufferIndexCount;
+	void			*baseIdxPtr = self.indexBufferHead;
 	
 	//	populate the geometry buffer- this differs depending on whether we need to draw lines as "thin quads" or not
 	switch (self.primitiveType)	{
@@ -962,12 +1058,12 @@ char get_line_intersection(
 		{
 			//	populate the index buffers
 			for (int i=0; i<inPointsCount; ++i)	{
-				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, i, geometryBufferVertexCount + i);
 			}
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeLine:
@@ -984,26 +1080,26 @@ char get_line_intersection(
 			*/
 			uint32_t		segmentsCount = inPointsCount - 1;
 			for (int i=0; i<segmentsCount; ++i)	{
-				*(baseIdxPtr + 2*i) = (geometryBufferVertexCount + i);
-				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i + 1);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i, geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i + 1, geometryBufferVertexCount + i + 1);
 			}
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeLineStrip:
 		{
 			//	populate the index buffers
 			for (int i=0; i<inPointsCount; ++i)	{
-				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, i, geometryBufferVertexCount + i);
 			}
 			//	add the stop bit!
-			*(baseIdxPtr + inPointsCount) = 0xFFFF;
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, inPointsCount, restartIndex);
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeTriangle:
@@ -1011,29 +1107,29 @@ char get_line_intersection(
 			//	populate the index buffers
 			uint32_t		segmentsCount = inPointsCount - 1;
 			for (int i=0; i<segmentsCount; ++i)	{
-				*(baseIdxPtr + 6*i + 0) = (geometryBufferVertexCount + 2*i + 0);
-				*(baseIdxPtr + 6*i + 1) = (geometryBufferVertexCount + 2*i + 1);
-				*(baseIdxPtr + 6*i + 2) = (geometryBufferVertexCount + 2*i + 2);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6*i + 0, geometryBufferVertexCount + 2*i + 0);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6*i + 1, geometryBufferVertexCount + 2*i + 1);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6*i + 2, geometryBufferVertexCount + 2*i + 2);
 				
-				*(baseIdxPtr + 6*i + 3) = (geometryBufferVertexCount + 2*i + 1);
-				*(baseIdxPtr + 6*i + 4) = (geometryBufferVertexCount + 2*i + 2);
-				*(baseIdxPtr + 6*i + 5) = (geometryBufferVertexCount + 2*i + 3);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6*i + 3, geometryBufferVertexCount + 2*i + 1);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6*i + 4, geometryBufferVertexCount + 2*i + 2);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 6*i + 5, geometryBufferVertexCount + 2*i + 3);
 			}
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	case MTLPrimitiveTypeTriangleStrip:
 		{
 			//	populate the index buffers
 			for (int i=0; i<inPointsCount; ++i)	{
-				*(baseIdxPtr + 2*i + 0) = (geometryBufferVertexCount + 2*i + 0);
-				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + 2*i + 1);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i + 0, geometryBufferVertexCount + 2*i + 0);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i + 1, geometryBufferVertexCount + 2*i + 1);
 			}
 			//	add the stop bit!
-			*(baseIdxPtr + 2*inPointsCount) = 0xFFFF;
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*inPointsCount, restartIndex);
 			
 			//uint32_t		segmentsCount = inPointsCount - 1;
 			//uint32_t		lastSegmentIndex = segmentsCount - 1;
@@ -1049,8 +1145,8 @@ char get_line_intersection(
 			//*(baseIdxPtr + 2*segmentsCount + 2) = 0xFFFF;
 			
 			//	update the respective vertex counts
-			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-			self.indexBufferIndexCount = newIndexBufferIndexCount;
+			self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+			self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 		}
 		break;
 	}
@@ -1090,21 +1186,27 @@ char get_line_intersection(
 
 - (BOOL) encodeRawPoints:(NSPoint *)inPoints count:(uint32_t)inPointsCount indexes:(uint16_t*)inIndexes count:(uint32_t)inIndexesCount withColor:(NSColor *)inColor	{
 	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
-	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount + inPointsCount;
+	uint64_t		newGeometryBufferVertexCount = (uint64_t)geometryBufferVertexCount + inPointsCount;	//	64-bit, so that no caller's count can wrap a sum and pass the checks below
 	uint32_t		indexBufferIndexCount = self.indexBufferIndexCount;
-	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount + inIndexesCount;
-	uint32_t		bytesPerIndex = 2;
+	uint64_t		newIndexBufferIndexCount = (uint64_t)indexBufferIndexCount + inIndexesCount;
+	MTLIndexType	indexType = self.indexType;
+	uint32_t		bytesPerIndex = self.bytesPerIndex;
+	uint32_t		restartIndex = self.restartIndex;
 	
 	
-	//	make sure that our geometry and index buffers are large enough to accommodate the additional data
-	uint32_t		tmpMaxGeoSize = newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
-	uint32_t		tmpMaxIndexSize = newIndexBufferIndexCount * bytesPerIndex;
+	//	make sure that our geometry and index buffers are large enough to accommodate the additional data, and that our index type can name every new vertex
+	uint64_t		tmpMaxGeoSize = (uint64_t)newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
+	uint64_t		tmpMaxIndexSize = (uint64_t)newIndexBufferIndexCount * bytesPerIndex;
 	if (tmpMaxGeoSize > self.geometryBuffer.buffer.length)	{
 		NSLog(@"ERR: encode would be beyond buffer length, %s",__func__);
 		return NO;
 	}
-	if (tmpMaxIndexSize > self.indexBuffer.buffer.length)	{
+	if (tmpMaxIndexSize > self.indexBuffer.buffer.length || newIndexBufferIndexCount > UINT32_MAX)	{
 		NSLog(@"ERR: encode would be beyond index length, %s",__func__);
+		return NO;
+	}
+	if (newGeometryBufferVertexCount > self.maxVertexCount)	{
+		NSLog(@"ERR: encode would name a vertex beyond the index type, %s",__func__);
 		return NO;
 	}
 	
@@ -1116,8 +1218,7 @@ char get_line_intersection(
 	CMVSimpleVertex		*baseGeoVert = rawGeoVert + geometryBufferVertexCount;
 	
 	//	get the base index buffer ptr, figure out where to write into it
-	uint16_t		*rawIdxPtr = (uint16_t *)self.indexBuffer.buffer.contents;
-	uint16_t		*baseIdxPtr = rawIdxPtr + indexBufferIndexCount;
+	void			*baseIdxPtr = self.indexBufferHead;
 	
 	//	get a pointer to the array of points we were passed
 	NSPoint			*pointPtr = inPoints;
@@ -1133,17 +1234,14 @@ char get_line_intersection(
 		++baseGeoVert;
 	}
 	
-	//	populate the passed indexes
-	uint16_t		*inIndexPtr = inIndexes;
-	for (int i=0; i<inIndexesCount; ++i)	{
-		*baseIdxPtr = *inIndexPtr;
-		
-		++inIndexPtr;
-		++baseIdxPtr;
+	//	populate the passed indexes- the caller's indexes are 16-bit whatever our type, so its 0xFFFF is always a restart, and is written as ours
+	for (uint32_t i=0; i<inIndexesCount; ++i)	{
+		uint32_t		tmpIndex = inIndexes[i];
+		CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, i, (tmpIndex == 0xFFFF) ? restartIndex : tmpIndex);
 	}
 	
-	self.geometryBufferVertexCount = newGeometryBufferVertexCount;
-	self.indexBufferIndexCount = newIndexBufferIndexCount;
+	self.geometryBufferVertexCount = (uint32_t)newGeometryBufferVertexCount;
+	self.indexBufferIndexCount = (uint32_t)newIndexBufferIndexCount;
 	
 	return YES;
 }
@@ -1261,21 +1359,43 @@ char get_line_intersection(
 		NSLog(@"ERR: zero radius, %s",__func__);
 		return NO;
 	}
-	//	calculate the circumference of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
-	double		circumferenceInPixels = PI * 2. * inRadius;
-	uint32_t	numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	//	figure out how large the geometry and index buffers will need to be to draw this
+	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
+	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
+	uint32_t		indexBufferIndexCount = self.indexBufferIndexCount;
+	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
+	MTLIndexType	indexType = self.indexType;
+	uint32_t		bytesPerIndex = self.bytesPerIndex;
+	uint32_t		restartIndex = self.restartIndex;
+	uint32_t		numSegmentsInArc = 0;
 	
-	if (numSegmentsInCircumference < 1)
-		numSegmentsInCircumference = 1.;
+	//	the count refuses any sum that would not fit a uint32_t, so the new counts below are exact
+	if (!CMVMTLDrawObjectFilledArcSegments(inRadius, inStartRadians, inEndRadians, &numSegmentsInArc)
+	|| ![CMVMTLDrawObject updateVertexCount:&newGeometryBufferVertexCount indexCount:&newIndexBufferIndexCount forFilledArcWithCenter:inCenter radius:inRadius start:inStartRadians end:inEndRadians forPrimitiveType:self.primitiveType])	{
+		NSLog(@"ERR: unable to calculate geometry or idx buffer size in %s",__func__);
+		return NO;
+	}
 	
-	uint32_t	numSegmentsInArc = ceil( (inEndRadians-inStartRadians)/(2.*PI) * (double)numSegmentsInCircumference );
-	if (numSegmentsInArc < 1)
-		numSegmentsInArc = 1.;
+	//	make sure that our geometry and index buffers are large enough to accommodate the additional data, and that our index type can name every new vertex
+	uint64_t		tmpMaxGeoSize = (uint64_t)newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
+	uint64_t		tmpMaxIndexSize = (uint64_t)newIndexBufferIndexCount * bytesPerIndex;
+	if (tmpMaxGeoSize > self.geometryBuffer.buffer.length)	{
+		NSLog(@"ERR: encode would be beyond buffer length, %s",__func__);
+		return NO;
+	}
+	if (tmpMaxIndexSize > self.indexBuffer.buffer.length)	{
+		NSLog(@"ERR: encode would be beyond index length, %s",__func__);
+		return NO;
+	}
+	if (newGeometryBufferVertexCount > self.maxVertexCount)	{
+		NSLog(@"ERR: encode would name a vertex beyond the index type, %s",__func__);
+		return NO;
+	}
 	
 	uint32_t		numVerticesInArc = numSegmentsInArc + 1;
 	
 	//	get a backing buffer that we can use as scratch memory for assembling point data
-	size_t		minBackingSize = sizeof(NSPoint) * (numVerticesInArc + 1);	//	the "+1" is for the center of the circle
+	size_t		minBackingSize = sizeof(NSPoint) * ((size_t)numVerticesInArc + 1);	//	the "+1" is for the center of the circle
 	NSMutableData		*backingData = NSThread.currentThread.threadDictionary[kCVMTLDrawObjectArcDataBuffer];
 	if (backingData != nil && backingData.length < minBackingSize)	{
 		backingData = nil;
@@ -1301,30 +1421,6 @@ char get_line_intersection(
 	*tmpWPtr = inCenter;
 	++tmpWPtr;
 	
-	//	figure out how large the geometry and index buffers will need to be to draw this
-	uint32_t		geometryBufferVertexCount = self.geometryBufferVertexCount;
-	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
-	uint32_t		indexBufferIndexCount = self.indexBufferIndexCount;
-	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
-	uint32_t		bytesPerIndex = 2;
-	
-	if (![CMVMTLDrawObject updateVertexCount:&newGeometryBufferVertexCount indexCount:&newIndexBufferIndexCount forFilledArcWithCenter:inCenter radius:inRadius start:inStartRadians end:inEndRadians forPrimitiveType:self.primitiveType])	{
-		NSLog(@"ERR: unable to calculate geometry or idx buffer size in %s",__func__);
-		return NO;
-	}
-	
-	//	make sure that our geometry and index buffers are large enough to accommodate the additional data
-	uint32_t		tmpMaxGeoSize = newGeometryBufferVertexCount * self.geometryBufferBytesPerVertex;
-	uint32_t		tmpMaxIndexSize = newIndexBufferIndexCount * bytesPerIndex;
-	if (tmpMaxGeoSize > self.geometryBuffer.buffer.length)	{
-		NSLog(@"ERR: encode would be beyond buffer length, %s",__func__);
-		return NO;
-	}
-	if (tmpMaxIndexSize > self.indexBuffer.buffer.length)	{
-		NSLog(@"ERR: encode would be beyond index length, %s",__func__);
-		return NO;
-	}
-	
 	//	at this point we've got the geometry for the circle calculated out- populate the geometry and index buffers
 	
 	//	get the color vals
@@ -1334,8 +1430,7 @@ char get_line_intersection(
 	CMVSimpleVertex		*rawGeoPtr = (CMVSimpleVertex *)self.geometryBuffer.buffer.contents;
 	CMVSimpleVertex		*baseGeoVert = rawGeoPtr + geometryBufferVertexCount;
 	//	get the base index buffer ptr, figure out where to write into it
-	uint16_t		*rawIdxPtr = (uint16_t *)self.indexBuffer.buffer.contents;
-	uint16_t		*baseIdxPtr = rawIdxPtr + indexBufferIndexCount;
+	void			*baseIdxPtr = self.indexBufferHead;
 	
 	//	populate the geometry buffer
 	switch (self.primitiveType)	{
@@ -1382,7 +1477,7 @@ char get_line_intersection(
 		{
 			//	geometry doesn't include the center point
 			for (int i=0; i<numVerticesInArc; ++i)	{
-				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, i, geometryBufferVertexCount + i);
 			}
 			
 			//	update the respective vertex/idx counts;
@@ -1394,8 +1489,8 @@ char get_line_intersection(
 		{
 			//	geometry doesn't include the center point
 			for (int i=0; i<numSegmentsInArc; ++i)	{
-				*(baseIdxPtr + 2*i) = (geometryBufferVertexCount + i);
-				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i + 1);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i, geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i + 1, geometryBufferVertexCount + i + 1);
 			}
 			
 			//	update the respective vertex/idx counts;
@@ -1407,13 +1502,13 @@ char get_line_intersection(
 		{
 			//	geometry doesn't include the center point
 			for (int i=0; i<numVerticesInArc; ++i)	{
-				*(baseIdxPtr + i) = (geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, i, geometryBufferVertexCount + i);
 			}
 			//	we're going to include the first point again (to close the circle)
 			//*(baseIdxPtr + numVerticesInArc) = geometryBufferVertexCount;
 			//	stop bit!
 			//*(baseIdxPtr + numVerticesInArc + 1) = 0xFFFF;
-			*(baseIdxPtr + numVerticesInArc) = 0xFFFF;
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, numVerticesInArc, restartIndex);
 			
 			//	update the respective vertex/idx counts;
 			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
@@ -1422,14 +1517,12 @@ char get_line_intersection(
 		break;
 	case MTLPrimitiveTypeTriangle:
 		{
-			//	geometry for the triangles
-			for (int i=0; i<numSegmentsInCircumference; ++i)	{
-				*(baseIdxPtr + 3*i + 0) = (geometryBufferVertexCount + (i + 0)%numSegmentsInCircumference);
-				*(baseIdxPtr + 3*i + 1) = (geometryBufferVertexCount + (i + 1)%numSegmentsInCircumference);
-				*(baseIdxPtr + 3*i + 2) = (geometryBufferVertexCount + numVerticesInArc);
+			//	one triangle per segment of the arc- its two ends and the center- and no stop bit, which a triangle list doesn't use
+			for (uint32_t i=0; i<numSegmentsInArc; ++i)	{
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3*i + 0, geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3*i + 1, geometryBufferVertexCount + i + 1);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 3*i + 2, geometryBufferVertexCount + numVerticesInArc);
 			}
-			//	stop bit!
-			*(baseIdxPtr + 3*numSegmentsInCircumference) = 0xFFFF;
 			
 			//	update the respective vertex/idx counts;
 			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
@@ -1440,15 +1533,15 @@ char get_line_intersection(
 		{
 			//	geometry for the triangles
 			for (int i=0; i<numVerticesInArc; ++i)	{
-				*(baseIdxPtr + 2*i + 0) = (geometryBufferVertexCount + numVerticesInArc);	//	center...
-				*(baseIdxPtr + 2*i + 1) = (geometryBufferVertexCount + i);
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i + 0, geometryBufferVertexCount + numVerticesInArc);	//	center...
+				CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*i + 1, geometryBufferVertexCount + i);
 			}
 			//	one more to close the circle
 			//*(baseIdxPtr + 2*numVerticesInArc + 0) = (geometryBufferVertexCount + numVerticesInArc);
 			//*(baseIdxPtr + 2*numVerticesInArc + 1) = (geometryBufferVertexCount);
 			//	stop bit!
 			//*(baseIdxPtr + 2*numVerticesInArc + 2) = 0xFFFF;
-			*(baseIdxPtr + 2*numVerticesInArc + 0) = 0xFFFF;
+			CMVMTLDrawObjectWriteIndex(baseIdxPtr, indexType, 2*numVerticesInArc + 0, restartIndex);
 			
 			//	update the respective vertex/idx counts;
 			self.geometryBufferVertexCount = newGeometryBufferVertexCount;
@@ -1464,37 +1557,29 @@ char get_line_intersection(
 		NSLog(@"ERR: zero radius, %s",__func__);
 		return NO;
 	}
-	//	calculate the circumference of the circle (in pixels) and use that to calculate the # of segments required to generate a smooth-looking curve without going overboard
-	double		circumferenceInPixels = PI * 2. * inRadius;
-	double		numSegmentsInCircumference = ceil(circumferenceInPixels/ARC_PIXELS_PER_SEGMENT);
+	uint32_t		numSegmentsInArc = 0;
+	if (!CMVMTLDrawObjectFilledArcSegments(inRadius, inStartRadians, inEndRadians, &numSegmentsInArc))	{
+		NSLog(@"ERR: arc has no countable number of segments, %s",__func__);
+		return NO;
+	}
 	
-	if (numSegmentsInCircumference < 1)
-		numSegmentsInCircumference = 1.;
+	uint64_t		numVerticesInArc = (uint64_t)numSegmentsInArc + 1;
 	
-	//uint32_t		numVerticesInCircle = numSegmentsInCircumference;
-	uint32_t	numSegmentsInArc = ceil( (inEndRadians-inStartRadians)/(2.*PI) * (double)numSegmentsInCircumference );
-	if (numSegmentsInArc < 1)
-		numSegmentsInArc = 1.;
-	
-	uint32_t		numVerticesInArc = numSegmentsInArc + 1;
-	
-	//	figure out how large the geometry and index buffers will need to be to draw this
-	uint32_t		geometryBufferVertexCount = *outVtxCount;
-	uint32_t		newGeometryBufferVertexCount = geometryBufferVertexCount;
-	uint32_t		indexBufferIndexCount = *outIdxCount;
-	uint32_t		newIndexBufferIndexCount = indexBufferIndexCount;
+	//	figure out how large the geometry and index buffers will need to be to draw this- 64-bit, so that no arc can wrap a count
+	uint64_t		newGeometryBufferVertexCount = *outVtxCount;
+	uint64_t		newIndexBufferIndexCount = *outIdxCount;
 	
 	switch (inPrimitiveType)	{
 	case MTLPrimitiveTypePoint:
 		{
 			newGeometryBufferVertexCount += (numVerticesInArc);
-			newIndexBufferIndexCount += (numVerticesInArc + 1);	//	the "+1" is the stop bit
+			newIndexBufferIndexCount += (numVerticesInArc);
 		}
 		break;
 	case MTLPrimitiveTypeLine:
 		{
 			newGeometryBufferVertexCount += (numVerticesInArc);
-			newIndexBufferIndexCount += ((numSegmentsInArc * 2) + 1);	//	the "+1" is the stop bit
+			newIndexBufferIndexCount += ((uint64_t)numSegmentsInArc * 2);
 		}
 		break;
 	case MTLPrimitiveTypeLineStrip:
@@ -1507,7 +1592,7 @@ char get_line_intersection(
 	case MTLPrimitiveTypeTriangle:
 		{
 			newGeometryBufferVertexCount += (numVerticesInArc + 1);	//	the "+1" is for the center
-			newIndexBufferIndexCount += (numSegmentsInArc * 3);
+			newIndexBufferIndexCount += ((uint64_t)numSegmentsInArc * 3);
 		}
 		break;
 	case MTLPrimitiveTypeTriangleStrip:
@@ -1519,8 +1604,12 @@ char get_line_intersection(
 		break;
 	}
 	
-	*outVtxCount = newGeometryBufferVertexCount;
-	*outIdxCount = newIndexBufferIndexCount;
+	if (newGeometryBufferVertexCount > UINT32_MAX || newIndexBufferIndexCount > UINT32_MAX)	{
+		NSLog(@"ERR: count beyond uint32_t, %s",__func__);
+		return NO;
+	}
+	*outVtxCount = (uint32_t)newGeometryBufferVertexCount;
+	*outIdxCount = (uint32_t)newIndexBufferIndexCount;
 	
 	return YES;
 }
@@ -1547,8 +1636,7 @@ char get_line_intersection(
 		NSLog(@"ERR: unable to encode restart index, %s",__func__);
 		return NO;
 	}
-	uint16_t		*indexWPtr = (uint16_t*)self.indexBufferHead;
-	*indexWPtr = 0xFFFF;
+	CMVMTLDrawObjectWriteIndex(self.indexBufferHead, self.indexType, 0, self.restartIndex);
 	self.indexBufferIndexCount++;
 	return YES;
 }
@@ -1608,7 +1696,7 @@ char get_line_intersection(
 	[inRenderEnc
 		drawIndexedPrimitives:self.primitiveType
 		indexCount:self.indexBufferIndexCount
-		indexType:MTLIndexTypeUInt16
+		indexType:self.indexType
 		indexBuffer:localIndexBuffer.buffer
 		indexBufferOffset:0];
 }
@@ -1704,7 +1792,7 @@ char get_line_intersection(
 	[inRenderEnc
 		drawIndexedPrimitives:self.primitiveType
 		indexCount:self.indexBufferIndexCount
-		indexType:MTLIndexTypeUInt16
+		indexType:self.indexType
 		indexBuffer:self.indexBuffer.buffer
 		indexBufferOffset:0];
 }
