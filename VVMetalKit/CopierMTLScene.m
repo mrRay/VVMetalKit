@@ -10,7 +10,6 @@
 @interface CopierMTLScene ()
 @property (strong) id<VVMTLTextureImage> inputImage;
 //@property (readwrite) BOOL autoCropToSrcRect;
-@property (readwrite) BOOL allowScaling;
 @property (readwrite) SizingMode sizingMode;
 @end
 
@@ -63,8 +62,6 @@
 		return;
 	}
 	
-	self.allowScaling = inScale;
-	
 	self.sizingMode = inSM;
 	
 	self.inputImage = inSrc;
@@ -84,7 +81,15 @@
 	
 	VVMTLTextureImageStruct		geoStruct;
 	[inputImage populateStruct:&geoStruct];
-	geoStruct.dstRect = MakeRect(0.0, 0.0, renderTarget.width, renderTarget.height);
+	//	the kernel maps whole pixels, so the fitted rect's edges are snapped to the nearest pixel boundary
+	NSSize			srcSize = inputImage.srcRect.size;
+	GRect			fittedRect = RectThatFitsRectInRect(
+		MakeRect(0.0, 0.0, srcSize.width, srcSize.height),
+		MakeRect(0.0, 0.0, renderTarget.width, renderTarget.height),
+		self.sizingMode);
+	float			dstMinX = round(MinX(fittedRect));
+	float			dstMinY = round(MinY(fittedRect));
+	geoStruct.dstRect = MakeRect(dstMinX, dstMinY, round(MaxX(fittedRect)) - dstMinX, round(MaxY(fittedRect)) - dstMinY);
 	geoStruct.colorMultiplier = simd_make_float4(1,1,1,1);
 	
 	//if (self.autoCropToSrcRect)	{

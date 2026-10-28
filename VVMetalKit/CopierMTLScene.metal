@@ -18,13 +18,18 @@ kernel void CopierMTLSceneFunc(
 	//	if 'gid' is not in geoBuffer's "dstRect" then draw transparent black and we're done immediately
 	GRect		dstRect_tl = geoBuffer->dstRect;
 	GPoint		gidPoint_tl = MakePoint(gid.x, gid.y);
-	if (!PointInRect(gidPoint_tl, dstRect_tl))	{
+	if (!PixelInRect(gidPoint_tl, dstRect_tl))	{
 		outTexture.write(float4(0,0,0,0), gid);
 		return;
 	}
 	
 	//	calculate the normalized position of "gid" within geoBuffer's "dstRect"
 	GPoint		normCoords_dst_tl = NormCoordsOfPixelInRect(gidPoint_tl, dstRect_tl);
+	//	a span one pixel wide has no second pixel to normalize against (a divide by zero), so it samples the middle of the src
+	if (dstRect_tl.size.width <= 1.0)
+		normCoords_dst_tl.x = 0.5;
+	if (dstRect_tl.size.height <= 1.0)
+		normCoords_dst_tl.y = 0.5;
 	if (geoBuffer->flipV)
 		normCoords_dst_tl.y = 1.0 - normCoords_dst_tl.y;
 	if (geoBuffer->flipH)
