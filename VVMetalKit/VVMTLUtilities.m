@@ -83,10 +83,15 @@ CGImageRef CreateCGImageRefFromVVMTLTextureImage(id<VVMTLTextureImage> inImg)	{
 	return returnMe;
 }
 CGImageRef CreateCGImageRefFromResizedVVMTLTextureImage(id<VVMTLTextureImage> inImg, NSSize imgSize)	{
-	//	if the image occupies the whole texture, just call the function that downloads the whole texture
+	//	if the image is already the requested size, just call the function that downloads the image's srcRect
 	NSSize			rawImgSize = inImg.srcRect.size;
 	if (NSEqualSizes(rawImgSize, imgSize) && !IsMTLPixelFormatCompressed(inImg.texture.pixelFormat) && !inImg.flipV && !inImg.flipH)	{
-		return CreateCGImageRefFromMTLTexture(inImg.texture);
+		return CreateCGImageRefFromVVMTLTextureImage(inImg);
+	}
+	
+	if (round(imgSize.width) < 1 || round(imgSize.height) < 1)	{
+		NSLog(@"ERR: requested size %@ has no pixels, %s",NSStringFromSize(imgSize),__func__);
+		return NULL;
 	}
 	
 	//	...if we're here, then the image we want to create a CGImageRef of doesn't occupy the whole texture- so copy it to a new texture that it will occupy fully...
@@ -149,6 +154,16 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 		
 		texToSample = bufferBackedTex;
 	}
+	//	a managed texture's CPU copy is only current once the GPU's writes to it have been synchronized
+	else if (inMTLTex.storageMode == MTLStorageModeManaged)	{
+		id<MTLResource>			resourceToSync = (inMTLTex.buffer != nil) ? (id<MTLResource>)inMTLTex.buffer : (id<MTLResource>)inMTLTex;
+		id<MTLCommandBuffer>		cmdBuffer = [RenderProperties.global.bgCmdQueue commandBuffer];
+		id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
+		[blitEncoder synchronizeResource:resourceToSync];
+		[blitEncoder endEncoding];
+		[cmdBuffer commit];
+		[cmdBuffer waitUntilCompleted];
+	}
 	VVMTLTextureImageDescriptor		*texDesc = (VVMTLTextureImageDescriptor*)texToSample.descriptor;
 	
 	CGImageRef		returnMe = NULL;
@@ -162,8 +177,6 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 	CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
 	//CGColorSpaceRef		colorspace = CGColorSpaceCreateWithName(kCGColorSpaceDisplayP3);
 	//CGColorSpaceRef		colorspace = RenderProperties.global.colorSpace;
-	if (colorspace != NULL)
-		CGColorSpaceRetain(colorspace);
 	
 	size_t			rgbaBytesPerRow = 8 * 4 * texDesc.width / 8;
 	size_t			rgbaBytesLength = rgbaBytesPerRow * texDesc.height;
@@ -205,7 +218,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 				32,
 				rgbaBytesPerRow,
 				colorspace,
-				(CGBitmapInfo)kCGImageAlphaLast,
+				(CGBitmapInfo)kCGImageAlphaPremultipliedLast,
 				rgbaDataProvider,
 				NULL,
 				YES,
@@ -231,7 +244,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 				32,
 				rgbaBytesPerRow,
 				colorspace,
-				(CGBitmapInfo)kCGImageAlphaLast,
+				(CGBitmapInfo)kCGImageAlphaPremultipliedLast,
 				rgbaDataProvider,
 				NULL,
 				YES,
@@ -268,11 +281,11 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 			returnMe = CGImageCreate(
 				texDesc.width,
 				texDesc.height,
-				16,
-				64,
+				8,
+				32,
 				rgbaBytesPerRow,
 				colorspace,
-				(CGBitmapInfo)kCGImageAlphaLast,
+				(CGBitmapInfo)kCGImageAlphaPremultipliedLast,
 				rgbaDataProvider,
 				NULL,
 				YES,
@@ -304,7 +317,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 				128,
 				rgbaBytesPerRow,
 				colorspace,
-				(CGBitmapInfo)(kCGImageAlphaLast | kCGBitmapFloatComponents | kCGBitmapByteOrder32Little),
+				(CGBitmapInfo)(kCGImageAlphaPremultipliedLast | kCGBitmapFloatComponents | kCGBitmapByteOrder32Little),
 				rgbaDataProvider,
 				NULL,
 				YES,
@@ -331,7 +344,7 @@ CGImageRef CreateCGImageRefFromMTLTexture(id<MTLTexture> inMTLTex)	{
 				64,
 				rgbaBytesPerRow,
 				colorspace,
-				(CGBitmapInfo)(kCGImageAlphaLast | kCGBitmapFloatComponents | kCGBitmapByteOrder16Little),
+				(CGBitmapInfo)(kCGImageAlphaPremultipliedLast | kCGBitmapFloatComponents | kCGBitmapByteOrder16Little),
 				rgbaDataProvider,
 				NULL,
 				YES,
@@ -380,12 +393,17 @@ CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize
 		return CreateCGImageRefFromMTLTexture(inMTLTex);
 	}
 	
-	//	...if we're here, we need to resize the passed texture- so make a buffer-backed texture, copy the src texture to it, and then call the parent function
+	if (round(imgSize.width) < 1 || round(imgSize.height) < 1)	{
+		NSLog(@"ERR: requested size %@ has no pixels, %s",NSStringFromSize(imgSize),__func__);
+		return NULL;
+	}
+	
+	//	...if we're here, we need to resize the passed texture- so make a buffer-backed texture of the requested size, fit the src texture into it, and then call the parent function (which synchronizes it before reading it)
 	
 	id<VVMTLTextureImage>		inTex = [VVMTLPool.global textureForExistingTexture:inMTLTex];
 	VVMTLTextureImageDescriptor		*desc = [VVMTLTextureImageDescriptor
-		createWithWidth:texSize.width
-		height:texSize.height
+		createWithWidth:round(imgSize.width)
+		height:round(imgSize.height)
 		pixelFormat:inMTLTex.pixelFormat
 		storage:MTLStorageModeManaged
 		//usage:MTLTextureUsageShaderRead | MTLTextureUsageRenderTarget | MTLTextureUsageShaderWrite
@@ -400,13 +418,9 @@ CGImageRef CreateCGImageRefFromResizedMTLTexture(id<MTLTexture> inMTLTex, NSSize
 	[copier
 		copyImg:inTex
 		toImg:bufferBackedTex
-		allowScaling:NO
+		allowScaling:YES
 		sizingMode:SizingModeFit
 		inCommandBuffer:cmdBuffer];
-	
-	id<MTLBlitCommandEncoder>		blitEncoder = [cmdBuffer blitCommandEncoder];
-	[blitEncoder synchronizeResource:bufferBackedTex.buffer.buffer];
-	[blitEncoder endEncoding];
 	
 	[cmdBuffer commit];
 	[cmdBuffer waitUntilCompleted];

@@ -29,6 +29,22 @@ FOUNDATION_EXPORT const unsigned char VVMetalKitVersionString[];
 //	no caller needs either of 2's defects, and nothing outside VVMetalKit reads 'idleLifetime', 'pooledSince' or the
 //	old 'recycleCount', so DYLIB_COMPATIBILITY_VERSION stays at 1: a copy at 1 runs every caller, with the defects 2
 //	mends and a pool that ages by calls and hands out last in, first out.
+//	4 is CopierMTLScene's sizing and VVMTLUtilities' read-back.  the copier places the source's srcRect in the
+//	destination by the SizingMode it is given, snapped to whole pixels, and writes every pixel outside it transparent
+//	black, where under 1 to 3 it stretched every copy over the whole destination whatever the mode; its stored
+//	'allowScaling', which nothing read, is gone, the argument still refusing a copy between different sizes.
+//	CreateCGImageRefFromResizedMTLTexture returns an image of the size asked for, the texture fitted into it, where
+//	under 1 to 3 it returned the texture's own size, and answers NULL for a size that rounds to no pixels;
+//	CreateCGImageRefFromResizedVVMTLTextureImage fits rather than stretches, answers NULL likewise, and for an image
+//	whose srcRect is already the size asked for but not its whole texture gives its srcRect, where under 1 to 3 it gave
+//	the whole texture.  and CreateCGImageRefFromMTLTexture, which every CGImage path reads through, synchronizes a
+//	managed texture before reading it, where under 1 to 3 it read a managed texture's CPU copy unsynchronized, stale on
+//	a discrete GPU; tags every image it makes premultiplied, the alpha of the output it reads, where under 1 to 3 it
+//	tagged them straight, so that every premultiplied pixel that was not opaque composited wrongly; makes an RGBA16Uint
+//	texture an 8-bit image, where under 1 to 3 it declared 16 bits a component over 8-bit bytes and made no image; and
+//	releases its colour space once for the once it creates it, where under 1 to 3 it retained it once more, which leaked
+//	nothing because the named sRGB space is immortal.  the signatures are unchanged and a copy at 1 runs every caller,
+//	with the defects 4 mends, so DYLIB_COMPATIBILITY_VERSION stays at 1.
 FOUNDATION_EXPORT const NSInteger VVMetalKitAPIVersion;
 
 #import <Metal/Metal.h>
