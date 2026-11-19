@@ -328,6 +328,7 @@ SwizzleShaderOpInfo MakeSwizzleShaderOpInfo(SwizzleShaderImageInfo inSrc, Swizzl
 	returnMe.colorRange = SwizzleColorRange_legacy;	//	default to the historical unclamped video-range behavior so existing callers are unchanged
 	returnMe.colorPrimaries = SwizzleColorPrimaries_legacy;	//	default to the historical 709 primaries so existing callers are unchanged
 	returnMe.readSrcImgFromBuffer = false;
+	returnMe.readSrcImgFromPlaneTextures = false;	//	populated by swizzler
 	//returnMe.dstPixelsToProcess = XXX;	//	NO do not do this here, the backend populates this at runtime during rendering
 	returnMe.dstPixelsToProcess[0] = 0;	//	doesn't matter, populated by swizzler
 	returnMe.dstPixelsToProcess[1] = 0;

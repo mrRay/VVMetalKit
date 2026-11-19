@@ -17,6 +17,7 @@
 
 @property (strong) id<VVMTLBuffer> srcBuffer;
 @property (strong) id<VVMTLTextureImage> srcRGBTexture;
+@property (strong) NSArray<id<VVMTLTextureImage>> * srcPlaneTextures;
 
 @property (strong) id<VVMTLBuffer> dstBuffer;
 @property (strong) id<VVMTLTextureImage> dstRGBTexture;
@@ -68,19 +69,19 @@
 #pragma mark - frontend methods
 
 
-- (void) convertSrcBuffer:(id<VVMTLBuffer>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)outDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (BOOL) convertSrcBuffer:(id<VVMTLBuffer>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)outDst dstRGBTexture:(nullable id<VVMTLTextureImage>)inDstRGB swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	//NSLog(@"%s",__func__);
 	//NSLog(@"%s ... %@ -> %@",__func__,[NSString stringFromFourCC:inInfo.srcImg.pf],[NSString stringFromFourCC:inInfo.dstImg.pf]);
 	//	if the src is nil, OR if both the dst buffer and dst texture are nil, bail
 	if (inSrc==nil || (outDst==nil && inDstRGB==nil))	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
-		return;
+		return NO;
 	}
 	
 	//	if there's an RGB texture, its dimensions need to match the dims of the destination buffer
 	if (inDstRGB != nil && (inInfo.dstImg.res[0] != inDstRGB.width || inInfo.dstImg.res[1] != inDstRGB.height))	{
 		NSLog(@"ERR: prereq B not met, %s",__func__);
-		return;
+		return NO;
 	}
 	
 	//if (inSrc != nil)	{
@@ -93,6 +94,7 @@
 	@synchronized (self)	{
 		self.srcBuffer = inSrc;
 		self.srcRGBTexture = nil;
+		self.srcPlaneTextures = nil;
 		self.dstBuffer = outDst;
 		self.dstRGBTexture = inDstRGB;
 		self.info = inInfo;
@@ -136,6 +138,7 @@
 		}
 		
 		_info.readSrcImgFromBuffer = true;
+		_info.readSrcImgFromPlaneTextures = false;
 		
 		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
@@ -166,6 +169,7 @@
 	//	[blitEncoder synchronizeResource:outDst];
 	//	[blitEncoder endEncoding];
 	//}
+	return YES;
 }
 - (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstBuffer:(nullable id<VVMTLBuffer>)outDst dstRGBTexture:(nullable id<VVMTLTextureImage>)outTex swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB;	{
 	//	if the src texture or dst buffer are nil, bail
@@ -180,6 +184,7 @@
 	@synchronized (self)	{
 		self.srcBuffer = nil;
 		self.srcRGBTexture = inSrc;
+		self.srcPlaneTextures = nil;
 		self.dstBuffer = outDst;
 		self.dstRGBTexture = outTex;
 		self.info = inInfo;
@@ -216,6 +221,7 @@
 		}
 		
 		_info.readSrcImgFromBuffer = false;
+		_info.readSrcImgFromPlaneTextures = false;
 		
 		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
 		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
@@ -247,6 +253,100 @@
 	//	[blitEncoder endEncoding];
 	//}
 }
+- (BOOL) convertSrcPlaneTextures:(NSArray<id<VVMTLTextureImage>> *)inSrcPlanes dstBuffer:(nullable id<VVMTLBuffer>)outDst dstRGBTexture:(nullable id<VVMTLTextureImage>)outTex swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	//	if there aren't any src planes, OR if both the dst buffer and dst texture are nil, bail
+	if (inSrcPlanes==nil || (outDst==nil && outTex==nil))	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return NO;
+	}
+	
+	//	the only planar layout the shader reads from textures so far is bi-planar 4:2:0: plane 0 is Y, plane 1 is Cb/Cr
+	if (inInfo.srcImg.pf != SwizzlePF_UYVY_PKPL_420_UI_8 || inSrcPlanes.count != 2)	{
+		NSLog(@"ERR: prereq B not met, %s",__func__);
+		return NO;
+	}
+	
+	//	the dimensions of the plane textures need to match the dims of the src image (the Cb/Cr plane has half as many samples on each axis, rounded up)
+	if (inSrcPlanes[0].width != inInfo.srcImg.res[0] || inSrcPlanes[0].height != inInfo.srcImg.res[1]
+	|| inSrcPlanes[1].width != (inInfo.srcImg.res[0]+1)/2 || inSrcPlanes[1].height != (inInfo.srcImg.res[1]+1)/2)	{
+		NSLog(@"ERR: prereq C not met, %s",__func__);
+		return NO;
+	}
+	
+	//	if there's an RGB texture, its dimensions need to match the dims of the destination image
+	if (outTex != nil && (inInfo.dstImg.res[0] != outTex.width || inInfo.dstImg.res[1] != outTex.height))	{
+		NSLog(@"ERR: prereq D not met, %s",__func__);
+		return NO;
+	}
+	
+	//	lock to prevent multiple threads from calling this method simultaneously, which wouldn't execute properly (we read the properties in the render callback)
+	@synchronized (self)	{
+		self.srcBuffer = nil;
+		self.srcRGBTexture = nil;
+		self.srcPlaneTextures = inSrcPlanes;
+		self.dstBuffer = outDst;
+		self.dstRGBTexture = outTex;
+		self.info = inInfo;
+	
+		//	figure out what the shader eval size will be (likely based on the dst pixel format, which may be packed)
+		switch (inInfo.dstImg.pf)	{
+		case SwizzlePF_Unknown:
+		case SwizzlePF_Luma_PK_UI_8:
+		case SwizzlePF_Luma_PK_FP_32:
+		case SwizzlePF_RGBA_PK_UI_8:
+		case SwizzlePF_RGBX_PK_UI_8:
+		case SwizzlePF_BGRA_PK_UI_8:
+		case SwizzlePF_BGRX_PK_UI_8:
+		case SwizzlePF_ARGB_PK_UI_8:
+		case SwizzlePF_RGBA_PK_FP_32:
+		case SwizzlePF_HSVA_PK_UI_8:
+		case SwizzlePF_CMYK_PK_UI_8:
+			self.shaderEvalSize = MTLSizeMake(1,1,1);
+			break;
+		case SwizzlePF_UYVY_PK_422_UI_8:
+		case SwizzlePF_YUYV_PK_422_UI_8:
+		case SwizzlePF_UYVA_PKPL_422_UI_8:
+		case SwizzlePF_UYVA_PKPL_422_UI_16:
+		case SwizzlePF_UYVY_PKPL_422_UI_16:
+			self.shaderEvalSize = MTLSizeMake(2,1,1);
+			break;
+		case SwizzlePF_UYVY_PKPL_420_UI_8:
+		case SwizzlePF_UYVY_PL_420_UI_8:
+			self.shaderEvalSize = MTLSizeMake(2,2,1);
+			break;
+		case SwizzlePF_UYVY_PK_422_UI_10:
+			self.shaderEvalSize = MTLSizeMake(6,1,1);
+			break;
+		}
+		
+		_info.readSrcImgFromBuffer = false;
+		_info.readSrcImgFromPlaneTextures = true;
+		
+		//	make sure our SwizzleShaderOpInfo object has an accurate record of how many pixels need to be processed in the shader
+		_info.dstPixelsToProcess[0] = (int)self.shaderEvalSize.width;
+		_info.dstPixelsToProcess[1] = (int)self.shaderEvalSize.height;
+	
+		//	don't call 'renderToTexture', it sets the render size to 1x1 if you have a nil buffer- instead, do this (which is basically equivalent)
+		{
+			self.renderSize = CGSizeMake(inInfo.dstImg.res[0], inInfo.dstImg.res[1]);
+		
+			self.renderTarget = nil;
+			self.commandBuffer = inCB;
+		
+			[self _renderCallback];
+		
+			self.commandBuffer = nil;
+			self.renderTarget = nil;
+		}
+	
+		self.srcBuffer = nil;
+		self.srcRGBTexture = nil;
+		self.srcPlaneTextures = nil;
+		self.dstBuffer = nil;
+		self.dstRGBTexture = nil;
+	}
+	return YES;
+}
 - (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc dstSurfaceImage:(id<VVMTLSurfaceImage>)inDstSurface swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	if (inSrc==nil || inDstSurface==nil || inDstSurface.wholeSurfaceBuffer==nil)	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
@@ -268,31 +368,35 @@
 		keepAlive = nil;
 	}];
 }
-- (void) convertSrcSurfaceImage:(id<VVMTLSurfaceImage>)inSrcSurface dstRGBTexture:(id<VVMTLTextureImage>)outTex swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+- (BOOL) convertSrcSurfaceImage:(id<VVMTLSurfaceImage>)inSrcSurface dstRGBTexture:(id<VVMTLTextureImage>)outTex swizzleInfo:(SwizzleShaderOpInfo)inInfo inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
 	if (inSrcSurface==nil || inSrcSurface.wholeSurfaceBuffer==nil || outTex==nil)	{
 		NSLog(@"ERR: prereq A not met, %s",__func__);
-		return;
+		return NO;
 	}
 
 	//	read from the surface's whole-surface no-copy buffer (which aliases the IOSurface backing the CVPixelBuffer).
 	//	inInfo.srcImg must already describe the surface's actual per-plane geometry- see VVMTLSurfaceImage(Swizzle).  the buffer-source base method sets readSrcImgFromBuffer.
-	[self
+	if (![self
 		convertSrcBuffer:inSrcSurface.wholeSurfaceBuffer
 		dstBuffer:nil
 		dstRGBTexture:outTex
 		swizzleInfo:inInfo
-		inCommandBuffer:inCB];
+		inCommandBuffer:inCB])	{
+		return NO;
+	}
 
 	//	keep the surface alive until the read completes, so the host can hand off the surface in its own completion handler without the surface (and its backing) being recycled out from under the GPU
 	[inCB addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 		id<VVMTLSurfaceImage>		keepAlive = inSrcSurface;
 		keepAlive = nil;
 	}];
+	return YES;
 }
 
 - (void) renderCallback	{
 	id<VVMTLBuffer>		srcBuffer = self.srcBuffer;
 	id<VVMTLTextureImage>		srcRGBTex = self.srcRGBTexture;
+	NSArray<id<VVMTLTextureImage>>		*srcPlaneTexs = self.srcPlaneTextures;
 	id<VVMTLBuffer>		dstBuffer = self.dstBuffer;
 	id<VVMTLTextureImage>		dstRGBTex = self.dstRGBTexture;
 	bool				outputToBuffer = true;
@@ -307,6 +411,9 @@
 	if (srcRGBTex == nil)
 		srcRGBTex = slugTexture;
 	
+	id<VVMTLTextureImage>		srcPlane0Tex = (srcPlaneTexs.count > 0) ? srcPlaneTexs[0] : slugTexture;
+	id<VVMTLTextureImage>		srcPlane1Tex = (srcPlaneTexs.count > 1) ? srcPlaneTexs[1] : slugTexture;
+	
 	[self.computeEncoder
 		setBuffer:srcBuffer.buffer
 		offset:0
@@ -317,6 +424,14 @@
 		atIndex:SwizzleShaderArg_SrcRGBTexture];
 	
 	[self.computeEncoder
+		setTexture:srcPlane0Tex.texture
+		atIndex:SwizzleShaderArg_SrcPlane0Texture];
+	
+	[self.computeEncoder
+		setTexture:srcPlane1Tex.texture
+		atIndex:SwizzleShaderArg_SrcPlane1Texture];
+	
+	[self.computeEncoder
 		setBuffer:dstBuffer.buffer
 		offset:0
 		atIndex:SwizzleShaderArg_DstBuffer];
@@ -325,27 +440,17 @@
 		setTexture:(dstRGBTex==nil) ? nil : dstRGBTex.texture
 		atIndex:SwizzleShaderArg_DstRGBTexture];
 	
+	//	these two are a few bytes each: copied into the command buffer, so there's no MTLBuffer to make (or keep alive) per conversion
 	SwizzleShaderOpInfo	info = self.info;
-	id<MTLBuffer>		infoBuffer = [self.device
-		newBufferWithBytes:&info
-		length:sizeof(info)
-		options:MTLResourceStorageModeShared];
-	[self.computeEncoder setBuffer:infoBuffer offset:0 atIndex:SwizzleShaderArg_OpInfo];
-	
-	id<MTLBuffer>		writeBufferBuffer = [self.device
-		newBufferWithBytes:&outputToBuffer
-		length:sizeof(outputToBuffer)
-		options:MTLResourceStorageModeShared];
-	[self.computeEncoder setBuffer:writeBufferBuffer offset:0 atIndex:SwizzleShaderArg_WriteBuffer];
+	[self.computeEncoder setBytes:&info length:sizeof(info) atIndex:SwizzleShaderArg_OpInfo];
+	[self.computeEncoder setBytes:&outputToBuffer length:sizeof(outputToBuffer) atIndex:SwizzleShaderArg_WriteBuffer];
 	
 	[self.commandBuffer addCompletedHandler:^(id<MTLCommandBuffer> cb)	{
 		id<VVMTLBuffer>		a = srcBuffer;
 		id<VVMTLBuffer>		b = dstBuffer;
 		id<VVMTLTextureImage>		c = dstRGBTex;
-		id<MTLBuffer>		d = infoBuffer;
-		id<MTLBuffer>		e = writeBufferBuffer;
+		NSArray<id<VVMTLTextureImage>>		*d = srcPlaneTexs;
 		
-		e = nil;
 		d = nil;
 		c = nil;
 		b = nil;
@@ -357,9 +462,9 @@
 	MTLSize			numGroups = [self calculateNumThreadgroups];
 	[self.computeEncoder dispatchThreadgroups:numGroups threadsPerThreadgroup:threadGroupSize];
 	
-	infoBuffer = nil;
 	dstRGBTex = nil;
 	dstBuffer = nil;
+	srcPlaneTexs = nil;
 	srcRGBTex = nil;
 	srcBuffer = nil;
 }

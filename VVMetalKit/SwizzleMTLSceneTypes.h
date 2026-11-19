@@ -180,6 +180,8 @@ typedef struct	{
 	
 	//	populated automatically by the backend, but you'll want to read it in shaders.  if YES, we need to pull the src image out of the src image buffer.  if NO, we need to pull the src image out of the src img texture.  (we can no longer just pass a nil texture and check for that in the shader, as the metal debugger doesn't work unless all attachments are non-nil)
 	bool			readSrcImgFromBuffer;
+	//	populated automatically by the backend, but you'll want to read it in shaders.  only checked if 'readSrcImgFromBuffer' is NO.  if YES, the src image is planar YCbCr and each of its planes is in its own texture (the src plane textures).  if NO, the src image is RGB and is in the src RGB texture.
+	bool			readSrcImgFromPlaneTextures;
 	//	populated automatically by the backend, but you'll want to read it in shaders.  must never exceed 'MAX_PIXELS_TO_PROCESS'! the # of pixels in the destination image to process per execution unit of the compute shader.  rgb is 1, 2vuy is probably 2, v210 is probably 6, etc
 	unsigned int	dstPixelsToProcess[2];
 } SwizzleShaderOpInfo;
@@ -202,7 +204,9 @@ typedef enum SwizzleShaderArg	{
 	SwizzleShaderArg_DstBuffer,
 	SwizzleShaderArg_DstRGBTexture,
 	SwizzleShaderArg_OpInfo,
-	SwizzleShaderArg_WriteBuffer	//	boolean, whether or not to try and write to the output buffer
+	SwizzleShaderArg_WriteBuffer,	//	boolean, whether or not to try and write to the output buffer
+	SwizzleShaderArg_SrcPlane0Texture,	//	only read if the src image's planes are in textures: the first plane (Y)
+	SwizzleShaderArg_SrcPlane1Texture	//	only read if the src image's planes are in textures: the second plane (Cb/Cr)
 } SwizzleShaderArg;
 
 

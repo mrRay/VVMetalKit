@@ -60,6 +60,17 @@ void PopulateNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::
 void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<float,access::sample> inTex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
 
 
+//	the plane-texture counterpart of UnpackNormChannelValsAtLoc(): the src image is planar, and each of its planes is in its own texture.
+//	returns the normalized values of the channels at the passed location.  doesn't convert any colors, doesn't do any interpolation- expects its location to be integral, and coords are relative to the src image.
+float4 UnpackNormChannelValsFromSrcPlaneTexAtLoc(texture2d<float,access::sample> plane0Tex, texture2d<float,access::sample> plane1Tex, constant SwizzleShaderImageInfo & imgInfo, uint2 loc);
+
+
+//	populates the passed array of 'normRGB' values from the passed plane textures, using 'opInfo' (which describes the planar YCbCr image the textures hold)
+void PopulateNormRGBFromSrcPlaneTex(thread float4 * normRGB, texture2d<float,access::sample> plane0Tex, texture2d<float,access::sample> plane1Tex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
+//	same as above, but there's a size mismatch between the src and dst images and we need to do some resampling!
+void PopulateAndResampleNormRGBFromSrcPlaneTex(thread float4 * normRGB, texture2d<float,access::sample> plane0Tex, texture2d<float,access::sample> plane1Tex, constant SwizzleShaderOpInfo & opInfo, uint2 gid);
+
+
 //	last part of the process.  takes the normalized RGB color vals, and uses them to populate the dst image with them
 void PopulateDstFromNormRGB(device void * dstBuffer, constant SwizzleShaderOpInfo & opInfo, thread float4 * normRGB, uint2 gid);
 
@@ -150,6 +161,8 @@ kernel void SwizzleMTLSceneFunc(
 	constant SwizzleShaderOpInfo & opInfo [[ buffer(SwizzleShaderArg_OpInfo) ]],
 	//constant SwizzleShaderProviderInfo & providerInfo [[ buffer(SwizzleShaderArg_ProviderInfo) ]],
 	constant bool & writeToBuffer [[ buffer(SwizzleShaderArg_WriteBuffer) ]],
+	texture2d<float,access::sample> srcPlane0Texture [[ texture(SwizzleShaderArg_SrcPlane0Texture) ]],
+	texture2d<float,access::sample> srcPlane1Texture [[ texture(SwizzleShaderArg_SrcPlane1Texture) ]],
 	uint2 gid [[ thread_position_in_grid ]])
 {
 	//	conceptually, this shader is processing pixels in the destination image
@@ -169,6 +182,15 @@ kernel void SwizzleMTLSceneFunc(
 		}
 		else	{
 			PopulateNormRGBFromSrcBuffer(normRGB, srcBuffer, opInfo, gid);
+		}
+	}
+	//	else if the src image is planar, and each of its planes is in a texture
+	else if (opInfo.readSrcImgFromPlaneTextures)	{
+		if (resMismatch)	{
+			PopulateAndResampleNormRGBFromSrcPlaneTex(normRGB, srcPlane0Texture, srcPlane1Texture, opInfo, gid);
+		}
+		else	{
+			PopulateNormRGBFromSrcPlaneTex(normRGB, srcPlane0Texture, srcPlane1Texture, opInfo, gid);
 		}
 	}
 	//	else the src image is in a texture
@@ -940,6 +962,120 @@ void PopulateAndResampleNormRGBFromSrcTex(thread float4 * normRGB, texture2d<flo
 	}
 	
 	
+}
+
+
+
+
+#pragma mark - src plane textures -> normalized RGB
+
+
+
+
+float4 UnpackNormChannelValsFromSrcPlaneTexAtLoc(texture2d<float,access::sample> plane0Tex, texture2d<float,access::sample> plane1Tex, constant SwizzleShaderImageInfo & imgInfo, uint2 loc)	{
+	float4			returnMe = float4(0,0,0,1);
+	if (loc.x >= imgInfo.res[0] || loc.y >= imgInfo.res[1])
+		return returnMe;
+	
+	switch (imgInfo.pf)	{
+	case SwizzlePF_UYVY_PKPL_420_UI_8:
+		{
+			//	first plane is Y, one sample per pixel
+			//	second plane is Cb/Cr, one sample per 2x2 block of pixels (it's 4:2:0)
+			uint2		basePairLoc = uint2(loc.x/2,loc.y/2);
+			returnMe[0] = plane0Tex.read(loc).r;
+			float2		cbCr = plane1Tex.read(basePairLoc).rg;
+			returnMe[1] = cbCr[0];
+			returnMe[2] = cbCr[1];
+		}
+		break;
+	default:
+		//	the frontend refuses any other pixel format for a src that's in plane textures
+		break;
+	}
+	
+	return returnMe;
+}
+void PopulateNormRGBFromSrcPlaneTex(thread float4 * normRGB, texture2d<float,access::sample> plane0Tex, texture2d<float,access::sample> plane1Tex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
+	
+	//				****** IMPORTANT *******
+	//	this function assumes that the src and dst images have the same resolution!
+	//	this function DOES NOT PERFORM ANY INTERPOLATION
+	
+	//	resolve the YCbCr->RGB decode params ONCE for this thread (a src that's in plane textures is always YCbCr).
+	YCbCrDecodeParams		dec = SwizzleYCbCrDecodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
+	
+	unsigned int			pixelIndex = 0;
+	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
+		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
+			//	calculate the coords of the pixel in the destination buffer we're calculating the color for
+			GPoint		dstPixel = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel );
+			//	if the pixel we're populating is outside the bounds of the source image in the dst image, it's solid black
+			if (!PixelInRect(dstPixel, opInfo.srcImgFrameInDst))	{
+				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
+				++pixelIndex;
+				continue;
+			}
+			//	convert this to the normalized coords of the src img, using the frame the src image draws within for the op
+			GPoint		srcNorm = NormCoordsOfPixelInRect(dstPixel, opInfo.srcImgFrameInDst);
+			//	apply any flippedness
+			if (opInfo.flipH)
+				srcNorm.x = 1. - srcNorm.x;
+			if (opInfo.flipV)
+				srcNorm.y = 1. - srcNorm.y;
+			//	convert the normalized src img coords to pixel src img coords (the same way the buffer path does, so a frame reads the same pixels by either path)
+			GPoint		srcPixel = MakePoint( srcNorm.x * opInfo.srcImg.res[0], srcNorm.y * opInfo.srcImg.res[1] );
+			uint2		sampleLoc( clamp((int)srcPixel.x,(int)0,(int)opInfo.srcImg.res[0]-1), clamp((int)srcPixel.y,(int)0,(int)opInfo.srcImg.res[1]-1) );
+			
+			float4		rawVals = UnpackNormChannelValsFromSrcPlaneTexAtLoc(plane0Tex, plane1Tex, opInfo.srcImg, sampleLoc);
+			float4		tmpVals;
+			tmpVals.rgb = *dec.mat * (rawVals.rgb - *dec.offset) * fadeToBlackMultiplier.rgb;
+			tmpVals.a = 1.0;
+			normRGB[pixelIndex] = tmpVals;
+			
+			++pixelIndex;
+		}
+	}
+}
+void PopulateAndResampleNormRGBFromSrcPlaneTex(thread float4 * normRGB, texture2d<float,access::sample> plane0Tex, texture2d<float,access::sample> plane1Tex, constant SwizzleShaderOpInfo & opInfo, uint2 gid)	{
+	
+	//	both planes are sampled at the same normalized coords and the YCbCr vals are converted afterwards: the conversion is a matrix + an offset, so interpolating before it gives the same result as interpolating after it
+	constexpr sampler		sampler(mag_filter::linear, min_filter::linear, address::clamp_to_edge, coord::normalized);
+	YCbCrDecodeParams		dec = SwizzleYCbCrDecodeParams(opInfo.colorPrimaries, opInfo.colorRange);
+	float4					fadeToBlackMultiplier = float4(1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1.-opInfo.fadeToBlack, 1);
+	
+	unsigned int			pixelIndex = 0;
+	for (unsigned int yPixel = 0; yPixel < opInfo.dstPixelsToProcess[1]; ++yPixel)	{
+		for (unsigned int xPixel = 0; xPixel < opInfo.dstPixelsToProcess[0]; ++xPixel)	{
+			//	calculate the coords of the pixel in the destination buffer we're calculating the color for
+			GPoint		dstPixel = MakePoint( (gid.x * opInfo.dstPixelsToProcess[0]) + xPixel, (gid.y * opInfo.dstPixelsToProcess[1]) + yPixel );
+			//	if the pixel we're populating is outside the bounds of the source image in the dst image, it's solid black
+			if (!PixelInRect(dstPixel, opInfo.srcImgFrameInDst))	{
+				normRGB[pixelIndex] = float4(0., 0., 0., 1.);
+				++pixelIndex;
+				continue;
+			}
+			//	convert this to the normalized coords of the src img, using the frame the src image draws within for the op
+			GPoint		srcNorm = NormCoordsOfPixelInRect(dstPixel, opInfo.srcImgFrameInDst);
+			//	apply any flippedness
+			if (opInfo.flipH)
+				srcNorm.x = 1. - srcNorm.x;
+			if (opInfo.flipV)
+				srcNorm.y = 1. - srcNorm.y;
+			
+			//	sample the planes
+			float3		rawVals;
+			rawVals[0] = plane0Tex.sample(sampler, float2(srcNorm.x, srcNorm.y)).r;
+			rawVals.yz = plane1Tex.sample(sampler, float2(srcNorm.x, srcNorm.y)).rg;
+			float4		tmpVals;
+			tmpVals.rgb = *dec.mat * (rawVals - *dec.offset) * fadeToBlackMultiplier.rgb;
+			tmpVals.a = 1.0;
+			normRGB[pixelIndex] = tmpVals;
+			
+			++pixelIndex;
+		}
+	}
 }
 
 

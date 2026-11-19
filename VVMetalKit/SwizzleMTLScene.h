@@ -19,7 +19,8 @@ NS_ASSUME_NONNULL_BEGIN
 ///		- outTex: id<VVMTLTextureImage> containing a MTLTexture.  dimensions must match the dimensions of 'outDst'.  RGB image data will be written to this texture as part of the swizzle while converting the src image data to the dst image data.  may be nil.
 ///		- inInfo: describes the swizzle operation.  contains data structures describing the format and layout of the src and dst buffers, H and V flippedness, fade-to-black-edness, and other fun stuff.
 ///		- inCB: The command buffer in which the conversion will take place.
-- (void) convertSrcBuffer:(id<VVMTLBuffer>)inSrc
+///	- Returns: NO if nothing was encoded into `inCB` (a prerequisite above wasn't met; the reason is logged).  The destination is then untouched- the caller must not use it as if it had been written.
+- (BOOL) convertSrcBuffer:(id<VVMTLBuffer>)inSrc
 	dstBuffer:(nullable id<VVMTLBuffer>)outDst
 	dstRGBTexture:(nullable id<VVMTLTextureImage>)outTex
 	swizzleInfo:(SwizzleShaderOpInfo)inInfo
@@ -33,6 +34,20 @@ NS_ASSUME_NONNULL_BEGIN
 ///		- inInfo: describes the swizzle operation.  contains data structures describing the format and layout of the src and dst buffers, H and V flippedness, fade-to-black-edness, and other fun stuff.
 ///		- inCB: The command buffer in which the conversion will take place.
 - (void) convertSrcRGBTexture:(id<VVMTLTextureImage>)inSrc
+	dstBuffer:(nullable id<VVMTLBuffer>)outDst
+	dstRGBTexture:(nullable id<VVMTLTextureImage>)outTex
+	swizzleInfo:(SwizzleShaderOpInfo)inInfo
+	inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+
+///	Converts the pixel format of a planar YCbCr image whose planes are each in their own texture.
+///	- Parameters:
+///		- inSrcPlanes: one id<VVMTLTextureImage> per plane of the source image, in plane order.  The only layout read this way so far is `SwizzlePF_UYVY_PKPL_420_UI_8` (two planes: a one-channel Y texture, and a two-channel Cb/Cr texture at half the resolution on both axes).  'inInfo.srcImg' must still be populated (its per-plane offsets and bytesPerRows aren't read).  can never be nil.
+///		- outDst: MTLBuffer into which image data will be written, described by 'inInfo.dstImg'.  the image data here is the destination image.  may be nil.
+///		- outTex: id<VVMTLTextureImage> containing a MTLTexture.  dimensions must match the dimensions of 'outDst'.  RGB image data will be written to this texture as part of the swizzle while converting the src image data to the dst image data.  may be nil.
+///		- inInfo: describes the swizzle operation (format/layout of src + dst, flippedness, colorRange, colorPrimaries, etc).
+///		- inCB: The command buffer in which the conversion will take place.  The receiver extends the lifetime of the textures in 'inSrcPlanes' until this command buffer completes.
+///	- Returns: NO if nothing was encoded into `inCB` (a prerequisite above wasn't met; the reason is logged).  The destination is then untouched- the caller must not use it as if it had been written.
+- (BOOL) convertSrcPlaneTextures:(NSArray<id<VVMTLTextureImage>> *)inSrcPlanes
 	dstBuffer:(nullable id<VVMTLBuffer>)outDst
 	dstRGBTexture:(nullable id<VVMTLTextureImage>)outTex
 	swizzleInfo:(SwizzleShaderOpInfo)inInfo
@@ -55,7 +70,8 @@ NS_ASSUME_NONNULL_BEGIN
 ///		- outTex: id<VVMTLTextureImage> containing the destination RGB texture.  Can never be nil.
 ///		- inInfo: describes the swizzle operation (format/layout of src + dst, flippedness, colorRange, colorPrimaries, etc).
 ///		- inCB: The command buffer in which the conversion will take place.  The receiver extends `inSrcSurface`'s lifetime until this command buffer completes.
-- (void) convertSrcSurfaceImage:(id<VVMTLSurfaceImage>)inSrcSurface
+///	- Returns: NO if nothing was encoded into `inCB` (a prerequisite above wasn't met; the reason is logged).  The destination is then untouched- the caller must not use it as if it had been written.
+- (BOOL) convertSrcSurfaceImage:(id<VVMTLSurfaceImage>)inSrcSurface
 	dstRGBTexture:(id<VVMTLTextureImage>)outTex
 	swizzleInfo:(SwizzleShaderOpInfo)inInfo
 	inCommandBuffer:(id<MTLCommandBuffer>)inCB;

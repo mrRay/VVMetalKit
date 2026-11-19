@@ -9,6 +9,7 @@
 #import "VVMTLSurfaceImageDescriptor.h"
 #import "SwizzleMTLScene.h"
 #import <VVMetalKit/VVMTLTextureImage.h>
+#import "VVMTLPool.h"
 
 
 
@@ -119,12 +120,8 @@
 	return returnMe;
 }
 
-- (void) convertToRGBTexture:(id<VVMTLTextureImage>)outRGB scene:(SwizzleMTLScene *)inScene inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
-	if (outRGB==nil || inScene==nil)	{
-		NSLog(@"ERR: prereq A not met, %s",__func__);
-		return;
-	}
-
+//	the op that draws this surface (as SOURCE) into the passed RGB texture
+- (SwizzleShaderOpInfo) _swizzleOpInfoToDrawIntoRGBTexture:(id<VVMTLTextureImage>)outRGB	{
 	//	derive the dst layout from the texture's ACTUAL pixel format rather than assuming BGRA8.  (the shader writes via texture.write(), so Metal maps channel order from the real format regardless- but keep dstImg.pf honest so the op-info describes the true destination.)
 	SwizzlePF		dstPF;
 	switch (outRGB.texture.pixelFormat)	{
@@ -142,14 +139,89 @@
 		break;
 	}
 
-	//	build the dst image info from the RGB texture, then the op (surface as src), then dispatch
+	//	build the dst image info from the RGB texture, then the op (surface as src)
 	SwizzleShaderImageInfo		dstInfo = MakeSwizzleShaderImageInfo(dstPF, (unsigned int)outRGB.width, (unsigned int)outRGB.height);
-	SwizzleShaderOpInfo			op = [self makeSwizzleOpInfoToDrawIntoDstImageInfo:dstInfo];
-	[inScene
+	return [self makeSwizzleOpInfoToDrawIntoDstImageInfo:dstInfo];
+}
+
+- (BOOL) convertToRGBTexture:(id<VVMTLTextureImage>)outRGB scene:(SwizzleMTLScene *)inScene inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	if (outRGB==nil || inScene==nil)	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return NO;
+	}
+
+	//	build the op, then dispatch
+	SwizzleShaderOpInfo			op = [self _swizzleOpInfoToDrawIntoRGBTexture:outRGB];
+	return [inScene
 		convertSrcSurfaceImage:self
 		dstRGBTexture:outRGB
 		swizzleInfo:op
 		inCommandBuffer:inCB];
+}
+
+- (BOOL) convertPlaneTexturesToRGBTexture:(id<VVMTLTextureImage>)outRGB scene:(SwizzleMTLScene *)inScene inCommandBuffer:(id<MTLCommandBuffer>)inCB	{
+	if (outRGB==nil || inScene==nil || inCB==nil)	{
+		NSLog(@"ERR: prereq A not met, %s",__func__);
+		return NO;
+	}
+
+	//	only a bi-planar 4:2:0 surface that has its CVPixelBuffer (and describes that pixel buffer) can be read this way.  not an error: the caller is told, and reads the surface another way
+	CVPixelBufferRef		cvpb = self.cvpb;
+	if (cvpb == NULL || self.swizzlePixelFormat != SwizzlePF_UYVY_PKPL_420_UI_8 || CVPixelBufferGetPlaneCount(cvpb) != 2)
+		return NO;
+	if (self.width != CVPixelBufferGetWidth(cvpb) || self.height != CVPixelBufferGetHeight(cvpb))
+		return NO;
+	CVMetalTextureCacheRef		texCache = VVMTLPool.global.cvTexCache;
+	if (texCache == NULL)
+		return NO;
+
+	//	one texture per plane, straight off the pixel buffer's IOSurface (no copy): one channel for Y, two for Cb/Cr.  the cache hands back the textures it already made for a surface it has seen, so a source that recycles its surfaces (a decoder does) stops allocating after its first few frames
+	NSSize					planeSizes[2];
+	CVMetalTextureRef		planeRefs[2] = { NULL, NULL };
+	MTLPixelFormat			planeFormats[2] = { MTLPixelFormatR8Unorm, MTLPixelFormatRG8Unorm };
+	NSMutableArray<id<VVMTLTextureImage>>		*planes = [NSMutableArray arrayWithCapacity:2];
+	for (size_t i=0; i<2; ++i)	{
+		planeSizes[i] = NSMakeSize(CVPixelBufferGetWidthOfPlane(cvpb, i), CVPixelBufferGetHeightOfPlane(cvpb, i));
+		CVReturn		cvErr = CVMetalTextureCacheCreateTextureFromImage(
+			kCFAllocatorDefault,
+			texCache,
+			cvpb,
+			NULL,
+			planeFormats[i],
+			(size_t)planeSizes[i].width,
+			(size_t)planeSizes[i].height,
+			i,
+			&planeRefs[i]);
+		//	the texture image retains the CVMetalTexture for as long as it lives
+		id<VVMTLTextureImage>		plane = (cvErr != kCVReturnSuccess) ? nil : [VVMTLPool.global textureForCVMTLTex:planeRefs[i] sized:planeSizes[i]];
+		if (planeRefs[i] != NULL)
+			CVBufferRelease(planeRefs[i]);
+		if (plane == nil)	{
+			//	logged here, not by the caller: only this knows the CoreVideo error, which is what tells a passing failure (allocation) from a machine that won't make these textures
+			NSLog(@"ERR: couldn't make a texture from plane %zu (%d x %d), CVReturn %d, %s",i,(int)planeSizes[i].width,(int)planeSizes[i].height,(int)cvErr,__func__);
+			return NO;
+		}
+		[planes addObject:plane];
+	}
+
+	//	build the op, then dispatch.  the op's src image info is only read for its pixel format and resolution here- the planes aren't found by offset
+	SwizzleShaderOpInfo			op = [self _swizzleOpInfoToDrawIntoRGBTexture:outRGB];
+	if (![inScene
+		convertSrcPlaneTextures:planes
+		dstBuffer:nil
+		dstRGBTexture:outRGB
+		swizzleInfo:op
+		inCommandBuffer:inCB])	{
+		return NO;
+	}
+
+	//	the plane textures alias the pixel buffer's surface, and whoever made the pixel buffer reuses that surface once the buffer is released: keep this surface (and so its pixel buffer) alive until the GPU has read the planes
+	VVMTLSurfaceImage		*keepAlive = self;
+	[inCB addCompletedHandler:^(id<MTLCommandBuffer> completed)	{
+		VVMTLSurfaceImage		*tmp = keepAlive;
+		tmp = nil;
+	}];
+	return YES;
 }
 
 

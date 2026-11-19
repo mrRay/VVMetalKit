@@ -42,7 +42,12 @@ NS_ASSUME_NONNULL_BEGIN
 - (SwizzleShaderOpInfo) makeSwizzleOpInfoToDrawIntoDstImageInfo:(SwizzleShaderImageInfo)inDstInfo;
 
 ///	Convenience that decodes this surface into the passed RGB texture, building the op (surface as SOURCE, packed BGRA8 destination sized to `outRGB`) and dispatching it through `inScene`.
-- (void) convertToRGBTexture:(id<VVMTLTextureImage>)outRGB scene:(SwizzleMTLScene *)inScene inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+///	- Returns: NO if nothing was encoded into `inCB` (the scene refused the op; the reason is logged).  `outRGB` is then untouched.
+- (BOOL) convertToRGBTexture:(id<VVMTLTextureImage>)outRGB scene:(SwizzleMTLScene *)inScene inCommandBuffer:(id<MTLCommandBuffer>)inCB;
+
+///	Like ``convertToRGBTexture:scene:inCommandBuffer:``, but the scene reads each of the surface's planes as a texture made from the surface's CVPixelBuffer (through the global pool's CVMetalTextureCache) instead of reading `wholeSurfaceBuffer`- so the surface needs a `cvpb`, and doesn't need a `wholeSurfaceBuffer` or its plane geometry.  Only bi-planar 4:2:0 surfaces (`'420v'`/`'420f'`) are read this way.  The surface (and so its CVPixelBuffer) is kept alive until `inCB` completes.
+///	- Returns: NO if nothing was encoded into `inCB`: the surface isn't bi-planar 4:2:0, it has no CVPixelBuffer, textures couldn't be made from its planes (logged, with the CoreVideo error), or the scene refused the op (logged).  The caller decides what to do instead (``convertToRGBTexture:scene:inCommandBuffer:`` reads the same surface through `wholeSurfaceBuffer`).
+- (BOOL) convertPlaneTexturesToRGBTexture:(id<VVMTLTextureImage>)outRGB scene:(SwizzleMTLScene *)inScene inCommandBuffer:(id<MTLCommandBuffer>)inCB;
 
 @end
 
