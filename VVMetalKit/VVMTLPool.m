@@ -1792,9 +1792,14 @@ static NSUInteger LinearTextureAlignmentForPixelFormat(id<MTLDevice> inDevice, M
 	[n setPlaneCount:effectivePlaneCount offsets:cachedOffsets bytesPerRows:cachedBytesPerRows widths:cachedWidths heights:cachedHeights];
 
 	//	the whole-surface no-copy buffer aliases the IOSurface memory.  no-op deallocator: the IOSurface (owned by the CVPixelBuffer) owns this memory- releasing the MTLBuffer must NOT free it.
-	//	IOSurface base/alloc are page-aligned, satisfying newBufferWithBytesNoCopy.  bufferWithLengthNoCopy: sets preferDeletion=YES so this buffer is freed-not-pooled (only the VVMTLSurfaceImage recycles, carrying its own buffer forward).
+	//	the IOSurface base is page-aligned but its alloc size is NOT always a whole number of pages (a 4K 420v surface is 12450304 bytes).  macOS 15 accepts that length; on macOS 13 every no-copy wrap of such a surface failed, and the length is the likely cause (not yet confirmed on a macOS 13 machine).  the surface's memory is mapped in whole VM pages from that base, so rounding the length up to the page stays inside the surface's own mapping.
+	//	bufferWithLengthNoCopy: sets preferDeletion=YES so this buffer is freed-not-pooled (only the VVMTLSurfaceImage recycles, carrying its own buffer forward).
+	size_t			pageSize = (size_t)getpagesize();
+	size_t			wrapLength = surfaceAllocSize;
+	if (((uintptr_t)surfaceBase % pageSize) == 0)
+		wrapLength = ((surfaceAllocSize + pageSize - 1) / pageSize) * pageSize;
 	id<VVMTLBuffer>		wholeBuffer = [self
-		bufferWithLengthNoCopy:surfaceAllocSize
+		bufferWithLengthNoCopy:wrapLength
 		storage:desc.storage
 		basePtr:surfaceBase
 		bufferDeallocator:^(void *p, NSUInteger l){}];
